@@ -5,7 +5,7 @@
 [github]
   user = iagodahlem
 [core]
-  editor = vim
+  editor = nvim
   excludesfile = ~/.gitignore_global
   pager = diff-so-fancy | less --tabs=4
 [commit]
@@ -53,7 +53,7 @@
   ftp = fetch --prune
 
   # helpers
-  bam = !git branch --merged | grep -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d
+  bam = !git branch --merged | grep -v '\\*\\|master\\|develop\\|main' | xargs -n 1 git branch -d
 
   # lists
   aliases = !git config --get-regexp 'alias.*' | colrm 1 6 | sed 's/[ ]/ = /' | sort
