@@ -15,12 +15,6 @@ else
   export EDITOR=$CODE
 fi
 
-# nvm
-export NVM_DIR="$HOME/.nvm"
-
-# ssh
-export SSH_KEY_PATH="$HOME/.ssh/dsa_id"
-
 # path
 export PATH=/usr/local/bin
 export PATH=$PATH:/usr/local/sbin

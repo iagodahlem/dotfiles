@@ -3,10 +3,6 @@ for file in $DOTFILES_ZSH/.{exports,aliases,functions}; do
 done
 unset file
 
-for extension in "$DOTFILES"/extensions/*/zsh/.bootstrap; do
-  [ -r "$extension" ] && source "$extension"
-done
-unset extension
-
 source "$DOTFILES"/asdf/.asdf
+source "$DOTFILES"/ssh/.ssh
 source "$DOTFILES"/nvm/.nvm
