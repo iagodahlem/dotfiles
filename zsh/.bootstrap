@@ -1,7 +1,7 @@
-for file in $DOTFILES_ZSH/.{exports,aliases,functions}; do
-  [ -r "$file" ] && source "$file"
+for FILE in $DOTFILES_ZSH/.{exports,aliases,functions}; do
+  [ -r "$FILE" ] && source "$FILE"
 done
-unset file
+unset FILE
 
 source "$DOTFILES"/asdf/.asdf
 source "$DOTFILES"/ssh/.ssh

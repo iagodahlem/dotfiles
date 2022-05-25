@@ -24,9 +24,10 @@ export PATH=$PATH:/sbin
 export PATH=$PATH:/bin
 export PATH=$PATH:/usr/games
 export PATH=$PATH:/usr/local/games
-export PATH=$DOTFILES_BIN:$PATH
+export PATH=$PATH:/snap/bin
+export PATH=$PATH:$DOTFILES_BIN
 
-for extension in "$DOTFILES"/extensions/*; do
-  export PATH="$extension"/bin:$PATH
+for EXTENSION in "$DOTFILES"/extensions/*; do
+  export PATH="$PATH:$EXTENSION/bin"
 done
-unset extension
+unset EXTENSION

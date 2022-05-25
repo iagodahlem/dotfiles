@@ -23,12 +23,13 @@ export DOTFILES_BIN="$DOTFILES/bin"
 export DOTFILES_ZSH="$DOTFILES/zsh"
 export DOTFILES_GIT="$DOTFILES/git"
 
-# extensions
-for extension in "$DOTFILES"/extensions/*/zsh/.zshrc; do
-  [ -r $extension ] && source $extension
-done
-unset extension
-
-# files
+# bootstrap
 source $DOTFILES_ZSH/.bootstrap
+
+# extensions
+for EXTENSION in "$DOTFILES"/extensions/*/zsh/.zshrc; do
+  [ -r $EXTENSION ] && source $EXTENSION
+done
+unset EXTENSION
+
 source $ZSH/oh-my-zsh.sh
