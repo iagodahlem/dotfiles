@@ -2,6 +2,8 @@
   name = Iago Dahlem Lorensini
   email = iagodahlemlorensini@gmail.com
   editor = code
+[init]
+  defaultBranch = main
 [github]
   user = iagodahlem
 [core]
