@@ -1,6 +1,0 @@
-[
-  { "keys": ["f12"], "command": "reindent", "args": { "single_line": false }},
-  { "keys": ["ctrl+shift+t"], "command": "reopen_last_file" },
-  { "keys": ["ctrl+shift+alt+t"], "command": "open_terminal_project_folder" },
-  { "keys": ["ctrl+shift+r"], "command": "reveal_in_side_bar" }
-]

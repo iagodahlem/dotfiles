@@ -1,7 +1,0 @@
-<snippet>
-  <content><![CDATA[
-# -- ${1:section name} ------------
-]]></content>
-  <tabTrigger>shlcm</tabTrigger>
-  <scope>source.shell, source.sh, source.zsh</scope>
-</snippet>

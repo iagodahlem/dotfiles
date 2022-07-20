@@ -1,8 +1,0 @@
-<snippet>
-  <content><![CDATA[
-// ${1:sub-section name}
-// ----------------------------------
-]]></content>
-  <tabTrigger>jssubseccm</tabTrigger>
-  <scope>source.js</scope>
-</snippet>

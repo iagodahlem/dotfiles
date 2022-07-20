@@ -1,2 +1,0 @@
-# ssh
-export SSH_KEY_PATH="$HOME/.ssh/dsa_id"

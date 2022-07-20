@@ -1,9 +1,0 @@
-<snippet>
-  <content><![CDATA[
-// ====================================================================
-// ${1:section name}
-// ====================================================================
-]]></content>
-  <tabTrigger>sassseccm</tabTrigger>
-  <scope>source.scss, source.sass, source.styl</scope>
-</snippet>
