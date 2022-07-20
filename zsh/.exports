@@ -25,6 +25,7 @@ export PATH=$PATH:/bin
 export PATH=$PATH:/usr/games
 export PATH=$PATH:/usr/local/games
 export PATH=$PATH:/snap/bin
+export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:$DOTFILES_BIN
 
 for EXTENSION in "$DOTFILES"/extensions/*; do

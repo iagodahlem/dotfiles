@@ -4,5 +4,4 @@ done
 unset FILE
 
 source "$DOTFILES"/asdf/.asdf
-source "$DOTFILES"/ssh/.ssh
 source "$DOTFILES"/nvm/.nvm
