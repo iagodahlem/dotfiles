@@ -5,7 +5,6 @@ export LC_ALL="en_US.UTF-8"
 export LANG="en_US"
 
 # editors
-export SUBL='subl'
 export CODE='code'
 export VIM='vim'
 
