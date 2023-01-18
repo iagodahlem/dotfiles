@@ -31,17 +31,11 @@ alias rm='nocorrect rm'
 # general commands
 alias top="htop"
 
-# hosts
-alias hosts="sudo $SUBL /etc/hosts"
-
 # zsh & oh-my-zsh
 alias reload=". $HOME/.zshrc"
 alias r="reload"
 alias zsh="$EDITOR $HOME/.zshrc"
 alias ohmyzsh="$EDITOR $HOME/.oh-my-zsh"
-
-# node / npm
-alias install-global-packages="npm install -g $(cat $DOTFILES/npm/globals | grep -v '#')"
 
 # docker
 alias dc="docker"

@@ -3,5 +3,6 @@ for FILE in $DOTFILES_ZSH/.{exports,aliases,functions}; do
 done
 unset FILE
 
+source "$DOTFILES"/brew/.homebrew
 source "$DOTFILES"/asdf/.asdf
-source "$DOTFILES"/nvm/.nvm
+# source "$DOTFILES"/nvm/.nvm

@@ -6,7 +6,6 @@ ZSH_THEME="dracula"
 ZSH_CUSTOM="$HOME/.custom"
 
 plugins=(
-  asdf                      # asdf autocompletion
   docker                    # docker autocompletion
   git                       # git aliases
   gitfast                   # git faster autocompletion
@@ -22,14 +21,16 @@ export DOTFILES="$HOME/.dotfiles"
 export DOTFILES_BIN="$DOTFILES/bin"
 export DOTFILES_ZSH="$DOTFILES/zsh"
 export DOTFILES_GIT="$DOTFILES/git"
+export DOTFILES_EXTENSIONS="$DOTFILES/extensions"
+
+# oh-my-zsh
+source $ZSH/oh-my-zsh.sh
 
 # bootstrap
 source $DOTFILES_ZSH/.bootstrap
 
 # extensions
-for EXTENSION in "$DOTFILES"/extensions/*/zsh/.zshrc; do
-  [ -r $EXTENSION ] && source $EXTENSION
+[ -d "$DOTFILES_EXTENSIONS" ] && for EXTENSION_ZSH in "$DOTFILES_EXTENSIONS"/*/zsh/.zshrc; do
+  [ -r $EXTENSION_ZSH ] && source $EXTENSION_ZSH
 done
-unset EXTENSION
-
-source $ZSH/oh-my-zsh.sh
+unset EXTENSION_ZSH

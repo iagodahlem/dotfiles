@@ -1,26 +1,12 @@
-autoconf
-automake
 bat
-coreutils
-curl
-findutils
-gettext
-htop
-icu4c
-libevent
-libidn2
-libtool
-libunistring
-libxslt
-libyaml
-ncurses
-openssl
-pcre
-readline
 tmux
-tree
-unixodbc
-wget
-yarn --ignore-dependencies
-zsh
-zsh-completions
+1password
+font-fira-code
+iterm2
+raycast
+slack
+workflowy
+asana
+google-chrome
+karabiner-elements	rectangle
+visual-studio-code

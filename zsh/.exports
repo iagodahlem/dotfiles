@@ -27,7 +27,7 @@ export PATH=$PATH:/snap/bin
 export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:$DOTFILES_BIN
 
-for EXTENSION in "$DOTFILES"/extensions/*; do
+[ -d "$DOTFILES_EXTENSIONS" ] && for EXTENSION in "$DOTFILES"/extensions/*; do
   export PATH="$PATH:$EXTENSION/bin"
 done
 unset EXTENSION
