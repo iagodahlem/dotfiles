@@ -23,9 +23,6 @@ export DOTFILES_ZSH="$DOTFILES/zsh"
 export DOTFILES_GIT="$DOTFILES/git"
 export DOTFILES_EXTENSIONS="$DOTFILES/extensions"
 
-# oh-my-zsh
-source $ZSH/oh-my-zsh.sh
-
 # bootstrap
 source $DOTFILES_ZSH/.bootstrap
 
@@ -34,3 +31,6 @@ source $DOTFILES_ZSH/.bootstrap
   [ -r $EXTENSION_ZSH ] && source $EXTENSION_ZSH
 done
 unset EXTENSION_ZSH
+
+# oh-my-zsh
+source $ZSH/oh-my-zsh.sh
