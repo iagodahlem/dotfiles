@@ -1,8 +1,14 @@
+source "$DOTFILES"/brew/.homebrew
+source "$DOTFILES"/asdf/.asdf
+source "$DOTFILES"/nvm/.nvm
+
 for FILE in $DOTFILES_ZSH/.{exports,aliases,functions}; do
   [ -r "$FILE" ] && source "$FILE"
 done
 unset FILE
 
-source "$DOTFILES"/brew/.homebrew
-source "$DOTFILES"/asdf/.asdf
-# source "$DOTFILES"/nvm/.nvm
+# extensions
+[ -d "$DOTFILES_EXTENSIONS" ] && for EXT_BOOTSTRAP in $DOTFILES_EXTENSIONS/*/zsh/.bootstrap; do
+  [ -r "$EXT_BOOTSTRAP" ] && source "$EXT_BOOTSTRAP"
+done
+unset EXT_BOOTSTRAP
