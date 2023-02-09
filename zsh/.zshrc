@@ -2,7 +2,7 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # zsh configuration
-ZSH_THEME="dracula"
+ZSH_THEME="dracula-pro"
 ZSH_CUSTOM="$HOME/.custom"
 
 plugins=(
