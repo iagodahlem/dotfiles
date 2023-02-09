@@ -2,21 +2,29 @@
   name = Iago Dahlem Lorensini
   email = iagodahlemlorensini@gmail.com
   editor = code
-[init]
-  defaultBranch = main
+  signingkey = ~/.ssh/id_ed25519.pub
+
 [github]
   user = iagodahlem
+
 [core]
   editor = nvim
   excludesfile = ~/.gitignore_global
   pager = diff-so-fancy | less --tabs=4 -RFX
+
 [gpg]
   format = ssh
-[gpg "ssh"]
-  program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+
+[init]
+  defaultBranch = main
+
 [commit]
   gpgsign = true
   template = ~/.gitmessage
+
+[push]
+  default = simple
+
 [alias]
   # add
   ad = add
@@ -106,11 +114,13 @@
   # status
   st = status
   ss = status -s
+
 [color]
   ui = true
   branch = auto
   diff = auto
   status = auto
+
 [color "diff"]
   frag = magenta bold
   meta = 11
@@ -119,16 +129,19 @@
   func = 146 bold
   commit = yellow bold
   whitespace = red reverse
+
 [color "status"]
   added = cyan bold
   branch = cyan bold
   changed = magenta bold
   deleted = red bold
   untracked = yellow bold
+
 [color "diff-highlight"]
   oldNormal = red bold
   oldHighlight = red bold 52
   newNormal = green bold
   newHighlight = green bold 22
-[push]
-  default = simple
+
+[include]
+  path = ~/.gitconfig.override
