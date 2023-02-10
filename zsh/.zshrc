@@ -6,14 +6,15 @@ ZSH_THEME="dracula-pro"
 ZSH_CUSTOM="$HOME/.custom"
 
 plugins=(
-  docker                    # docker autocompletion
-  git                       # git aliases
-  gitfast                   # git faster autocompletion
-  npm                       # npm autocompletion
-  tmux                      # tmux behavior and aliases
-  yarn                      # yarn autocompletion
-  z                         # `z` navigator
-  zsh-syntax-highlighting   # syntax highlighting for zsh
+  docker
+  docker-compose
+  git
+  gitfast
+  npm
+  tmux
+  yarn
+  z
+  zsh-syntax-highlighting
 )
 
 # config
@@ -34,3 +35,6 @@ source $ZSH/oh-my-zsh.sh
 
 # bootstrap
 source $DOTFILES_ZSH/.bootstrap
+
+zstyle ':completion:*:*:docker:*' option-stacking yes
+zstyle ':completion:*:*:docker-*:*' option-stacking yes
