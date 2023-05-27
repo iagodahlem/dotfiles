@@ -13,3 +13,11 @@ function e {
     $EDITOR "$@"
   fi
 }
+
+function git-clean {
+  git fetch -p
+
+  for branch in `LC_ALL=C git branch -vv | grep ': gone]' | awk '{print $1}'`; do
+    git branch -D $branch
+  done
+}
