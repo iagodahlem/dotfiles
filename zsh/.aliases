@@ -39,7 +39,7 @@ alias ohmyzsh="$EDITOR $HOME/.oh-my-zsh"
 
 # docker
 alias dc="docker"
-alias dcc="docker-compose"
+alias dcc="docker compose"
 
 # bundle
 alias bi="bundle install"
