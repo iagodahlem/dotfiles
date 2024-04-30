@@ -37,3 +37,6 @@ Thumbs.db
 *.rar
 *.tar
 *.zip
+
+# rufo
+.rufo
