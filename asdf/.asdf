@@ -1,5 +1,6 @@
-. "$HOME/.asdf/asdf.sh"
+[ -s "$HOME/.asdf/asdf.sh" ] && \. "$HOME/.asdf/asdf.sh"
 
-fpath=(${ASDF_DIR}/completions $fpath)
-# initialise completions with ZSH's compinit
-autoload -Uz compinit && compinit
+if [ -s "$HOME/.asdf/asdf.sh" ]; then
+  fpath=(${ASDF_DIR}/completions $fpath)
+  autoload -Uz compinit && compinit # initialise completions with ZSH's compinit
+fi
