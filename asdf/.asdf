@@ -2,5 +2,13 @@
 
 if [ -s "$HOME/.asdf/asdf.sh" ]; then
   fpath=(${ASDF_DIR}/completions $fpath)
-  autoload -Uz compinit && compinit # initialise completions with ZSH's compinit
+
+  # initialise completions with ZSH's compinit
+  autoload -Uz compinit && compinit
+
+  export ASDF_GOLANG_MOD_VERSION_ENABLED=true
+  export PATH=$PATH:$(go env GOPATH)/bin
+
+  export ASDF_NODEJS_AUTO_ENABLE_COREPACK=true
+  export ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY=latest_installed
 fi
