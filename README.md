@@ -57,6 +57,19 @@ To skip Oh My Zsh + plugins (faster build):
 docker build --build-arg DOTFILES_CONTAINER_MINIMAL=1 -f containers/Dockerfile -t dotfiles-devbox .
 ```
 
+## Container (Compose)
+
+```sh
+docker compose build
+docker compose run --rm devbox
+```
+
+To skip Oh My Zsh + plugins (faster build):
+
+```sh
+DOTFILES_CONTAINER_MINIMAL=1 docker compose build
+```
+
 ## Thanks
 
 We can learn a lot about productivity just exploring the way people work every day. Personally, I got highly inspired by [Holman](https://github.com/holman/dotfiles), [Mathias Bynens](https://github.com/mathiasbynens/dotfiles), [Deny Dias](https://github.com/denydias/dotfiles) and by this [setup and readme](https://github.com/diessica/dotfiles).

@@ -1,0 +1,13 @@
+services:
+  devbox:
+    build:
+      context: .
+      dockerfile: containers/Dockerfile
+      args:
+        DOTFILES_CONTAINER_MINIMAL: ${DOTFILES_CONTAINER_MINIMAL:-0}
+    image: dotfiles-devbox
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    volumes:
+      - ../:/workspace
