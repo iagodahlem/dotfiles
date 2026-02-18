@@ -10,6 +10,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 - `install-apps.sh` installs GUI apps and fonts via Homebrew Cask.
 - `macos.sh` applies macOS defaults and SSD tweaks.
 - `zsh/` contains `.zshrc`, `.aliases`, `.functions`, `.exports` and bootstrap wiring.
+- `packages/` contains package lists for different OSes (`Brewfile`, `apt.txt`, `pacman.txt`).
 - `containers/` contains a minimal devbox Docker image and entrypoint.
 - `scripts/` contains container install and smoke test scripts.
 - `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/` hold tool configs and helper scripts.
@@ -28,7 +29,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 **Known Gaps (current state)**
 - `install-apps.sh` references `brew/caskfile` and `brew/fontfile`, which are not present.
 - `install-dotfiles.sh` references `nmp/globals` (typo) but the file is `npm/globals`.
-- `brew/brewfile` mixes CLI and GUI apps; the install script uses `brew install` directly.
+- `packages/Brewfile` mixes CLI and GUI apps; the install script uses `brew install` directly.
  - The container flow is Ubuntu-based; distro variants (Arch/Alpine) are not yet standardized.
 
 **Roadmap (user intent)**

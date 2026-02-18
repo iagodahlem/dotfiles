@@ -16,7 +16,7 @@ brew update
 brew upgrade
 
 echo "→ Installing packages using Homebrew..."
-brew install $(cat brew/brewfile|grep -v "#")
+brew install $(cat packages/Brewfile|grep -v "#")
 
 echo "→ Configuring Git..."
 ln -s "$DOTS/git/.gitconfig" ~/.gitconfig

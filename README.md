@@ -27,7 +27,7 @@ cd ~/.dotfiles
 $ sh ./install-apps
 ```
 
-**4.** Install dotfiles (see [brewfile](brew/brewfile)).
+**4.** Install dotfiles (see [Brewfile](packages/Brewfile)).
 
 ```sh
 $ sh ./install-dotfiles

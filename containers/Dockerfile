@@ -7,18 +7,8 @@ ARG DOTFILES_CONTAINER_MINIMAL=0
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    git \
-    sudo \
-    zsh \
-    tmux \
-    vim \
-    less \
-    locales \
-    tzdata \
-  && rm -rf /var/lib/apt/lists/*
+COPY . /opt/dotfiles
+RUN /opt/dotfiles/scripts/install-packages.sh
 
 RUN set -e; \
   if getent passwd "${UID}" >/dev/null 2>&1; then \
@@ -32,10 +22,9 @@ RUN set -e; \
   if ! id -u "${USERNAME}" >/dev/null 2>&1; then \
     useradd --uid "${UID}" --gid "${GID}" -m -s /bin/zsh "${USERNAME}"; \
   fi; \
+  mkdir -p /etc/sudoers.d; \
   echo "${USERNAME}" > /etc/dotfiles-user; \
   echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME}
-
-COPY . /opt/dotfiles
 
 RUN set -e; \
   USERNAME="$(cat /etc/dotfiles-user)"; \

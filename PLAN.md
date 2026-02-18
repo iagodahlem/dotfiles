@@ -39,3 +39,8 @@
    - How to build, run, and customize images.
    - How to add per-client dependencies.
    - How to test dotfiles inside a container.
+
+**Packages (Shared)**
+1. Create OS-specific package lists under `packages/`.
+2. Add `scripts/install-packages.sh` to install from `apt.txt` or `pacman.txt`.
+3. Move `brew/brewfile` to `packages/Brewfile` and update install scripts.

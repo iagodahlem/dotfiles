@@ -1,0 +1,10 @@
+ca-certificates
+curl
+git
+sudo
+zsh
+tmux
+vim
+less
+locales
+tzdata
