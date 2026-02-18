@@ -18,15 +18,15 @@
 
 **Plan: Devbox/Docker Flow (Priority)**
 1. Define container strategy and entry points.
-   - Create `containers/` (or `.devcontainer/`) with:
-     - `Dockerfile` for a base devbox image.
-     - `docker-compose.yml` to layer per-project dependencies.
-     - Optional `devcontainer.json` for VS Code/Dev Containers support.
+   - Create `containers/` with:
+     - `Dockerfile` for a base devbox image. (done)
+     - `entrypoint.sh` to enter the target user. (done)
 2. Add a container-safe install mode.
    - Add a script (e.g. `scripts/install-container.sh`) that:
      - Skips macOS-specific steps and `sudo` defaults.
      - Runs a minimal dotfiles install (zsh, git, tmux, vim, configs, shell init).
-     - Accepts `DOTFILES_INSTALL_MODE=container` and `DOTFILES_PACKAGES=base|full`.
+     - Accepts `DOTFILES_INSTALL_MODE=container` and `DOTFILES_CONTAINER_MINIMAL=0|1`. (done)
+   - Add a smoke test script for local and CI validation. (done: `scripts/devbox-smoke.sh`)
 3. Make dotfiles cloneable inside containers.
    - Use `ARG DOTFILES_REPO` and `ARG DOTFILES_BRANCH` in Dockerfile.
    - Clone into `/home/dev/.dotfiles` and run container install script.
@@ -34,9 +34,7 @@
    - Provide a `containers/examples/` or `.devcontainer/` template that mounts a per-client workspace.
    - Document how to add project-specific packages via compose overrides.
 5. Add fast validation targets.
-   - `make devbox-build` to build the image.
-   - `make devbox-run` to open a shell in the image.
-   - `make devbox-test` to run a smoke check that confirms symlinks and shell boot.
+   - GitHub Actions workflow runs the smoke test on push. (done)
 6. Document the workflow in README.
    - How to build, run, and customize images.
    - How to add per-client dependencies.
