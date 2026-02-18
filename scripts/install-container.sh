@@ -24,6 +24,7 @@ safe_link "$DOTS/git/.gitconfig" "$HOME/.gitconfig"
 safe_link "$DOTS/git/.gitignore_global" "$HOME/.gitignore_global"
 safe_link "$DOTS/git/.gitmessage" "$HOME/.gitmessage"
 safe_link "$DOTS/zsh/.zshrc" "$HOME/.zshrc"
+safe_link "$DOTS/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 safe_link "$DOTS/tmux/.tmux.conf" "$HOME/.tmux.conf"
 
 # Optional: oh-my-zsh + plugins

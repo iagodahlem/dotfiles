@@ -27,6 +27,7 @@ echo "→ Configuring ZSH..."
 echo '/usr/local/bin/zsh' | sudo tee -a /etc/shells > /dev/null
 chsh -s /usr/local/bin/zsh
 ln -s "$DOTS/zsh/.zshrc" ~/.zshrc
+ln -s "$DOTS/zsh/.p10k.zsh" ~/.p10k.zsh
 
 echo "→ Installing Oh My ZSH and custom plugins..."
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
@@ -58,6 +59,7 @@ asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
 asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
 echo "→ Configure asdf..."
 ln -s "$DOTS/asdf/.tool-versions" ~/.tool-versions
+ln -s "$DOTS/asdf/.asdfrc" ~/.asdfrc
 
 # Set macOS defaults
 echo "→ Set macOS defaults... (It'll shut down Terminal!)"
