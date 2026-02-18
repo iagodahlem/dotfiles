@@ -1,0 +1,16 @@
+name: devbox-smoke
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  devbox-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and Smoke Test
+        run: scripts/devbox-smoke.sh
