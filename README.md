@@ -40,6 +40,21 @@ $ npm set init.author.url "{Your URL}"
 $ npm adduser
 ```
 
+## Container (Minimal)
+
+Build a minimal devbox container that runs these dotfiles:
+
+```sh
+docker build -f containers/Dockerfile -t dotfiles-devbox .
+docker run --rm -it dotfiles-devbox
+```
+
+To skip Oh My Zsh + plugins (faster build):
+
+```sh
+docker build --build-arg DOTFILES_CONTAINER_MINIMAL=1 -f containers/Dockerfile -t dotfiles-devbox .
+```
+
 ## Thanks
 
 We can learn a lot about productivity just exploring the way people work every day. Personally, I got highly inspired by [Holman](https://github.com/holman/dotfiles), [Mathias Bynens](https://github.com/mathiasbynens/dotfiles), [Deny Dias](https://github.com/denydias/dotfiles) and by this [setup and readme](https://github.com/diessica/dotfiles).
