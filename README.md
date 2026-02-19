@@ -39,6 +39,12 @@ Preferred entrypoint (same behavior):
 ./scripts/install.sh
 ```
 
+## Layout (New)
+
+- `config/` holds tool configuration (zsh, git, tmux, vim, vscode, asdf, nvm, atuin).
+- `scripts/` holds installers (`install.sh` is the entrypoint).
+- `os/` holds OS-specific defaults (macOS is in `os/macos.sh`).
+
 **5.** Tell [npm](https://www.npmjs.com/) who you are.
 
 ```sh
