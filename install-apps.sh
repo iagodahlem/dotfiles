@@ -11,15 +11,22 @@ then
 fi
 
 echo "→ Installing applications..."
-# Set up Cask, for Homebrew
-brew tap caskroom/cask
-# Set up Caskroom-versions, which allows apps' alternative versions, like Canary
-brew tap caskroom/versions
-# Install all apps listed in the caskfile
-brew cask install $(cat brew/caskfile|grep -v "#")
+# Set up Cask taps
+brew tap homebrew/cask || true
+brew tap homebrew/cask-versions || true
+
+if [ -f packages/Caskfile ]; then
+  brew install --cask $(grep -v "^#" packages/Caskfile)
+else
+  echo "→ Skipping apps: packages/Caskfile not found."
+fi
 
 echo "→ Installing fonts..."
-# Set up Caskroom-fonts
-brew tap caskroom/fonts
-# Install all fonts listed in the fontfile
-brew cask install $(cat brew/fontfile|grep -v "#")
+# Set up font casks
+brew tap homebrew/cask-fonts || true
+
+if [ -f packages/Fontfile ]; then
+  brew install --cask $(grep -v "^#" packages/Fontfile)
+else
+  echo "→ Skipping fonts: packages/Fontfile not found."
+fi
