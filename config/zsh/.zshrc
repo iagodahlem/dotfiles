@@ -29,8 +29,9 @@ plugins=(
 # config
 export DOTFILES="$HOME/.dotfiles"
 export DOTFILES_BIN="$DOTFILES/bin"
-export DOTFILES_ZSH="$DOTFILES/zsh"
-export DOTFILES_GIT="$DOTFILES/git"
+export DOTFILES_CONFIG="$DOTFILES/config"
+export DOTFILES_ZSH="$DOTFILES_CONFIG/zsh"
+export DOTFILES_GIT="$DOTFILES_CONFIG/git"
 export DOTFILES_EXTENSIONS="$DOTFILES/extensions"
 
 # extensions

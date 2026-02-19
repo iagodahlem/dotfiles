@@ -6,20 +6,21 @@ Repository context for Codex and other agents.
 This is a personal dotfiles repo focused on macOS setup. It contains shell config, editor settings, and install scripts that symlink files into `$HOME` and apply macOS defaults. There are optional extensions under `extensions/` for Linux and work-specific setups.
 
 **Key Paths**
-- `install-dotfiles.sh` installs Homebrew packages, symlinks dotfiles, installs Oh My Zsh plugins, sets up VS Code, asdf, nvm, tmux, and applies `macos.sh` defaults.
+- `scripts/install.sh` is the main entrypoint (OS detection + orchestrates installs).
+- `scripts/install-dotfiles.sh` manages symlinks; `scripts/install-shell.sh` installs Oh My Zsh + plugins.
+- `install-dotfiles.sh` is a compatibility wrapper that calls `scripts/install.sh`.
 - `install-apps.sh` installs GUI apps and fonts via Homebrew Cask.
-- `macos.sh` applies macOS defaults and SSD tweaks.
-- `zsh/` contains `.zshrc`, `.aliases`, `.functions`, `.exports` and bootstrap wiring.
-- `packages/` contains package lists for different OSes (`Brewfile`, `apt.txt`, `pacman.txt`).
-- `containers/` contains a minimal devbox Docker image and entrypoint.
-- `scripts/` contains container install and smoke test scripts.
-- `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/` hold tool configs and helper scripts.
+- `os/macos.sh` applies macOS defaults and SSD tweaks (`macos.sh` is a wrapper).
+- `config/` contains tool configs (`zsh/`, `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/`).
+- `packages/` contains package lists for different OSes (`Brewfile`, `apt.txt`, `pacman.txt`, `aur.txt`).
+- `containers/` contains devbox Dockerfiles and entrypoint.
+- `scripts/` contains installers and CI smoke tests.
 - `extensions/` contains optional extension repos (Linux and Sticker Mule).
 
 **How Config Loads**
-- `zsh/.zshrc` sources `zsh/.bootstrap`, which then loads `.exports`, `.aliases`, `.functions` and optional extension bootstraps.
-- `zsh/.bootstrap` sources per-tool init files: `brew/.homebrew`, `asdf/.asdf`, `nvm/.nvm`, `atuin/.atuin`.
-  - `zsh/.p10k.zsh` is present and loaded by `.zshrc` if it exists in `$HOME`.
+- `config/zsh/.zshrc` sources `config/zsh/.bootstrap`, which then loads `.exports`, `.aliases`, `.functions` and optional extension bootstraps.
+- `config/zsh/.bootstrap` sources per-tool init files: `brew/.homebrew`, `config/asdf/.asdf`, `config/nvm/.nvm`, `config/atuin/.atuin`.
+  - `config/zsh/.p10k.zsh` is present and loaded by `.zshrc` if it exists in `$HOME`.
 
 **Assumptions**
 - Primary OS target is macOS, but `zsh` and extension folders support Linux variants.

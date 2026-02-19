@@ -10,8 +10,8 @@ done
 unset EXT_BOOTSTRAP
 
 source "$DOTFILES"/brew/.homebrew
-source "$DOTFILES"/asdf/.asdf
-source "$DOTFILES"/nvm/.nvm
 source "$DOTFILES"/npm/.npm
 source "$DOTFILES"/cargo/.cargo
-source "$DOTFILES"/atuin/.atuin
+source "$DOTFILES_CONFIG"/asdf/.asdf
+source "$DOTFILES_CONFIG"/nvm/.nvm
+source "$DOTFILES_CONFIG"/atuin/.atuin

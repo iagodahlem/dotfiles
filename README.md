@@ -33,6 +33,12 @@ $ sh ./install-apps
 $ sh ./install-dotfiles
 ```
 
+Preferred entrypoint (same behavior):
+
+```sh
+./scripts/install.sh
+```
+
 **5.** Tell [npm](https://www.npmjs.com/) who you are.
 
 ```sh
