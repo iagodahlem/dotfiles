@@ -1,12 +1,10 @@
 # .dotfiles
 
-:computer: My personal dotfiles and tweaks for **macOS**.
+:computer: My personal dotfiles and tweaks for **macOS** and **Linux**.
 
 [![devbox-smoke](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
 
 ## Installation
-
-I'm using [Homebrew](https://brew.sh/) to install Mac applications, command-line tools and fonts.
 
 **1.** Check for software updates.
 
@@ -32,8 +30,9 @@ $ ./scripts/install.sh
 - `config/` holds tool configuration (zsh, git, tmux, vim, vscode, asdf, nvm, atuin).
 - `scripts/` holds installers (`install.sh` is the entrypoint).
 - `os/` holds OS-specific defaults (macOS is in `os/macos.sh`).
+- `packages/` is the source of truth for dependencies (Brewfile, apt, pacman, AUR).
 
-**5.** Tell [npm](https://www.npmjs.com/) who you are.
+**4.** Tell [npm](https://www.npmjs.com/) who you are.
 
 ```sh
 $ npm set init.author.name "{Your name}"
