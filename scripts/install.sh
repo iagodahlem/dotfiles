@@ -27,6 +27,10 @@ if [ "${DOTFILES_SKIP_SHELL:-0}" != "1" ]; then
   "$ROOT_DIR/scripts/install-shell.sh"
 fi
 
+if [ "${DOTFILES_SKIP_NODE_GLOBALS:-0}" != "1" ]; then
+  "$ROOT_DIR/scripts/install-node-globals.sh"
+fi
+
 if [ "${DOTFILES_SKIP_OS_DEFAULTS:-0}" != "1" ]; then
   case "$OS_ID" in
     macos)

@@ -30,7 +30,6 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 
 **Known Gaps (current state)**
 
-- `install-dotfiles.sh` references `nmp/globals` (typo) but the file is `npm/globals`.
 - `packages/Brewfile` mixes CLI and GUI apps; the install script uses `brew install` directly.
 - The container flow is Ubuntu-based; distro variants (Arch/Alpine) are not yet standardized.
 
@@ -45,6 +44,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 - Prefer minimal changes and keep scripts portable.
 - If changing install flows, update both scripts and README in the same change.
 - Keep new files ASCII-only unless the file already contains Unicode.
+ - Prefer `pnpm` over `npm` for global package installs.
 
 **Principles**
 
