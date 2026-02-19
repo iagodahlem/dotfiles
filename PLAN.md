@@ -44,3 +44,57 @@
 1. Create OS-specific package lists under `packages/`.
 2. Add `scripts/install-packages.sh` to install from `apt.txt` or `pacman.txt`.
 3. Move `brew/brewfile` to `packages/Brewfile` and update install scripts.
+
+**Target Architecture**
+```
+.
+├── packages/                # Source of truth for deps
+│   ├── Brewfile
+│   ├── apt.txt
+│   ├── pacman.txt
+│   └── aur.txt
+├── scripts/                 # All logic lives here
+│   ├── install.sh           # entrypoint: detects OS + runs tasks
+│   ├── install-packages.sh  # installs packages from packages/
+│   ├── install-dotfiles.sh  # symlinks configs
+│   ├── install-shell.sh     # oh-my-zsh, plugins, p10k
+│   └── install-container.sh # container-safe subset
+├── os/                      # OS-specific tweaks
+│   ├── macos.sh
+│   ├── ubuntu.sh
+│   └── arch.sh
+├── config/                  # App configs
+│   ├── zsh/
+│   ├── git/
+│   ├── tmux/
+│   ├── vim/
+│   └── vscode/
+├── containers/
+│   ├── Dockerfile.ubuntu
+│   ├── Dockerfile.arch
+│   ├── entrypoint.sh
+│   └── docker-compose.arch.yml
+├── docker-compose.yml
+├── README.md
+└── AGENTS.md
+```
+
+**Principles (to document in README later)**
+1. `packages/` is the single source of truth for dependencies.
+2. `scripts/install.sh` is the only public entrypoint; everything else is a sub-step.
+3. `os/` holds OS-only tweaks and defaults.
+4. `config/` is purely static configs; scripts should never “know” their contents.
+5. Containers use the same `scripts/` entrypoint (no duplicated logic).
+
+**Refactor Steps**
+1. Create new `config/`, `scripts/`, and `os/` layout alongside existing files.
+2. Move configs from `zsh/`, `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/` into `config/`.
+3. Split existing install logic into:
+   - `scripts/install.sh` (orchestration + OS detection)
+   - `scripts/install-packages.sh` (already exists)
+   - `scripts/install-dotfiles.sh` (symlinks only)
+   - `scripts/install-shell.sh` (Oh My Zsh, plugins, p10k)
+4. Move `macos.sh` into `os/macos.sh` and add `os/ubuntu.sh`, `os/arch.sh` as needed.
+5. Update container Dockerfiles and entrypoints to use `scripts/install.sh` or `install-container.sh`.
+6. Update README with new layout and install instructions.
+7. Remove deprecated files/paths once parity is confirmed.
