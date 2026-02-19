@@ -33,6 +33,22 @@ install_pacman() {
   run_as_root pacman -S --needed --noconfirm $(grep -v '^#' "$list_file" | xargs)
 }
 
+install_aur() {
+  local list_file="$PACKAGES_DIR/aur.txt"
+  [ -f "$list_file" ] || return 0
+  [ -n "${AUR_USER:-}" ] || return 0
+
+  if ! command -v yay >/dev/null 2>&1; then
+    run_as_root pacman -S --needed --noconfirm git base-devel
+    run_as_root rm -rf /tmp/yay
+    run_as_root git clone https://aur.archlinux.org/yay.git /tmp/yay
+    run_as_root chown -R "${AUR_USER}:${AUR_USER}" /tmp/yay
+    sudo -u "${AUR_USER}" bash -lc "cd /tmp/yay && makepkg -si --noconfirm"
+  fi
+
+  sudo -u "${AUR_USER}" yay -S --needed --noconfirm $(grep -v '^#' "$list_file" | xargs)
+}
+
 if [ -f /etc/os-release ]; then
   . /etc/os-release
 fi
@@ -43,6 +59,7 @@ case "${ID:-}" in
     ;;
   arch)
     install_pacman
+    install_aur
     ;;
   *)
     echo "Unsupported OS for package install. Set up manually." >&2
