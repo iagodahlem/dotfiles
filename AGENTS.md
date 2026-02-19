@@ -3,7 +3,7 @@
 Repository context for Codex and other agents.
 
 **Overview**
-This is a personal dotfiles repo focused on macOS setup. It contains shell config, editor settings, and install scripts that symlink files into `$HOME` and apply macOS defaults. There are optional extensions under `extensions/` for Linux and work-specific setups.
+This is a personal dotfiles repo focused on macOS and Linux setup. It contains shell config, editor settings, and install scripts that symlink files into `$HOME` and apply OS defaults. OS- and host-specific overrides live under `overlays/`.
 
 **Key Paths**
 

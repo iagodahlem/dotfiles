@@ -78,6 +78,7 @@ cd ~/.dotfiles
 - OS-specific overrides go in `overlays/os/<os>/` (e.g. `overlays/os/ubuntu/zsh/.aliases`).
 - Host-specific overrides go in `overlays/host/<name>/` (set `DOTFILES_HOST=<name>`).
 - Overlays can include `zsh/.aliases`, `zsh/.exports`, `zsh/.functions`, or `zsh/.bootstrap`.
+- Example host overlay: `overlays/host/example` (see `overlays/host/example/README.md`).
 
 ## Container (Minimal)
 
