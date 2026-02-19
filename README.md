@@ -21,22 +21,10 @@ git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
-**3.** Install Mac applications (see [Caskfile](packages/Caskfile)) and fonts (see [Fontfile](packages/Fontfile)).
+**3.** Install packages and dotfiles (see `packages/`).
 
 ```sh
-$ sh ./install-apps
-```
-
-**4.** Install dotfiles (see [Brewfile](packages/Brewfile)).
-
-```sh
-$ sh ./install-dotfiles
-```
-
-Preferred entrypoint (same behavior):
-
-```sh
-./scripts/install.sh
+$ ./scripts/install.sh
 ```
 
 ## Layout (New)

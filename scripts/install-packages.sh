@@ -49,11 +49,41 @@ install_aur() {
   sudo -u "${AUR_USER}" yay -S --needed --noconfirm $(grep -v '^#' "$list_file" | xargs)
 }
 
+install_brew() {
+  local brewfile="$PACKAGES_DIR/Brewfile"
+  local caskfile="$PACKAGES_DIR/Caskfile"
+  local fontfile="$PACKAGES_DIR/Fontfile"
+
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "Homebrew not found. Install it first." >&2
+    exit 1
+  fi
+
+  if [ -f "$brewfile" ]; then
+    brew install $(grep -v '^#' "$brewfile" | xargs)
+  fi
+
+  brew tap homebrew/cask || true
+  brew tap homebrew/cask-versions || true
+  brew tap homebrew/cask-fonts || true
+
+  if [ -f "$caskfile" ]; then
+    brew install --cask $(grep -v '^#' "$caskfile" | xargs)
+  fi
+
+  if [ -f "$fontfile" ]; then
+    brew install --cask $(grep -v '^#' "$fontfile" | xargs)
+  fi
+}
+
 if [ -f /etc/os-release ]; then
   . /etc/os-release
 fi
 
 case "${ID:-}" in
+  darwin)
+    install_brew
+    ;;
   ubuntu|debian)
     install_apt
     ;;
@@ -62,7 +92,11 @@ case "${ID:-}" in
     install_aur
     ;;
   *)
-    echo "Unsupported OS for package install. Set up manually." >&2
-    exit 1
+    if [ "$(uname -s)" = "Darwin" ]; then
+      install_brew
+    else
+      echo "Unsupported OS for package install. Set up manually." >&2
+      exit 1
+    fi
     ;;
 esac

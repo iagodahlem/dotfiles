@@ -28,16 +28,7 @@ if [ ! -f "$MIGRATION_MARKER" ]; then
 fi
 
 if [ "${DOTFILES_SKIP_PACKAGES:-0}" != "1" ]; then
-  if [ "$OS_ID" = "macos" ]; then
-    if command -v brew >/dev/null 2>&1; then
-      brew install $(cat "$ROOT_DIR/packages/Brewfile" | grep -v "#")
-    else
-      echo "Homebrew not found. Install it first." >&2
-      exit 1
-    fi
-  else
-    "$ROOT_DIR/scripts/install-packages.sh"
-  fi
+  "$ROOT_DIR/scripts/install-packages.sh"
 fi
 
 if [ "${DOTFILES_SKIP_DOTFILES:-0}" != "1" ]; then

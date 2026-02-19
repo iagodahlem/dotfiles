@@ -8,9 +8,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 **Key Paths**
 - `scripts/install.sh` is the main entrypoint (OS detection + orchestrates installs).
 - `scripts/install-dotfiles.sh` manages symlinks; `scripts/install-shell.sh` installs Oh My Zsh + plugins.
-- `install-dotfiles.sh` is a compatibility wrapper that calls `scripts/install.sh`.
-- `install-apps.sh` installs GUI apps and fonts via Homebrew Cask.
-- `os/macos.sh` applies macOS defaults and SSD tweaks (`macos.sh` is a wrapper).
+- `os/macos.sh` applies macOS defaults and SSD tweaks.
 - `config/` contains tool configs (`zsh/`, `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/`).
 - `packages/` contains package lists for different OSes (`Brewfile`, `apt.txt`, `pacman.txt`, `aur.txt`).
 - `containers/` contains devbox Dockerfiles and entrypoint.
@@ -28,6 +26,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 - Do not run install scripts automatically without confirmation because they are destructive (system changes and package installs).
 
 **Known Gaps (current state)**
+- `install-packages.sh` does not yet handle Homebrew install bootstrap (it expects brew to exist).
 - `install-dotfiles.sh` references `nmp/globals` (typo) but the file is `npm/globals`.
 - `packages/Brewfile` mixes CLI and GUI apps; the install script uses `brew install` directly.
  - The container flow is Ubuntu-based; distro variants (Arch/Alpine) are not yet standardized.
