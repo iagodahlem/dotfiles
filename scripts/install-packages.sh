@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PACKAGES_DIR="$ROOT_DIR/packages"
 
+source "$ROOT_DIR/scripts/utils/os.sh"
+
 is_root() {
   [ "${EUID:-$(id -u)}" -eq 0 ]
 }
@@ -81,11 +83,9 @@ install_brew() {
   fi
 }
 
-if [ -f /etc/os-release ]; then
-  . /etc/os-release
-fi
+OS_ID="$(os_id)"
 
-case "${ID:-}" in
+case "$OS_ID" in
   darwin)
     install_brew
     ;;
