@@ -26,7 +26,6 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 - Do not run install scripts automatically without confirmation because they are destructive (system changes and package installs).
 
 **Known Gaps (current state)**
-- `install-packages.sh` does not yet handle Homebrew install bootstrap (it expects brew to exist).
 - `install-dotfiles.sh` references `nmp/globals` (typo) but the file is `npm/globals`.
 - `packages/Brewfile` mixes CLI and GUI apps; the install script uses `brew install` directly.
  - The container flow is Ubuntu-based; distro variants (Arch/Alpine) are not yet standardized.
