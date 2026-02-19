@@ -8,12 +8,19 @@ VSCODE_CONFIG="${VSCODE_CONFIG:-$HOME/Library/Application Support/Code/User}"
 safe_link() {
   local src="$1"
   local dst="$2"
+  local ts
+
   if [ ! -e "$src" ]; then
     return 0
   fi
-  if [ -e "$dst" ] || [ -L "$dst" ]; then
-    rm -rf "$dst"
+
+  if [ -L "$dst" ]; then
+    rm -f "$dst"
+  elif [ -e "$dst" ]; then
+    ts="$(date +%Y%m%d%H%M%S)"
+    mv "$dst" "${dst}.bak.${ts}"
   fi
+
   ln -s "$src" "$dst"
 }
 
@@ -42,4 +49,3 @@ fi
 # asdf, nvm, atuin
 safe_link "$CONFIG_DIR/asdf/.tool-versions" "$HOME/.tool-versions"
 safe_link "$CONFIG_DIR/asdf/.asdfrc" "$HOME/.asdfrc"
-
