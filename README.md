@@ -1,45 +1,74 @@
 # .dotfiles
 
-:computer: My personal dotfiles and tweaks for **macOS** and **Linux**.
+:computer: Personal dotfiles for **macOS** and **Linux** with a unified installer and container support.
 
 [![devbox-smoke](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
 
 ## Installation
 
-**1.** Check for software updates.
+1. Check for software updates (macOS only).
 
 ```sh
-$ sudo softwareupdate -i -r
+sudo softwareupdate -i -r
 ```
 
-**2.** Get this project somehow and go to its directory.
+2. Clone the repo.
 
 ```sh
 git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
-**3.** Install packages and dotfiles (see `packages/`).
+3. Install packages + dotfiles.
 
 ```sh
-$ ./scripts/install.sh
+./scripts/install.sh
 ```
 
-## Layout (New)
+## Architecture
 
-- `config/` holds tool configuration (zsh, git, tmux, vim, vscode, asdf, nvm, atuin).
-- `scripts/` holds installers (`install.sh` is the entrypoint).
-- `os/` holds OS-specific defaults (macOS is in `os/macos.sh`).
-- `packages/` is the source of truth for dependencies (Brewfile, apt, pacman, AUR).
-
-**4.** Tell [npm](https://www.npmjs.com/) who you are.
-
-```sh
-$ npm set init.author.name "{Your name}"
-$ npm set init.author.email "{Your email}"
-$ npm set init.author.url "{Your URL}"
-$ npm adduser
+```text
+.
+├── packages/                # Source of truth for deps
+│   ├── Brewfile
+│   ├── Caskfile
+│   ├── Fontfile
+│   ├── apt.txt
+│   ├── pacman.txt
+│   └── aur.txt
+├── scripts/                 # All logic lives here
+│   ├── install.sh           # entrypoint: detects OS + runs tasks
+│   ├── install-packages.sh  # installs packages from packages/
+│   ├── install-dotfiles.sh  # symlinks configs
+│   ├── install-shell.sh     # oh-my-zsh, plugins, p10k
+│   └── install-container.sh # container-safe subset
+├── os/                      # OS-specific tweaks
+│   ├── macos.sh
+│   ├── ubuntu.sh
+│   └── arch.sh
+├── config/                  # App configs
+│   ├── zsh/
+│   ├── git/
+│   ├── tmux/
+│   ├── vim/
+│   └── vscode/
+├── containers/
+│   ├── Dockerfile
+│   ├── Dockerfile.arch
+│   ├── entrypoint.sh
+│   └── docker-compose.arch.yml
+├── docker-compose.yml
+├── README.md
+└── AGENTS.md
 ```
+
+## Principles
+
+- `packages/` is the single source of truth for dependencies.
+- `scripts/install.sh` is the only public entrypoint; everything else is a sub-step.
+- `os/` holds OS-only tweaks and defaults.
+- `config/` is purely static configs; scripts should never “know” their contents.
+- Containers use the same `scripts/` entrypoint (no duplicated logic).
 
 ## Container (Minimal)
 
