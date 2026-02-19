@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MIGRATION_MARKER="$ROOT_DIR/.migrated"
 
 os_id() {
   if [ "$(uname -s)" = "Darwin" ]; then
@@ -17,6 +18,14 @@ os_id() {
 }
 
 OS_ID="$(os_id)"
+
+if [ ! -f "$MIGRATION_MARKER" ]; then
+  if [ -d "$ROOT_DIR/zsh" ] || [ -d "$ROOT_DIR/git" ] || [ -d "$ROOT_DIR/tmux" ]; then
+    echo "Detected legacy layout (e.g. zsh/, git/, tmux/)."
+    echo "Re-running install will update symlinks to config/."
+  fi
+  touch "$MIGRATION_MARKER"
+fi
 
 if [ "${DOTFILES_SKIP_PACKAGES:-0}" != "1" ]; then
   if [ "$OS_ID" = "macos" ]; then
