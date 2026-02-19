@@ -32,13 +32,9 @@ export DOTFILES_BIN="$DOTFILES/bin"
 export DOTFILES_CONFIG="$DOTFILES/config"
 export DOTFILES_ZSH="$DOTFILES_CONFIG/zsh"
 export DOTFILES_GIT="$DOTFILES_CONFIG/git"
-export DOTFILES_EXTENSIONS="$DOTFILES/extensions"
+export DOTFILES_OVERLAYS="$DOTFILES/overlays"
 
-# extensions
-[ -d "$DOTFILES_EXTENSIONS" ] && for EXTENSION_ZSH in "$DOTFILES_EXTENSIONS"/*/zsh/.zshrc; do
-  [ -r $EXTENSION_ZSH ] && source $EXTENSION_ZSH
-done
-unset EXTENSION_ZSH
+# overlays are loaded from .bootstrap
 
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh

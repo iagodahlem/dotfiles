@@ -14,7 +14,7 @@ This is a personal dotfiles repo focused on macOS setup. It contains shell confi
 - `packages/` contains package lists for different OSes (`Brewfile`, `apt.txt`, `pacman.txt`, `aur.txt`).
 - `containers/` contains devbox Dockerfiles and entrypoint.
 - `scripts/` contains installers and CI smoke tests.
-- `extensions/` contains optional extension repos (Linux and Sticker Mule).
+- `overlays/` holds OS- and host-specific overrides (see `overlays/README.md`).
 
 **How Config Loads**
 

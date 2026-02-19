@@ -57,6 +57,9 @@ cd ~/.dotfiles
 │   ├── Dockerfile.arch
 │   ├── entrypoint.sh
 │   └── docker-compose.arch.yml
+├── overlays/
+│   ├── os/
+│   └── host/
 ├── docker-compose.yml
 ├── README.md
 └── AGENTS.md
@@ -69,6 +72,12 @@ cd ~/.dotfiles
 - `os/` holds OS-only tweaks and defaults.
 - `config/` is purely static configs; scripts should never “know” their contents.
 - Containers use the same `scripts/` entrypoint (no duplicated logic).
+
+## Overlays
+
+- OS-specific overrides go in `overlays/os/<os>/` (e.g. `overlays/os/ubuntu/zsh/.aliases`).
+- Host-specific overrides go in `overlays/host/<name>/` (set `DOTFILES_HOST=<name>`).
+- Overlays can include `zsh/.aliases`, `zsh/.exports`, `zsh/.functions`, or `zsh/.bootstrap`.
 
 ## Container (Minimal)
 

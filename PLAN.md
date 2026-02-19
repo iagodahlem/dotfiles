@@ -65,4 +65,4 @@
 
 - abstract os_id handling to utils folder, and reuse across scripts
 - move /npm folder to config, and add handler to install npm global packages, it should use pnpm for the installs, also as a rule, update agents to always use pnpm rather than npm (done)
-- extensions, how to make them better? I dont like to have to create separate repositories for each private or separate config that I want
+- extensions, how to make them better? I dont like to have to create separate repositories for each private or separate config that I want (done: replaced with overlays)

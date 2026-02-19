@@ -1,0 +1,8 @@
+# brew
+alias install="brew install"
+alias i="install"
+alias cask="brew cask install"
+alias update="brew update"
+alias upgrade="brew upgrade"
+alias up="update && upgrade"
+alias cleanup="brew cleanup"
