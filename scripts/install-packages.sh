@@ -18,27 +18,53 @@ run_as_root() {
   fi
 }
 
+read_list_items() {
+  local list_file="$1"
+  grep -Ev '^[[:space:]]*($|#)' "$list_file"
+}
+
 install_apt() {
   local list_file="$PACKAGES_DIR/apt.txt"
+  local packages=()
   [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
+  while IFS= read -r pkg; do
+    packages+=("$pkg")
+  done < <(read_list_items "$list_file")
+
+  [ "${#packages[@]}" -gt 0 ] || return 0
+
   run_as_root apt-get update
-  run_as_root apt-get install -y --no-install-recommends $(grep -v '^#' "$list_file" | xargs)
+  run_as_root apt-get install -y --no-install-recommends "${packages[@]}"
   run_as_root rm -rf /var/lib/apt/lists/*
 }
 
 install_pacman() {
   local list_file="$PACKAGES_DIR/pacman.txt"
+  local packages=()
   [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
+  while IFS= read -r pkg; do
+    packages+=("$pkg")
+  done < <(read_list_items "$list_file")
+
+  [ "${#packages[@]}" -gt 0 ] || return 0
+
   run_as_root pacman -Syy --noconfirm
-  run_as_root pacman -S --needed --noconfirm $(grep -v '^#' "$list_file" | xargs)
+  run_as_root pacman -S --needed --noconfirm "${packages[@]}"
 }
 
 install_aur() {
   local list_file="$PACKAGES_DIR/aur.txt"
+  local packages=()
   [ -f "$list_file" ] || return 0
   [ -n "${AUR_USER:-}" ] || return 0
+
+  while IFS= read -r pkg; do
+    packages+=("$pkg")
+  done < <(read_list_items "$list_file")
+
+  [ "${#packages[@]}" -gt 0 ] || return 0
 
   if ! command -v yay >/dev/null 2>&1; then
     run_as_root pacman -S --needed --noconfirm git base-devel
@@ -48,13 +74,16 @@ install_aur() {
     sudo -u "${AUR_USER}" bash -lc "cd /tmp/yay && makepkg -si --noconfirm"
   fi
 
-  sudo -u "${AUR_USER}" yay -S --needed --noconfirm $(grep -v '^#' "$list_file" | xargs)
+  sudo -u "${AUR_USER}" yay -S --needed --noconfirm "${packages[@]}"
 }
 
 install_brew() {
   local brewfile="$PACKAGES_DIR/Brewfile"
   local caskfile="$PACKAGES_DIR/Caskfile"
   local fontfile="$PACKAGES_DIR/Fontfile"
+  local formulae=()
+  local casks=()
+  local fonts=()
 
   if ! command -v brew >/dev/null 2>&1; then
     echo "Homebrew not found. Installing..."
@@ -67,7 +96,13 @@ install_brew() {
   fi
 
   if [ -f "$brewfile" ]; then
-    brew install $(grep -v '^#' "$brewfile" | xargs)
+    while IFS= read -r pkg; do
+      formulae+=("$pkg")
+    done < <(read_list_items "$brewfile")
+  fi
+
+  if [ "${#formulae[@]}" -gt 0 ]; then
+    brew install "${formulae[@]}"
   fi
 
   brew tap homebrew/cask || true
@@ -75,18 +110,30 @@ install_brew() {
   brew tap homebrew/cask-fonts || true
 
   if [ -f "$caskfile" ]; then
-    brew install --cask $(grep -v '^#' "$caskfile" | xargs)
+    while IFS= read -r pkg; do
+      casks+=("$pkg")
+    done < <(read_list_items "$caskfile")
+  fi
+
+  if [ "${#casks[@]}" -gt 0 ]; then
+    brew install --cask "${casks[@]}"
   fi
 
   if [ -f "$fontfile" ]; then
-    brew install --cask $(grep -v '^#' "$fontfile" | xargs)
+    while IFS= read -r pkg; do
+      fonts+=("$pkg")
+    done < <(read_list_items "$fontfile")
+  fi
+
+  if [ "${#fonts[@]}" -gt 0 ]; then
+    brew install --cask "${fonts[@]}"
   fi
 }
 
 OS_ID="$(os_id)"
 
 case "$OS_ID" in
-  darwin)
+  macos)
     install_brew
     ;;
   ubuntu|debian)

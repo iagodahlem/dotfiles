@@ -2,12 +2,14 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MIGRATION_MARKER="$ROOT_DIR/.migrated"
+STATE_DIR="${DOTFILES_STATE_DIR:-$HOME/.local/state/dotfiles}"
+MIGRATION_MARKER="$STATE_DIR/migrated"
 
 source "$ROOT_DIR/scripts/utils/os.sh"
 OS_ID="$(os_id)"
 
 if [ ! -f "$MIGRATION_MARKER" ]; then
+  mkdir -p "$STATE_DIR"
   if [ -d "$ROOT_DIR/zsh" ] || [ -d "$ROOT_DIR/git" ] || [ -d "$ROOT_DIR/tmux" ]; then
     echo "Detected legacy layout (e.g. zsh/, git/, tmux/)."
     echo "Re-running install will update symlinks to config/."
