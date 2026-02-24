@@ -34,8 +34,6 @@ alias top="htop"
 # zsh & oh-my-zsh
 alias reload=". $HOME/.zshrc"
 alias r="reload"
-alias zsh="$EDITOR $HOME/.zshrc"
-alias ohmyzsh="$EDITOR $HOME/.oh-my-zsh"
 
 # docker
 alias dc="docker"

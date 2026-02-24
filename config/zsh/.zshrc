@@ -19,7 +19,6 @@ plugins=(
   gitfast
   npm
   tmux
-  yarn
   z
   zsh-autosuggestions
   zsh-syntax-highlighting
@@ -45,9 +44,6 @@ source $DOTFILES_ZSH/.bootstrap
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
 # pnpm
 export PNPM_HOME="/home/iagodahlem/.local/share/pnpm"
 case ":$PATH:" in
@@ -56,6 +52,5 @@ case ":$PATH:" in
 esac
 # pnpm end
 
-if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-fi
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
