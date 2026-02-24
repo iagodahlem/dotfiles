@@ -26,9 +26,10 @@ export PATH=$PATH:/snap/bin
 export PATH=$PATH:$HOME/.local/bin
 export PATH=$PATH:$DOTFILES_BIN
 
-export NODE_EXTRA_CA_CERTS="$(mkcert -CAROOT)/rootCA.pem"
-
-[ -d "$DOTFILES_EXTENSIONS" ] && for EXTENSION in "$DOTFILES"/extensions/*; do
-  export PATH="$PATH:$EXTENSION/bin"
-done
-unset EXTENSION
+if command -v mkcert >/dev/null 2>&1; then
+  _mkcert_ca_root="$(mkcert -CAROOT 2>/dev/null || true)"
+  if [ -n "${_mkcert_ca_root:-}" ] && [ -f "$_mkcert_ca_root/rootCA.pem" ]; then
+    export NODE_EXTRA_CA_CERTS="$_mkcert_ca_root/rootCA.pem"
+  fi
+  unset _mkcert_ca_root
+fi

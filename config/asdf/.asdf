@@ -3,8 +3,10 @@
 if [ -s "$HOME/.asdf/asdf.sh" ]; then
   fpath=(${ASDF_DIR}/completions $fpath)
 
-  # initialise completions with ZSH's compinit
-  autoload -Uz compinit && compinit
+  # avoid running compinit twice when oh-my-zsh already initialized completions
+  if ! typeset -f compdef >/dev/null 2>&1; then
+    autoload -Uz compinit && compinit
+  fi
 
   export ASDF_GOLANG_MOD_VERSION_ENABLED=true
   export PATH=$PATH:$(go env GOPATH)/bin
