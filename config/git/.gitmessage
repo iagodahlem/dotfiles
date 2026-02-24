@@ -1,7 +1,6 @@
 
 
 # ---------------------------------------------------------------------
-#
 # Message header type
 #
 # feat        A new feature
@@ -12,5 +11,4 @@
 # perf        A code change that improves performance
 # test        Adding missing tests
 # chore       Changes to the build process or auxiliary tools/libraries
-#
 # ---------------------------------------------------------------------
