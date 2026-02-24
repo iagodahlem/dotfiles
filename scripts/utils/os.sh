@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 os_id() {
   if [ "$(uname -s)" = "Darwin" ]; then
