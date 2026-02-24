@@ -6,7 +6,7 @@ DOCKERFILE="${DOCKERFILE:-containers/Dockerfile}"
 
 docker build -f "${DOCKERFILE}" -t "${IMAGE_NAME}" .
 
-docker run --rm --entrypoint /bin/zsh "${IMAGE_NAME}" -lc '\
+docker run --rm "${IMAGE_NAME}" /bin/zsh -lc '\
   test -L "$HOME/.gitconfig" && \
   test -L "$HOME/.zshrc" && \
   test -L "$HOME/.tmux.conf" && \

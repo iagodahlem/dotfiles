@@ -25,6 +25,8 @@ cd ~/.dotfiles
 ./scripts/install.sh
 ```
 
+Note: global npm packages are installed only when `pnpm` is available (or can be bootstrapped with `corepack`). If neither exists, this step is skipped with a warning.
+
 ## Architecture
 
 ```text
