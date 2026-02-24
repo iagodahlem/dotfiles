@@ -1,68 +1,34 @@
 # PLAN
 
-**User Requested Changes**
+Status snapshot updated on 2026-02-24.
 
-1. Unify macOS and Linux setups; avoid separate installs per OS while still handling distro differences (Ubuntu, Arch, macOS).
-2. Add devbox/Docker-friendly install flow so dotfiles work cleanly in fresh containers for per-client environments and testing.
-3. Speed up shell startup by simplifying `zsh/.zshrc` and bootstrap files while keeping behavior.
+## Goals
 
-**Recommended Next Steps**
+1. Keep a single install flow for macOS and Linux (Ubuntu/Arch) with OS-specific branches.
+2. Keep dotfiles runnable in Docker devboxes for client environments and testing.
+3. Improve shell startup time without regressing behavior.
 
-1. Review `os/macos.sh` defaults to ensure they match current preferences.
-2. Validate `config/zsh/.zshrc` plugin list and bootstrap sourcing for macOS vs Linux.
-3. Refresh README to fully reflect the new layout and install steps.
+## Current State
 
-**Known Fixes To Apply**
+### Completed
 
-1. Fix `nmp/globals` typo in `scripts/install.sh` or add npm globals installer using pnpm.
+1. Unified repo layout under `config/`, `scripts/`, `os/`, `packages/`, `containers/`, and `overlays/`.
+2. Shared package installer (`scripts/install-packages.sh`) for apt/pacman/brew.
+3. Unified orchestration entrypoint (`scripts/install.sh`) with skip flags.
+4. Container install path (`scripts/install-container.sh`) and smoke test (`scripts/devbox-smoke.sh`).
+5. Global Node package installer via `pnpm` (`scripts/install-node-globals.sh`).
+6. Overlay model replacing extension repositories.
 
-**Plan: Devbox/Docker Flow (Priority)**
+### Open
 
-1. Define container strategy and entry points.
-   - Create `containers/` with:
-     - `Dockerfile` for a base devbox image. (done)
-     - `entrypoint.sh` to enter the target user. (done)
-2. Add a container-safe install mode.
-   - Add a script (e.g. `scripts/install-container.sh`) that:
-     - Skips macOS-specific steps and `sudo` defaults.
-     - Runs a minimal dotfiles install (zsh, git, tmux, vim, configs, shell init).
-     - Accepts `DOTFILES_INSTALL_MODE=container` and `DOTFILES_CONTAINER_MINIMAL=0|1`. (done)
-   - Add a smoke test script for local and CI validation. (done: `scripts/devbox-smoke.sh`)
-3. Make dotfiles cloneable inside containers.
-   - Use `ARG DOTFILES_REPO` and `ARG DOTFILES_BRANCH` in Dockerfile.
-   - Clone into `/home/dev/.dotfiles` and run container install script.
-4. Add a "customer box" pattern.
-   - Provide a `containers/examples/` or `.devcontainer/` template that mounts a per-client workspace.
-   - Document how to add project-specific packages via compose overrides.
-5. Add fast validation targets.
-   - GitHub Actions workflow runs the smoke test on push. (done)
-6. Document the workflow in README.
-   - How to build, run, and customize images.
-   - How to add per-client dependencies.
-   - How to test dotfiles inside a container.
+1. Implement distro-specific defaults in `os/ubuntu.sh` and `os/arch.sh`.
+2. Decide and implement "customer box" templates (`containers/examples/` or `.devcontainer/`).
+3. Decide whether Dockerfiles should support `DOTFILES_REPO`/`DOTFILES_BRANCH` clone mode in addition to local `COPY .`.
+4. Continue shell startup cleanup (`.zshrc`/`.bootstrap`) and measure impact.
 
-**Packages (Shared)**
+## Next Actions
 
-1. Create OS-specific package lists under `packages/`. (done)
-2. Add `scripts/install-packages.sh` to install from `apt.txt` or `pacman.txt`. (done)
-3. Move `brew/brewfile` to `packages/Brewfile` and update install scripts. (done)
-
-**Refactor Steps**
-
-1. Create new `config/`, `scripts/`, and `os/` layout alongside existing files. (done)
-2. Move configs from `zsh/`, `git/`, `tmux/`, `vim/`, `vscode/`, `asdf/`, `nvm/`, `atuin/` into `config/`. (done)
-3. Split existing install logic into: (done)
-   - `scripts/install.sh` (orchestration + OS detection)
-   - `scripts/install-packages.sh` (already exists)
-   - `scripts/install-dotfiles.sh` (symlinks only)
-   - `scripts/install-shell.sh` (Oh My Zsh, plugins, p10k)
-4. Move `macos.sh` into `os/macos.sh` and add `os/ubuntu.sh`, `os/arch.sh` as needed. (done)
-5. Update container Dockerfiles and entrypoints to use `scripts/install.sh` or `install-container.sh`. (done)
-6. Update README with new layout and install instructions. (done)
-7. Remove deprecated files/paths once parity is confirmed. (done)
-
-**Next Refactors**:
-
-- abstract os_id handling to utils folder, and reuse across scripts
-- move /npm folder to config, and add handler to install npm global packages, it should use pnpm for the installs, also as a rule, update agents to always use pnpm rather than npm (done)
-- extensions, how to make them better? I dont like to have to create separate repositories for each private or separate config that I want (done: replaced with overlays)
+1. Add baseline Ubuntu/Arch defaults (safe, reversible settings only).
+2. Choose one container customization pattern and document it in README.
+3. Add startup timing checks (e.g. repeatable `zsh -i -c exit` benchmark) before/after shell changes.
+4. Keep README/AGENTS in lockstep with any install-flow edits.

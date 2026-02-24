@@ -1,59 +1,103 @@
 # .dotfiles
 
-:computer: Personal dotfiles for **macOS** and **Linux** with a unified installer and container support.
+Personal dotfiles for **macOS** and **Linux** with a unified installer, overlays, and container support.
 
 [![devbox-smoke](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
 
-## Installation
+## Installation (Host)
 
-1. Check for software updates (macOS only).
+1. (macOS only, optional) install available system updates.
 
 ```sh
 sudo softwareupdate -i -r
 ```
 
-2. Clone the repo.
+2. Clone this repository.
 
 ```sh
 git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
-3. Install packages + dotfiles.
+3. Run the unified installer.
 
 ```sh
 ./scripts/install.sh
 ```
 
-Note: global npm packages are installed only when `pnpm` is available (or can be bootstrapped with `corepack`). If neither exists, this step is skipped with a warning.
+Optional installer flags:
+
+- `DOTFILES_SKIP_PACKAGES=1` skip package installation.
+- `DOTFILES_SKIP_DOTFILES=1` skip symlink creation.
+- `DOTFILES_SKIP_SHELL=1` skip Oh My Zsh and plugin install.
+- `DOTFILES_SKIP_NODE_GLOBALS=1` skip global Node package install.
+- `DOTFILES_SKIP_OS_DEFAULTS=1` skip OS-specific defaults/tweaks.
+
+Global Node packages come from `config/npm/globals` and are installed with `pnpm` (or bootstrapped with `corepack` when available).
+
+## Installation (Containers)
+
+### Docker (Ubuntu)
+
+```sh
+docker build -f containers/Dockerfile -t dotfiles-devbox .
+docker run --rm -it dotfiles-devbox
+```
+
+Skip Oh My Zsh/plugins for faster builds:
+
+```sh
+docker build --build-arg DOTFILES_CONTAINER_MINIMAL=1 -f containers/Dockerfile -t dotfiles-devbox .
+```
+
+### Docker Compose (Ubuntu)
+
+```sh
+docker compose build
+docker compose run --rm devbox
+```
+
+### Docker Compose (Arch)
+
+```sh
+docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml build
+docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml run --rm devbox
+```
 
 ## Architecture
 
 ```text
 .
-├── packages/                # Source of truth for deps
-│   ├── Brewfile
-│   ├── Caskfile
-│   ├── Fontfile
+├── packages/                # Source of truth for dependencies
+│   ├── Brewfile             # Homebrew formulae
+│   ├── Caskfile             # Homebrew casks
+│   ├── Fontfile             # Homebrew font casks
 │   ├── apt.txt
 │   ├── pacman.txt
 │   └── aur.txt
-├── scripts/                 # All logic lives here
-│   ├── install.sh           # entrypoint: detects OS + runs tasks
-│   ├── install-packages.sh  # installs packages from packages/
-│   ├── install-dotfiles.sh  # symlinks configs
-│   ├── install-shell.sh     # oh-my-zsh, plugins, p10k
-│   └── install-container.sh # container-safe subset
-├── os/                      # OS-specific tweaks
+├── scripts/
+│   ├── install.sh           # main entrypoint
+│   ├── install-packages.sh
+│   ├── install-dotfiles.sh
+│   ├── install-shell.sh
+│   ├── install-node-globals.sh
+│   ├── install-container.sh
+│   ├── devbox-smoke.sh
+│   └── utils/os.sh
+├── os/
 │   ├── macos.sh
 │   ├── ubuntu.sh
 │   └── arch.sh
-├── config/                  # App configs
-│   ├── zsh/
+├── config/
+│   ├── asdf/
+│   ├── atuin/
+│   ├── brew/
+│   ├── cargo/
 │   ├── git/
+│   ├── npm/
+│   ├── nvm/
 │   ├── tmux/
-│   ├── vim/
-│   └── vscode/
+│   └── zsh/
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
@@ -64,58 +108,47 @@ Note: global npm packages are installed only when `pnpm` is available (or can be
 │   └── host/
 ├── docker-compose.yml
 ├── README.md
-└── AGENTS.md
+├── AGENTS.md
+└── PLAN.md
 ```
 
-## Principles
+## Runtime Flow
 
-- `packages/` is the single source of truth for dependencies.
-- `scripts/install.sh` is the only public entrypoint; everything else is a sub-step.
-- `os/` holds OS-only tweaks and defaults.
-- `config/` is purely static configs; scripts should never “know” their contents.
-- Containers use the same `scripts/` entrypoint (no duplicated logic).
+- `scripts/install.sh` orchestrates install sub-steps.
+- `scripts/utils/os.sh` resolves `os_id` (`macos`, `ubuntu`, `debian`, `arch`, or `unknown`).
+- `scripts/install-packages.sh` installs from `packages/` per OS.
+- `scripts/install-dotfiles.sh` creates symlinks in `$HOME` and backs up existing files as `*.bak.<timestamp>`.
+- `scripts/install-shell.sh` installs Oh My Zsh, Powerlevel10k, and Zsh plugins.
+- `scripts/install-node-globals.sh` installs globals from `config/npm/globals` with `pnpm`.
+- `os/*.sh` applies OS-specific tweaks/defaults.
 
 ## Overlays
 
-- OS-specific overrides go in `overlays/os/<os>/` (e.g. `overlays/os/ubuntu/zsh/.aliases`).
-- Host-specific overrides go in `overlays/host/<name>/` (set `DOTFILES_HOST=<name>`).
-- Overlays can include `zsh/.aliases`, `zsh/.exports`, `zsh/.functions`, or `zsh/.bootstrap`.
-- Example host overlay: `overlays/host/example` (see `overlays/host/example/README.md`).
+Overlays provide optional OS- and host-specific shell customizations without separate repositories.
 
-## Container (Minimal)
+- OS overlay: `overlays/os/<os>/` where `<os>` matches `os_id`.
+- Host overlay: `overlays/host/<name>/` with `DOTFILES_HOST=<name>`.
+- Supported overlay files today: `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.bootstrap`.
 
-Build a minimal devbox container that runs these dotfiles:
+Example:
 
-```sh
-docker build -f containers/Dockerfile -t dotfiles-devbox .
-docker run --rm -it dotfiles-devbox
+```text
+overlays/os/ubuntu/zsh/.aliases
+overlays/host/work-laptop/zsh/.exports
 ```
 
-To skip Oh My Zsh + plugins (faster build):
+## Smoke Test
+
+Run the same smoke script used in CI:
 
 ```sh
-docker build --build-arg DOTFILES_CONTAINER_MINIMAL=1 -f containers/Dockerfile -t dotfiles-devbox .
+scripts/devbox-smoke.sh
 ```
 
-## Container (Compose)
+## Notes
 
-```sh
-docker compose build
-docker compose run --rm devbox
-```
-
-To skip Oh My Zsh + plugins (faster build):
-
-```sh
-DOTFILES_CONTAINER_MINIMAL=1 docker compose build
-```
-
-## Container (Arch)
-
-```sh
-docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml build
-docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml run --rm devbox
-```
+- `os/ubuntu.sh` and `os/arch.sh` are currently placeholders.
+- Install scripts are intentionally stateful and can modify system settings/packages.
 
 ## Thanks
 
