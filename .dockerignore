@@ -1,0 +1,6 @@
+.git
+.github
+.ruby-lsp
+*.log
+*.tmp
+*.swp

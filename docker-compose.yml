@@ -4,10 +4,50 @@ services:
       context: .
       dockerfile: containers/Dockerfile
       args:
+        USER: ${DOTFILES_USER:-dev}
+        UID: ${DOTFILES_UID:-1000}
+        GID: ${DOTFILES_GID:-1000}
         DOTFILES_CONTAINER_MINIMAL: ${DOTFILES_CONTAINER_MINIMAL:-0}
     image: dotfiles-devbox
     tty: true
     stdin_open: true
     working_dir: /workspace
     volumes:
-      - ../:/workspace
+      - ${DOTFILES_WORKSPACE:-.}:/workspace
+
+  devbox-isolated:
+    build:
+      context: .
+      dockerfile: containers/Dockerfile
+      args:
+        USER: ${DOTFILES_USER:-dev}
+        UID: ${DOTFILES_UID:-1000}
+        GID: ${DOTFILES_GID:-1000}
+        DOTFILES_CONTAINER_MINIMAL: ${DOTFILES_CONTAINER_MINIMAL:-0}
+    image: dotfiles-devbox
+    profiles: ["isolated"]
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    volumes:
+      - devbox-workspace:/workspace
+
+  devbox-arch:
+    build:
+      context: .
+      dockerfile: containers/Dockerfile.arch
+      args:
+        USER: ${DOTFILES_USER:-dev}
+        UID: ${DOTFILES_UID:-1000}
+        GID: ${DOTFILES_GID:-1000}
+        DOTFILES_CONTAINER_MINIMAL: ${DOTFILES_CONTAINER_MINIMAL:-0}
+    image: dotfiles-devbox-arch
+    profiles: ["arch"]
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    volumes:
+      - ${DOTFILES_WORKSPACE:-.}:/workspace
+
+volumes:
+  devbox-workspace:
