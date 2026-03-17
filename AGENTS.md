@@ -12,10 +12,12 @@ This is a personal dotfiles repo for macOS and Linux setup. It contains static c
 - `scripts/install-dotfiles.sh` manages symlinks in `$HOME`.
 - `scripts/install-shell.sh` installs Oh My Zsh + plugins/themes.
 - `scripts/install-node-globals.sh` installs global Node packages from `config/npm/globals` using `pnpm`.
-- `scripts/install-container.sh` runs a container-safe subset.
+- `scripts/devbox-smoke.sh` builds and validates container images.
+- `scripts/lint-shell.sh` runs shellcheck over shell scripts.
 - `scripts/utils/os.sh` provides shared `os_id()` detection.
 - `os/macos.sh` applies macOS defaults; `os/ubuntu.sh` and `os/arch.sh` are placeholders.
-- `containers/` contains Ubuntu/Arch devbox Dockerfiles and entrypoint.
+- `containers/` contains Ubuntu/Arch devbox Dockerfiles plus shared entrypoint.
+- `docker-compose.yml` defines all devbox services (`devbox`, `devbox-arch`, `devbox-isolated`).
 - `overlays/` holds OS- and host-specific shell overrides (see `overlays/README.md`).
 
 **How Config Loads**
@@ -29,11 +31,12 @@ This is a personal dotfiles repo for macOS and Linux setup. It contains static c
 - Primary target is macOS, with Linux (Ubuntu/Arch) support.
 - This repo can be in a dirty state; do not assume a clean git worktree.
 - Install scripts are destructive/system-changing (packages, symlinks, OS defaults).
+- Containers are used both for test validation and optional isolated dev environments.
 
 **Known Gaps (current state)**
 
 - `os/ubuntu.sh` and `os/arch.sh` are placeholders.
-- Container "customer box" templates (`containers/examples/` or `.devcontainer/`) are not implemented yet.
+- `.devcontainer/` templates are not implemented yet.
 - Shell startup still initializes both `asdf` and `nvm`; more startup tuning is possible.
 
 **Roadmap (user intent)**

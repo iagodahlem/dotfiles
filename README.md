@@ -2,7 +2,7 @@
 
 Personal dotfiles for **macOS** and **Linux** with a unified installer, overlays, and container support.
 
-[![devbox-smoke](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
+[![container-ci](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
 
 ## Installation (Host)
 
@@ -35,7 +35,7 @@ Optional installer flags:
 
 Global Node packages come from `config/npm/globals` and are installed with `pnpm` (or bootstrapped with `corepack` when available).
 
-## Installation (Containers)
+## Containers
 
 ### Docker (Ubuntu)
 
@@ -44,25 +44,38 @@ docker build -f containers/Dockerfile -t dotfiles-devbox .
 docker run --rm -it dotfiles-devbox
 ```
 
-Skip Oh My Zsh/plugins for faster builds:
+### Docker (Arch)
 
 ```sh
-docker build --build-arg DOTFILES_CONTAINER_MINIMAL=1 -f containers/Dockerfile -t dotfiles-devbox .
+docker build -f containers/Dockerfile.arch -t dotfiles-devbox-arch .
+docker run --rm -it dotfiles-devbox-arch
 ```
 
-### Docker Compose (Ubuntu)
+### Compose services (single file)
+
+- `devbox`: Ubuntu dev shell with bind-mounted workspace (`DOTFILES_WORKSPACE`, default `.`).
+- `devbox-arch`: Arch dev shell (`--profile arch`).
+- `devbox-isolated`: Ubuntu dev shell with isolated named volume workspace (`--profile isolated`).
+
+Examples:
 
 ```sh
-docker compose build
 docker compose run --rm devbox
 ```
 
-### Docker Compose (Arch)
+```sh
+DOTFILES_WORKSPACE=.. docker compose run --rm devbox
+```
 
 ```sh
-docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml build
-docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml run --rm devbox
+docker compose --profile arch run --rm devbox-arch
 ```
+
+```sh
+docker compose --profile isolated run --rm devbox-isolated
+```
+
+Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 
 ## Architecture
 
@@ -81,8 +94,8 @@ docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml run -
 │   ├── install-dotfiles.sh
 │   ├── install-shell.sh
 │   ├── install-node-globals.sh
-│   ├── install-container.sh
 │   ├── devbox-smoke.sh
+│   ├── lint-shell.sh
 │   └── utils/os.sh
 ├── os/
 │   ├── macos.sh
@@ -101,12 +114,12 @@ docker compose -f docker-compose.yml -f containers/docker-compose.arch.yml run -
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
-│   ├── entrypoint.sh
-│   └── docker-compose.arch.yml
+│   └── entrypoint.sh
 ├── overlays/
 │   ├── os/
 │   └── host/
 ├── docker-compose.yml
+├── .dockerignore
 ├── README.md
 ├── AGENTS.md
 └── PLAN.md
@@ -137,13 +150,11 @@ overlays/os/ubuntu/zsh/.aliases
 overlays/host/work-laptop/zsh/.exports
 ```
 
-## Smoke Test
+## CI and Smoke
 
-Run the same smoke script used in CI:
-
-```sh
-scripts/devbox-smoke.sh
-```
+- `scripts/lint-shell.sh` runs shellcheck on installer/container shell scripts.
+- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login and core symlinks.
+- CI runs shellcheck in a dedicated container image and smoke tests for Ubuntu + Arch Dockerfiles.
 
 ## Notes
 
