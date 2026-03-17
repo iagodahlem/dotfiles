@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES_INSTALL_MODE="${DOTFILES_INSTALL_MODE:-}"
 MINIMAL="${DOTFILES_CONTAINER_MINIMAL:-0}"
 
 if [ "$MINIMAL" = "1" ]; then
