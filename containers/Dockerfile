@@ -32,9 +32,7 @@ RUN set -e; \
   mkdir -p "${HOME_DIR}"; \
   cp -a /opt/dotfiles "${HOME_DIR}/.dotfiles"; \
   chown -R "${USERNAME}:${USERNAME}" "${HOME_DIR}/.dotfiles"; \
-  DOTFILES_INSTALL_MODE=container DOTFILES_CONTAINER_MINIMAL="${DOTFILES_CONTAINER_MINIMAL}" \
-  DOTFILES_SKIP_PACKAGES=1 DOTFILES_SKIP_OS_DEFAULTS=1 \
-    su - "${USERNAME}" -c "${HOME_DIR}/.dotfiles/scripts/install.sh"
+  su - "${USERNAME}" -c "DOTFILES_CONTAINER_MINIMAL='${DOTFILES_CONTAINER_MINIMAL}' DOTFILES_SKIP_PACKAGES=1 DOTFILES_SKIP_OS_DEFAULTS=1 '${HOME_DIR}/.dotfiles/scripts/install.sh'"
 
 COPY containers/entrypoint.sh /usr/local/bin/dotfiles-entrypoint
 RUN chmod +x /usr/local/bin/dotfiles-entrypoint
