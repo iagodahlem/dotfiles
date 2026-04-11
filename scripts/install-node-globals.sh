@@ -25,4 +25,5 @@ if ! command -v pnpm >/dev/null 2>&1; then
   fi
 fi
 
+# shellcheck disable=SC2086
 pnpm add -g $PACKAGES
