@@ -35,6 +35,5 @@ safe_link "$CONFIG_DIR/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 # tmux
 safe_link "$CONFIG_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf"
 
-# asdf, nvm, atuin
-safe_link "$CONFIG_DIR/asdf/.tool-versions" "$HOME/.tool-versions"
-safe_link "$CONFIG_DIR/asdf/.asdfrc" "$HOME/.asdfrc"
+# mise, nvm, atuin
+safe_link "$CONFIG_DIR/mise/.tool-versions" "$HOME/.tool-versions"

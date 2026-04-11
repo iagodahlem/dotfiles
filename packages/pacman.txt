@@ -10,13 +10,16 @@ docker-compose
 duf
 eza
 fastfetch
+gemini-cli
 git
 jq
 liquidctl
+mise
 mkcert
 mosh
 ncdu
 neovim
+openai-codex
 podman
 podman-compose
 procs
