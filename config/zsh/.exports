@@ -7,10 +7,11 @@ export LANG=en_US.UTF-8
 export EDITOR='nvim'
 
 # path
-# Build PATH — prepend local dirs, append system dirs
+# Build PATH — prepend local dirs, keep system PATH intact
 PATH=/usr/local/bin:/usr/local/sbin:$PATH
 PATH=$HOME/.local/bin:$PATH
 PATH=$DOTFILES_BIN:$PATH
+[ -d /snap/bin ] && PATH=$PATH:/snap/bin
 export PATH
 
 if command -v mkcert >/dev/null 2>&1; then
