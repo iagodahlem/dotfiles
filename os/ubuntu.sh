@@ -12,8 +12,8 @@ sudo timedatectl set-timezone America/Sao_Paulo 2>/dev/null || \
   sudo ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 
 # Set zsh as default shell
-if [ "$(basename "$SHELL")" != "zsh" ]; then
-  chsh -s "$(which zsh)"
+if [ "$(basename "$SHELL")" != "zsh" ] && command -v zsh >/dev/null 2>&1; then
+  chsh -s "$(which zsh)" || true
 fi
 
 # Docker group

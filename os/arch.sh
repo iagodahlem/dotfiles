@@ -8,15 +8,17 @@ if ! locale -a 2>/dev/null | grep -q "en_US.utf8"; then
   sudo sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
   sudo locale-gen
 fi
-echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf >/dev/null
+if [ ! -f /etc/locale.conf ] || ! grep -q "LANG=en_US.UTF-8" /etc/locale.conf 2>/dev/null; then
+  echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf >/dev/null
+fi
 
 # Timezone
 sudo ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 sudo hwclock --systohc
 
 # Set zsh as default shell
-if [ "$(basename "$SHELL")" != "zsh" ]; then
-  chsh -s "$(which zsh)"
+if [ "$(basename "$SHELL")" != "zsh" ] && command -v zsh >/dev/null 2>&1; then
+  chsh -s "$(which zsh)" || true
 fi
 
 # Docker group
