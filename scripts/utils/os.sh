@@ -6,6 +6,7 @@ os_id() {
     return
   fi
   if [ -f /etc/os-release ]; then
+    # shellcheck disable=SC1091
     . /etc/os-release
     echo "${ID:-unknown}"
     return

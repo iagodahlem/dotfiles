@@ -19,7 +19,7 @@ jobs:
             -v "$PWD:/work" \
             -w /work \
             koalaman/shellcheck-alpine:stable \
-            ./scripts/lint-shell.sh
+            sh -c 'shellcheck scripts/*.sh scripts/utils/*.sh os/*.sh containers/entrypoint.sh'
 
   devbox-smoke:
     runs-on: ubuntu-latest
