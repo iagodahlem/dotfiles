@@ -1,7 +1,6 @@
 [user]
   name = Iago Dahlem Lorensini
   email = iagodahlemlorensini@gmail.com
-  editor = code
   signingkey = ~/.ssh/id_ed25519.pub
 
 [github]

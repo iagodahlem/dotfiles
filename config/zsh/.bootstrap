@@ -25,7 +25,7 @@ fi
 
 unset OS_ID
 
-source "$DOTFILES_CONFIG"/asdf/.asdf
+source "$DOTFILES_CONFIG"/mise/.mise
 source "$DOTFILES_CONFIG"/atuin/.atuin
 source "$DOTFILES_CONFIG"/brew/.homebrew
 source "$DOTFILES_CONFIG"/cargo/.cargo

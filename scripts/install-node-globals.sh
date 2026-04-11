@@ -8,7 +8,7 @@ if [ ! -f "$LIST_FILE" ]; then
   exit 0
 fi
 
-PACKAGES="$(grep -Ev '^[[:space:]]*($|#)' "$LIST_FILE" | xargs)"
+PACKAGES="$(grep -Ev '^[[:space:]]*($|#)' "$LIST_FILE" | xargs || true)"
 if [ -z "$PACKAGES" ]; then
   exit 0
 fi

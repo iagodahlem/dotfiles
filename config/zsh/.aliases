@@ -1,14 +1,6 @@
 # dotfiles
 alias dots="cd $DOTFILES"
 
-# brew
-alias install="brew install"
-alias cask="brew cask install"
-alias update="brew update"
-alias upgrade="brew upgrade"
-alias up="update && upgrade"
-alias cleanup="brew cleanup"
-
 # directories
 alias dev="cd $CODE"
 alias desktop="cd $DESKTOP"

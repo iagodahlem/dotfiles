@@ -4,27 +4,14 @@ export HISTIGNORE="ls:ls *:cd:cd -:pwd;exit:date:* --help"
 export LANG=en_US.UTF-8
 
 # editors
-export CODE='code'
-export VIM='vim'
-
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR=$VIM
-else
-  export EDITOR=$CODE
-fi
+export EDITOR='nvim'
 
 # path
-export PATH=/usr/local/bin
-export PATH=$PATH:/usr/local/sbin
-export PATH=$PATH:/usr/sbin
-export PATH=$PATH:/usr/bin
-export PATH=$PATH:/sbin
-export PATH=$PATH:/bin
-export PATH=$PATH:/usr/games
-export PATH=$PATH:/usr/local/games
-export PATH=$PATH:/snap/bin
-export PATH=$PATH:$HOME/.local/bin
-export PATH=$PATH:$DOTFILES_BIN
+# Build PATH — prepend local dirs, append system dirs
+PATH=/usr/local/bin:/usr/local/sbin:$PATH
+PATH=$HOME/.local/bin:$PATH
+PATH=$DOTFILES_BIN:$PATH
+export PATH
 
 if command -v mkcert >/dev/null 2>&1; then
   _mkcert_ca_root="$(mkcert -CAROOT 2>/dev/null || true)"

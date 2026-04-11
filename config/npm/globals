@@ -1,1 +1,2 @@
-codex
+# Global npm packages (installed via pnpm)
+# AI CLIs are installed via brew/pacman — only add packages here that have no brew formula
