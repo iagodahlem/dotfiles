@@ -14,7 +14,7 @@ Use this to compare against your system and spot what's missing.
 | Package | Description |
 |---|---|
 | bat | cat clone with syntax highlighting |
-| diff-so-fancy | human-readable git diffs |
+| git-delta | syntax-highlighting git diff pager |
 | tmux | terminal multiplexer |
 
 **Casks** (`packages/Caskfile`):
@@ -64,7 +64,7 @@ Empty — no fonts installed yet. Needs Nerd Font for Powerlevel10k and tmux pow
 | btop | system monitor |
 | cmatrix | matrix rain screensaver |
 | ctop | container metrics |
-| diff-so-fancy | human-readable diffs |
+| git-delta | syntax-highlighting git diff pager |
 | docker | container runtime |
 | docker-compose | multi-container orchestration |
 | duf | disk usage utility |
@@ -178,7 +178,7 @@ Loaded in order: asdf, atuin, homebrew, cargo, nvm.
 | Tool | Usage |
 |---|---|
 | nvim | core editor |
-| diff-so-fancy | core pager (via `diff-so-fancy \| less`) |
+| git-delta | core pager — syntax-highlighted diffs |
 | ssh (ed25519) | GPG signing format |
 
 ### Git aliases (`config/git/.gitconfig [alias]`)

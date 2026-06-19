@@ -9,7 +9,14 @@
 [core]
   editor = nvim
   excludesfile = ~/.gitignore_global
-  pager = diff-so-fancy | less --tabs=4 -RFX
+  pager = delta
+
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate = true
+  line-numbers = true
 
 [gpg]
   format = ssh
@@ -67,7 +74,7 @@
   ftp = fetch --prune
 
   # helpers
-  bam = !git branch --merged | grep -v '\\*\\|master\\|develop\\|main' | xargs -n 1 git branch -d
+  bam = !git branch --merged | grep -vE '^[+*]|(master|develop|main)' | xargs -r -n 1 git branch -d
 
   # lists
   aliases = !git config --get-regexp 'alias.*' | colrm 1 6 | sed 's/[ ]/ = /' | sort
