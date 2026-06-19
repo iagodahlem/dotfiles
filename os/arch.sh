@@ -33,6 +33,11 @@ for svc in docker tailscaled; do
   fi
 done
 
+# Pacman cache trimming — weekly paccache timer (pacman-contrib)
+if systemctl list-unit-files paccache.timer >/dev/null 2>&1; then
+  sudo systemctl enable --now paccache.timer 2>/dev/null || true
+fi
+
 # UFW defaults
 if command -v ufw >/dev/null 2>&1; then
   sudo ufw default deny incoming 2>/dev/null || true
