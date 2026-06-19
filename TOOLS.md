@@ -77,6 +77,7 @@ Empty — no fonts installed yet. Needs Nerd Font for Powerlevel10k and tmux pow
 | mosh | mobile shell (SSH replacement) |
 | ncdu | disk usage analyzer |
 | neovim | text editor |
+| pacman-contrib | pacman cache tools — paccache.timer auto-trims cache weekly (enabled by os/arch.sh) |
 | podman | daemonless container runtime |
 | podman-compose | podman orchestration |
 | procs | modern ps replacement |
@@ -307,7 +308,7 @@ Loaded in order: asdf, atuin, homebrew, cargo, nvm.
 | `upgrade` | `sudo pacman -Syu` |
 | `i` | `install` |
 | `up` | `update && upgrade` |
-| `cleanup` | `sudo pacman -Scc` |
+| `cleanup` | `yay -Sc && yay -Yc` |
 
 ---
 
