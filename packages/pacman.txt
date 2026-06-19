@@ -4,7 +4,7 @@ bat
 btop
 cmatrix
 ctop
-diff-so-fancy
+git-delta
 docker
 docker-compose
 duf
