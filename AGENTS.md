@@ -23,7 +23,8 @@ This is a personal dotfiles repo for macOS and Linux setup. It contains static c
 **How Config Loads**
 
 - `config/zsh/.zshrc` sets base env, loads Oh My Zsh, then sources `config/zsh/.bootstrap`.
-- `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<os>/` and `overlays/host/<name>/`, then per-tool init (`asdf`, `atuin`, `brew`, `cargo`, `nvm`).
+- `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<os>/` and `overlays/host/<name>/`, then per-tool init (`mise`, `atuin`, `brew`, `cargo`, `nvm`).
+- `config/git/.gitconfig` ends with `[include] path = ~/.gitconfig.override`, an untracked per-machine file. See `config/git/.gitconfig.override.example` and `docs/new-mac.md`.
 - `config/zsh/.p10k.zsh` is loaded by `.zshrc` when present in `$HOME`.
 
 **Assumptions**
@@ -37,7 +38,7 @@ This is a personal dotfiles repo for macOS and Linux setup. It contains static c
 
 - `os/ubuntu.sh` and `os/arch.sh` are placeholders.
 - `.devcontainer/` templates are not implemented yet.
-- Shell startup still initializes both `asdf` and `nvm`; more startup tuning is possible.
+- Shell startup still initializes both `mise` and `nvm`; more startup tuning is possible.
 
 **Roadmap (user intent)**
 

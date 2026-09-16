@@ -35,6 +35,8 @@ Optional installer flags:
 
 Global Node packages come from `config/npm/globals` and are installed with `pnpm` (or bootstrapped with `corepack` when available).
 
+Setting up a new work machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact sequence, the work machine profile, and the per-machine git identity step.
+
 ## Containers
 
 ### Docker (Ubuntu)
@@ -102,11 +104,11 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── ubuntu.sh
 │   └── arch.sh
 ├── config/
-│   ├── asdf/
 │   ├── atuin/
 │   ├── brew/
 │   ├── cargo/
 │   ├── git/
+│   ├── mise/
 │   ├── npm/
 │   ├── nvm/
 │   ├── tmux/
