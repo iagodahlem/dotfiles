@@ -1,0 +1,17 @@
+# Copy this file to ~/.gitconfig.override and fill in the identity for THIS machine.
+#
+# config/git/.gitconfig ends with `[include] path = ~/.gitconfig.override`,
+# and git applies includes last, so anything set here wins over the defaults
+# baked into the tracked config (name, email, signing key).
+#
+# ~/.gitconfig.override lives outside this repo and is never committed, so it
+# is safe to put the email for this machine here.
+#
+# On a new work machine, create this file BEFORE the first commit. Without
+# it, commits silently use the default identity from config/git/.gitconfig.
+
+[user]
+  email = you@this-machine.example
+  # Uncomment only if this machine signs with a different key than the
+  # default (~/.ssh/id_ed25519.pub):
+  # signingkey = ~/.ssh/id_ed25519_machine.pub

@@ -37,3 +37,8 @@ safe_link "$CONFIG_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf"
 
 # mise, nvm, atuin
 safe_link "$CONFIG_DIR/mise/.tool-versions" "$HOME/.tool-versions"
+
+if [ ! -e "$HOME/.gitconfig.override" ]; then
+  echo "No ~/.gitconfig.override found: commits on this machine use the default identity from config/git/.gitconfig."
+  echo "On a new machine, copy config/git/.gitconfig.override.example to ~/.gitconfig.override and fill in the email for this machine first."
+fi
