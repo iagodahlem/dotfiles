@@ -7,7 +7,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MINIMAL="${DOTFILES_CONTAINER_MINIMAL:-0}"
 
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
+
 if [ "$MINIMAL" = "1" ]; then
+  echo "DOTFILES_CONTAINER_MINIMAL=1: nothing to clone"
   exit 0
 fi
 
@@ -20,7 +23,16 @@ clone_or_pull() {
   local dest="$2"
 
   if [ -d "$dest/.git" ]; then
+    if is_dry_run; then
+      echo "$(display_path "$dest"): already cloned, would run git pull --ff-only"
+      return 0
+    fi
     git -C "$dest" pull -q --ff-only || echo "warning: could not update ${dest#"$HOME"/}, leaving it as it is (delete it and rerun to clone it afresh)" >&2
+    return 0
+  fi
+
+  if is_dry_run; then
+    echo "$(display_path "$dest"): missing, would clone $url"
     return 0
   fi
 

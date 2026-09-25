@@ -21,6 +21,15 @@ jobs:
             koalaman/shellcheck-alpine:stable \
             sh -c 'shellcheck scripts/*.sh scripts/utils/*.sh ci/*.sh os/*.sh containers/entrypoint.sh'
 
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installer dry run
+        run: ci/dry-run.sh
+
   devbox-smoke:
     runs-on: ubuntu-latest
     strategy:
