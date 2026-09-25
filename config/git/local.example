@@ -1,0 +1,19 @@
+# Copy this file to config/git/local, inside the checkout, and fill in the identity for THIS machine.
+#
+# config/git/config ends with `[include] path = ~/.config/git/local`,
+# and git applies includes last, so anything set here wins over the defaults
+# baked into the tracked config (name, email, signing key).
+#
+# ~/.config/git links to config/git, so ~/.config/git/local is this same file.
+# config/git/local is gitignored and never committed, so it is safe to put
+# the email for this machine here. It exists only in this checkout: back it up
+# before deleting the checkout, and note that `git clean -x` removes it.
+#
+# On a new work machine, create this file BEFORE the first commit. Without
+# it, commits silently use the default identity from config/git/config.
+
+[user]
+  email = you@this-machine.example
+  # Uncomment only if this machine signs with a different key than the
+  # default (~/.ssh/id_ed25519.pub):
+  # signingkey = ~/.ssh/id_ed25519_machine.pub

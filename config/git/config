@@ -8,7 +8,7 @@
 
 [core]
   editor = nvim
-  excludesfile = ~/.gitignore_global
+  excludesfile = ~/.config/git/ignore
   pager = delta
 
 [interactive]
@@ -26,7 +26,7 @@
 
 [commit]
   gpgsign = true
-  template = ~/.gitmessage
+  template = ~/.config/git/message
 
 [push]
   default = simple
@@ -149,5 +149,10 @@
   newNormal = green bold
   newHighlight = green bold 22
 
+# per-host settings, written by the host overlays; git ignores an include that does not exist
 [include]
-  path = ~/.gitconfig.override
+  path = ~/.config/git/host
+
+# identity for this machine, untracked and gitignored, in config/git/local (see local.example)
+[include]
+  path = ~/.config/git/local

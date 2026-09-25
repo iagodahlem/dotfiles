@@ -14,7 +14,13 @@ fi
 
 docker run --rm "${IMAGE_NAME}" /bin/zsh -lc '\
   test "$(id -u)" -ne 0 && \
-  test -L "$HOME/.gitconfig" && \
-  test -L "$HOME/.zshrc" && \
-  test -L "$HOME/.tmux.conf" && \
+  test -L "$HOME/.zshenv" && \
+  test -L "$HOME/.config/zsh" && \
+  test -L "$HOME/.config/tmux" && \
+  test -L "$HOME/.config/nvim" && \
+  test -L "$HOME/.config/git" && \
+  test "$(readlink "$HOME/.config/git")" = "$HOME/.dotfiles/config/git" && \
+  test -f "$HOME/.config/git/config" && \
+  test "$ZDOTDIR" = "$HOME/.config/zsh" && \
+  { [ ! -d "$ZSH" ] || test -z "$(/bin/zsh -ic true 2>&1)"; } && \
   echo "smoke ok"'

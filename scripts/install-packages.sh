@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PACKAGES_DIR="$ROOT_DIR/packages"
 
 source "$ROOT_DIR/scripts/utils/os.sh"
+source "$ROOT_DIR/scripts/utils/lists.sh"
 
 is_root() {
   [ "${EUID:-$(id -u)}" -eq 0 ]
@@ -16,12 +17,6 @@ run_as_root() {
   else
     sudo "$@"
   fi
-}
-
-# Entries of a package list: blank lines and comments (whole-line or trailing) are dropped.
-read_list_items() {
-  local list_file="$1"
-  sed -E 's/[[:space:]]*#.*$//; /^[[:space:]]*$/d' "$list_file"
 }
 
 install_apt() {
