@@ -31,6 +31,11 @@ elif command -v batcat >/dev/null 2>&1; then
   alias cat="batcat"
 fi
 
+# fd is installed as fdfind on Debian
+if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then
+  alias fd="fdfind"
+fi
+
 # ls and lt through eza (exa on older Debian), falling back to plain ls
 # oh-my-zsh's ll, la and l are aliases of ls, so they resolve to eza through the ls alias
 if command -v eza >/dev/null 2>&1; then

@@ -6,3 +6,4 @@ Place host-specific files under `overlays/host/<name>/` matching the `config/` l
 
 - `overlays/host/example/zsh/.aliases`
 - `overlays/host/example/zsh/.exports`
+- `overlays/host/example/Brewfile` (extra formulae and casks for this host on macOS, in `brew bundle` syntax)

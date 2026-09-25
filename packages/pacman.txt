@@ -1,35 +1,54 @@
-atuin
-base-devel
-bat
-btop
-cmatrix
-ctop
-git-delta
-docker
-docker-compose
-duf
-eza
-fastfetch
-gemini-cli
-git
-github-cli
+# Arch packages, installed in one transaction by install_pacman (pacman -Syu --needed).
+# Trailing comments are stripped by read_list_items in scripts/install-packages.sh.
+
+# --- CLI core ---
+bat             # cat with syntax highlighting
+eza             # ls replacement
+fd              # find replacement
+fzf             # fuzzy finder
 jq
-liquidctl
-mise
-mkcert
-mosh
-ncdu
+less
+mise            # runtime version manager (node, pnpm)
+mosh            # roaming SSH
 neovim
-openai-codex
-pacman-contrib
-podman
-podman-compose
-procs
-python-pip
-speedtest-cli
-tailscale
-testdisk
+ripgrep         # grep replacement
 tmux
-ufw
-unzip
+
+# --- git and shell ---
+atuin           # shell history search and sync
+git
+git-delta       # diff pager
+github-cli      # gh
 zsh
+
+# --- system tools ---
+bind            # dig and nslookup
+btop            # system monitor
+ctop            # container metrics
+duf             # disk usage overview
+fastfetch       # system info
+ncdu            # disk usage browser
+procs           # ps replacement
+speedtest-cli   # internet speed test
+unzip
+
+# --- containers and network ---
+docker
+docker-buildx
+docker-compose
+tailscale       # mesh VPN
+ufw             # firewall, defaults are set by os/arch.sh
+
+# --- dev ---
+base-devel      # gcc, make and friends; also what makepkg needs for AUR builds
+python-pip
+shellcheck
+
+# --- fonts ---
+ttf-cascadia-code-nerd
+ttf-firacode-nerd
+ttf-meslo-nerd  # Powerlevel10k and tmux powerline glyphs
+
+# --- hardware and maintenance ---
+liquidctl       # liquid cooler control, service enabled by os/arch.sh
+pacman-contrib  # paccache, trimmed weekly by the timer os/arch.sh enables

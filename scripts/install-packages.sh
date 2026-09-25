@@ -18,14 +18,17 @@ run_as_root() {
   fi
 }
 
+# Entries of a package list: blank lines and comments (whole-line or trailing) are dropped.
 read_list_items() {
   local list_file="$1"
-  grep -Ev '^[[:space:]]*($|#)' "$list_file"
+  sed -E 's/[[:space:]]*#.*$//; /^[[:space:]]*$/d' "$list_file"
 }
 
 install_apt() {
   local list_file="$PACKAGES_DIR/apt.txt"
   local packages=()
+  local available=()
+  local pkg candidate
   [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
   while IFS= read -r pkg; do
@@ -34,8 +37,22 @@ install_apt() {
 
   [ "${#packages[@]}" -gt 0 ] || return 0
 
+  "$ROOT_DIR/scripts/install-apt-repos.sh"
   run_as_root apt-get update
-  run_as_root apt-get install -y --no-install-recommends "${packages[@]}"
+
+  # one missing package would fail the whole apt-get install, and releases differ (fastfetch is Debian 13 and newer)
+  for pkg in "${packages[@]}"; do
+    candidate="$(apt-cache policy "$pkg" 2>/dev/null | awk '/Candidate:/ { c = $2 } END { print c }' || true)"
+    if [ -n "$candidate" ] && [ "$candidate" != "(none)" ]; then
+      available+=("$pkg")
+    else
+      echo "warning: no apt candidate for $pkg on this release, skipping it" >&2
+    fi
+  done
+
+  if [ "${#available[@]}" -gt 0 ]; then
+    run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${available[@]}"
+  fi
   run_as_root rm -rf /var/lib/apt/lists/*
 }
 
@@ -50,8 +67,7 @@ install_pacman() {
 
   [ "${#packages[@]}" -gt 0 ] || return 0
 
-  run_as_root pacman -Syy --noconfirm
-  run_as_root pacman -S --needed --noconfirm "${packages[@]}"
+  run_as_root pacman -Syu --needed --noconfirm "${packages[@]}"
 }
 
 install_aur() {
@@ -79,15 +95,17 @@ install_aur() {
 
 install_brew() {
   local brewfile="$PACKAGES_DIR/Brewfile"
-  local caskfile="$PACKAGES_DIR/Caskfile"
-  local fontfile="$PACKAGES_DIR/Fontfile"
-  local formulae=()
-  local casks=()
-  local fonts=()
+  local host="${DOTFILES_HOST:-$(hostname -s)}"
+  local host_brewfile="$ROOT_DIR/overlays/host/$host/Brewfile"
+  local failed=0
+
+  [ -f "$brewfile" ] || { echo "Missing $brewfile" >&2; exit 1; }
 
   if ! command -v brew >/dev/null 2>&1; then
     echo "Homebrew not found. Installing..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # the non-interactive installer only checks for cached sudo credentials, it never asks for a password
+    is_root || sudo -v
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     if [ -x /opt/homebrew/bin/brew ]; then
       eval "$(/opt/homebrew/bin/brew shellenv)"
     elif [ -x /usr/local/bin/brew ]; then
@@ -95,38 +113,18 @@ install_brew() {
     fi
   fi
 
-  if [ -f "$brewfile" ]; then
-    while IFS= read -r pkg; do
-      formulae+=("$pkg")
-    done < <(read_list_items "$brewfile")
+  brew bundle --file "$brewfile" || failed=1
+
+  if [ ! -f "$host_brewfile" ]; then
+    echo "No host Brewfile for '$host' (set DOTFILES_HOST to pick one from overlays/host/)."
+  elif [ -z "$(read_list_items "$host_brewfile")" ]; then
+    echo "Host Brewfile for '$host' has no entries."
+  else
+    brew bundle --file "$host_brewfile" || failed=1
   fi
 
-  if [ "${#formulae[@]}" -gt 0 ]; then
-    brew install "${formulae[@]}"
-  fi
-
-  brew tap homebrew/cask || true
-  brew tap homebrew/cask-versions || true
-  brew tap homebrew/cask-fonts || true
-
-  if [ -f "$caskfile" ]; then
-    while IFS= read -r pkg; do
-      casks+=("$pkg")
-    done < <(read_list_items "$caskfile")
-  fi
-
-  if [ "${#casks[@]}" -gt 0 ]; then
-    brew install --cask "${casks[@]}"
-  fi
-
-  if [ -f "$fontfile" ]; then
-    while IFS= read -r pkg; do
-      fonts+=("$pkg")
-    done < <(read_list_items "$fontfile")
-  fi
-
-  if [ "${#fonts[@]}" -gt 0 ]; then
-    brew install --cask "${fonts[@]}"
+  if [ "$failed" -ne 0 ]; then
+    echo "Some Brewfile entries failed to install (an app that already exists outside Homebrew is one common cause). Fix them and rerun brew bundle --file on the Brewfile." >&2
   fi
 }
 
@@ -136,7 +134,7 @@ case "$OS_ID" in
   macos)
     install_brew
     ;;
-  ubuntu|debian)
+  ubuntu|debian|raspbian)
     install_apt
     ;;
   arch)

@@ -1,0 +1,29 @@
+# Extras for the personal Mac, applied after packages/Brewfile.
+# Selected with DOTFILES_HOST=mac (or a hostname of mac).
+
+# --- CLI ---
+brew "cmatrix"        # matrix rain screensaver
+brew "nmap"           # network scanner
+brew "putty"          # SSH and serial client
+
+# --- apps ---
+cask "backdrop"       # wallpapers
+cask "blender"
+cask "google-drive"
+cask "granola"        # meeting notes
+cask "jettison"       # ejects external drives on sleep
+cask "notion"
+cask "notion-calendar"
+cask "qmk-toolbox"    # keyboard firmware flasher
+cask "spotify"
+cask "steam"
+cask "workflowy"      # outliner
+
+# --- apps installed outside Homebrew before this file existed ---
+# brew bundle skips each of these while the app is already in /Applications.
+cask "bartender"      # menu bar organizer
+cask "bettertouchtool"
+cask "cleanshot"      # screenshots and screen recording
+cask "logi-options+"  # Logitech mouse and keyboard settings
+cask "readdle-spark"  # mail client
+cask "whatsapp"
