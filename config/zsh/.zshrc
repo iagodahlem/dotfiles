@@ -8,6 +8,8 @@ fi
 # history and the completion dump live under XDG state and cache (paths set in .zshenv), and zsh does not create the directories
 [[ -d "$XDG_STATE_HOME/zsh" ]] || mkdir -p "$XDG_STATE_HOME/zsh"
 [[ -d "$XDG_CACHE_HOME/zsh" ]] || mkdir -p "$XDG_CACHE_HOME/zsh"
+# codex refuses to start when CODEX_HOME does not exist
+[[ -d "$CODEX_HOME" ]] || mkdir -p "$CODEX_HOME"
 # some /etc/zshrc files (macOS) assign HISTFILE before this file runs, so set it again
 HISTFILE="$XDG_STATE_HOME/zsh/history"
 

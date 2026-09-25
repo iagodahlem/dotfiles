@@ -20,6 +20,8 @@ Edit `config/git/local` and set `user.email` to the email for this machine. `con
 
 If this machine signs commits with a different SSH key than the default, uncomment `signingkey` in the file and point it at that key.
 
+Shell lines that belong to this machine only (`TMUX_LS_ORDER`, for example) go in `config/zsh/local.zsh` the same way: copy `config/zsh/local.zsh.example` and edit it. It is optional, gitignored, and `.bootstrap` sources it last.
+
 ## 2. Run the installer
 
 Read what it would do first. A dry run prints every step and changes nothing:

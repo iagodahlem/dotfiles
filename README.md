@@ -49,7 +49,7 @@ Setting up a new machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact
 
 ## Layout
 
-`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager). zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
+`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
 
 Everything else lives under `~/.config`, linked from `config/` by the table in `config/links`:
 
@@ -63,7 +63,7 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/ghostty` | `config/ghostty/` | directory |
 | `~/.config/mise` | `config/mise/` | directory |
 
-`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
+`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `~/.config/zsh` keeps one untracked file the same way, `local.zsh` (copy `config/zsh/local.zsh.example`), which `.bootstrap` sources last for the lines that belong to one machine only, such as `TMUX_LS_ORDER`. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
 
 To add a link, add a line to `config/links` and rerun `scripts/install-dotfiles.sh`:
 
@@ -77,6 +77,44 @@ source  target  [os]
 - Text after `#` is a comment.
 
 The first run on a machine that used the older layout also clears what it left in `$HOME`: a link into this repo is removed, a real file is backed up, `~/.gitconfig.override` moves to `config/git/local`, and a real `~/.config/git` directory is cleared for the link (an identity file in it moves to `config/git/local` too, and if it holds anything besides our old links it is backed up whole). It prints one line per action and does nothing on the next run. It does not move state the tools kept elsewhere: an existing `~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo` and `~/.rustup` stay where they are (delete them, or move the cargo and rustup directories to `~/.local/share/cargo` and `~/.local/share/rustup` to keep their toolchains), and npm settings in `~/.npmrc` go to `~/.config/npm/npmrc`.
+
+### The home directory after an install
+
+`~` holds `~/.zshenv`, the checkout (`~/.dotfiles`) and what other software owns: `~/.ssh`, which ssh and the git signing key read from there and which has no XDG variable, and on macOS `~/Library`, `~/.Trash` and `~/.CFUserTextEncoding`. What a tool would otherwise leave there as a dotfile is sent to the XDG directories by a variable in `config/zsh/.zshenv`:
+
+- `ZSHZ_DATA` moves the z plugin's database (`~/.z`, with its `.z.lock`) to `~/.local/share/z/data`.
+- `NPM_CONFIG_CACHE` moves the npm cache (`~/.npm`) to `~/.cache/npm`.
+- `CLAUDE_CONFIG_DIR` moves `~/.claude` and `~/.claude.json` to `~/.config/claude`.
+- `CODEX_HOME` moves `~/.codex` to `~/.local/share/codex`. codex keeps `config.toml` there next to its state, so the config sits in the data directory, and `.zshrc` creates the directory because codex exits when it is missing.
+- `GEMINI_CLI_HOME` moves `~/.gemini` to `~/.local/share/gemini/.gemini`.
+- `SHELL_SESSIONS_DISABLE=1` stops macOS Terminal from saving a session file per tab, which it would write to `.zsh_sessions` under `ZDOTDIR`, the checkout. History goes to `~/.local/state/zsh/history` through `HISTFILE`.
+
+`scripts/install-ai-clis.sh` sources `.zshenv` before it runs the vendors' installers, so the first install already writes to these directories.
+
+### Migrating an existing machine
+
+The installer does not move state a tool already wrote, so a machine that ran these tools before keeps the old copies in `~`. Open a new shell first, because the variables come from `~/.zshenv`, and move them before the tools run again: a run creates the new directory, and `mv` would then put the old one inside it. Quit the tools first.
+
+```sh
+# zsh: once a command has run in the new shell the history file exists, and only then can the default shell's leftovers go
+# (append ~/.zsh_history to it first with `cat ~/.zsh_history >> "$XDG_STATE_HOME/zsh/history"` if that history matters)
+ls -l "$XDG_STATE_HOME/zsh/history" && rm -rf ~/.zsh_history ~/.zsh_sessions
+
+# z, and the npm cache, which is rebuilt as it is used
+mkdir -p "$XDG_DATA_HOME/z" && mv ~/.z "$ZSHZ_DATA" && rm -f ~/.z.lock
+rm -rf ~/.npm
+
+# claude, with the file next to its directory
+mv ~/.claude "$CLAUDE_CONFIG_DIR" && mv ~/.claude.json "$CLAUDE_CONFIG_DIR/.claude.json"
+
+# gemini
+mkdir -p "$GEMINI_CLI_HOME" && mv ~/.gemini "$GEMINI_CLI_HOME/.gemini"
+
+# codex: a new shell made $CODEX_HOME empty, and ~/.local/bin/codex links into the old ~/.codex, so relink it after the move
+rmdir "$CODEX_HOME" && mv ~/.codex "$CODEX_HOME" && "$DOTFILES/scripts/install-ai-clis.sh"
+```
+
+If a directory reappears in `~` afterwards, something started the tool without going through zsh (a launcher, a GUI app that does not read the shell environment), so it never saw the variable.
 
 ## Containers
 
@@ -158,7 +196,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── npm/.npm
 │   ├── nvim/                # LazyVim: init.lua, lua/, stylua.toml, .neoconf.json
 │   ├── tmux/tmux.conf
-│   └── zsh/                 # .zshenv, .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh
+│   └── zsh/                 # .zshenv, .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
@@ -193,7 +231,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 - `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory at their default branches, unpinned. Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater, and it warns and leaves a clone alone when the pull fails (offline, or a clone left at a commit by an earlier revision of the installer: delete it and rerun). Oh My Zsh's own updater stays off in `.zshrc`, so there is one updater.
 - `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` runs `nvim --headless "+Lazy! sync" +qa` once `~/.config/nvim` is linked, and skips with a warning when nvim is missing or older than 0.11.2, the minimum LazyVim needs. The sync writes `config/nvim/lazy-lock.json`, so commit it to pin the plugin versions.
-- `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed.
+- `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed. It sources `config/zsh/.zshenv` first, so they write their state under the XDG directories from the first run.
 - `os/macos.sh` writes the macOS `defaults` that still apply on a current Mac (save to disk, keyboard access and key repeat, no smart quotes, dashes or autocorrect, screenshots in `~/Documents/Screenshots` as PNG, the Dock on the right, Finder and the hidden files and extensions), then restarts Finder, Dock and SystemUIServer. `sudo systemsetup -setrestartfreeze on` is its one line that needs sudo, and a failure there only warns. Key repeat applies after the next login. `TOOLS.md` lists every setting.
 - `os/ubuntu.sh` and `os/arch.sh` switch the login shell to zsh and add the user to the docker group, each guarded so a refusal only warns. Locale, timezone, services, the firewall and drivers are host-level settings and live in the machines repo.
 

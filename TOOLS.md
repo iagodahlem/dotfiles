@@ -13,10 +13,13 @@ Use this to compare against your system and spot what's missing.
 |---|---|---|---|
 | zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
 | zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
+| zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `.bootstrap` sources it last |
 | zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
 | zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |
+| macOS Terminal session files | none | not written, `SHELL_SESSIONS_DISABLE=1` switches off the save and restore that would put them in `ZDOTDIR` | `SHELL_SESSIONS_DISABLE` |
 | oh-my-zsh | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh` | `ZSH` |
 | Powerlevel10k and zsh plugins | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh-custom` | `ZSH_CUSTOM` |
+| z (oh-my-zsh plugin) | none | `~/.local/share/z/data`, and `data.lock` beside it | `ZSHZ_DATA` |
 | tmux | `config/tmux/` | `~/.config/tmux` (directory link) | `XDG_CONFIG_HOME` (tmux 3.2 and newer) |
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
@@ -29,6 +32,10 @@ Use this to compare against your system and spot what's missing.
 | cargo | none | `~/.local/share/cargo` | `CARGO_HOME` |
 | rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
 | npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
+| npm cache | none | `~/.cache/npm` | `NPM_CONFIG_CACHE` |
+| claude | none | `~/.config/claude` (settings, history, plugins and `.claude.json`) | `CLAUDE_CONFIG_DIR` |
+| codex | none | `~/.local/share/codex` (`config.toml`, auth, sessions and the standalone install's `packages/`; the CLI exits when the directory is missing, so `.zshrc` creates it) | `CODEX_HOME` |
+| gemini | none | `~/.local/share/gemini/.gemini` (settings and history) | `GEMINI_CLI_HOME` |
 
 ---
 
@@ -302,7 +309,7 @@ Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbr
 
 ## AI CLIs
 
-Installed by `scripts/install-ai-clis.sh` on every OS from the vendors' own installers, not from the package lists. One that is already on `PATH` is skipped unless `--update` is given.
+Installed by `scripts/install-ai-clis.sh` on every OS from the vendors' own installers, not from the package lists. One that is already on `PATH` is skipped unless `--update` is given. The script sources `config/zsh/.zshenv` first, so each installer runs with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `GEMINI_CLI_HOME` and `NPM_CONFIG_CACHE` already set and nothing lands in `~/.claude`, `~/.codex`, `~/.gemini` or `~/.npm`.
 
 | CLI | Installed with |
 |---|---|
@@ -511,8 +518,11 @@ From `config/zsh/.zshenv`, read by every zsh:
 | `DOTFILES` | `~/.dotfiles` unless already exported; `DOTFILES_BIN`, `DOTFILES_CONFIG`, `DOTFILES_ZSH`, `DOTFILES_GIT` and `DOTFILES_OVERLAYS` hang off it |
 | `ZSH`, `ZSH_CUSTOM` | `$XDG_DATA_HOME/oh-my-zsh`, `$XDG_DATA_HOME/oh-my-zsh-custom` |
 | `CARGO_HOME`, `RUSTUP_HOME` | `$XDG_DATA_HOME/cargo`, `$XDG_DATA_HOME/rustup` |
-| `NPM_CONFIG_USERCONFIG` | `$XDG_CONFIG_HOME/npm/npmrc` |
+| `NPM_CONFIG_USERCONFIG`, `NPM_CONFIG_CACHE` | `$XDG_CONFIG_HOME/npm/npmrc`, `$XDG_CACHE_HOME/npm` |
 | `TMUX_PLUGIN_MANAGER_PATH` | `$XDG_DATA_HOME/tmux/plugins` |
+| `ZSHZ_DATA` | `$XDG_DATA_HOME/z/data`, the z plugin's database (the plugin creates the directory) |
+| `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `GEMINI_CLI_HOME` | `$XDG_CONFIG_HOME/claude`, `$XDG_DATA_HOME/codex`, `$XDG_DATA_HOME/gemini`; `.zshrc` creates `CODEX_HOME` |
+| `SHELL_SESSIONS_DISABLE` | `1`, so macOS Terminal does not write `.zsh_sessions` into `ZDOTDIR` |
 | `HISTFILE`, `ZSH_COMPDUMP` | `$XDG_STATE_HOME/zsh/history`, `$XDG_CACHE_HOME/zsh/zcompdump-<version>`; set but not exported, `.zshrc` creates the directories |
 
 From `config/zsh/.exports`:
@@ -523,6 +533,12 @@ From `config/zsh/.exports`:
 | `LANG` | `en_US.UTF-8` |
 | `EDITOR` | `nvim` |
 | `PATH` | `/usr/local/bin`, `/usr/local/sbin`, `~/.local/bin`, and `$DOTFILES_BIN` prepended; `/snap/bin` appended when present |
+
+From `config/zsh/local.zsh`, sourced last by `.bootstrap` when the file exists (untracked, from `config/zsh/local.zsh.example`):
+
+| Variable | Value / Purpose |
+|---|---|
+| `TMUX_LS_ORDER` | the order tmux session names are listed in, set per machine |
 
 ---
 

@@ -14,7 +14,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory at their default branches, unpinned. Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater; Oh My Zsh's own updater stays off in `.zshrc`.
 - `scripts/install-mise.sh` installs mise where no package list does (Debian family, `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` syncs the LazyVim plugins headless once `~/.config/nvim` is linked, and skips with a warning when nvim is older than 0.11.2, the minimum LazyVim needs.
-- `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers (`--update` refreshes installed ones).
+- `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers (`--update` refreshes installed ones). It sources `config/zsh/.zshenv` first, so the installers see `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `GEMINI_CLI_HOME` and `NPM_CONFIG_CACHE` and write under the XDG directories from the first run.
 - `ci/devbox-smoke.sh` builds and validates container images.
 - `ci/lint-shell.sh` runs shellcheck over shell scripts.
 - `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host in a scratch home, no Docker, and checks that every step reports and that nothing lands in the home.
@@ -30,11 +30,11 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 
 **How Config Loads**
 
-- `~/.zshenv` (a link to `config/zsh/.zshenv`) is the only dotfile in `$HOME`. It sets the XDG variables (keeping values already exported), `ZDOTDIR=$XDG_CONFIG_HOME/zsh`, the `DOTFILES*` variables, and the redirects for oh-my-zsh, cargo, rustup, npm and tpm. It stays plain POSIX assignments because `install-shell.sh` sources it from bash.
+- `~/.zshenv` (a link to `config/zsh/.zshenv`) is the only dotfile in `$HOME`. It sets the XDG variables (keeping values already exported), `ZDOTDIR=$XDG_CONFIG_HOME/zsh`, the `DOTFILES*` variables, and the redirects for oh-my-zsh, cargo, rustup, npm (config and cache), tpm, the z plugin (`ZSHZ_DATA`), claude (`CLAUDE_CONFIG_DIR`), codex (`CODEX_HOME`) and gemini (`GEMINI_CLI_HOME`), plus `SHELL_SESSIONS_DISABLE=1` for macOS Terminal. It stays plain POSIX assignments because `install-shell.sh` sources it from bash.
 - `~/.config/zsh` is a directory link to `config/zsh`, so `ZDOTDIR` finds `.zshrc`, `.p10k.zsh`, `.exports`, `.aliases`, `.functions` and `.bootstrap` there.
-- `config/zsh/.zshrc` creates the state and cache directories, loads Oh My Zsh from `$ZSH`, then sources `config/zsh/.bootstrap`.
-- `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<id>/` and `overlays/host/<name>/`, then per-tool init (`mise`, `atuin`, `brew`, `cargo`).
-- `~/.config/tmux`, `~/.config/nvim`, `~/.config/zsh`, `~/.config/git`, `~/.config/ghostty` and `~/.config/mise` are directory links. The untracked `config/git/local` and `config/git/host` (reserved for the host overlays) live in the checkout, gitignored, and are what `~/.config/git/local` and `~/.config/git/host` resolve to; likewise the Debian-only `config/mise/conf.d/apt-gaps.toml` that `scripts/install-mise.sh` writes. `config/git/config` ends with `[include] path = ~/.config/git/host` and then `[include] path = ~/.config/git/local` (the per-machine identity, see `config/git/local.example` and `docs/new-mac.md`).
+- `config/zsh/.zshrc` creates the state and cache directories and `$CODEX_HOME` (codex exits when it is missing), loads Oh My Zsh from `$ZSH`, then sources `config/zsh/.bootstrap`.
+- `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<id>/` and `overlays/host/<name>/`, then per-tool init (`mise`, `atuin`, `brew`, `cargo`), then `config/zsh/local.zsh` when it exists (untracked, from `local.zsh.example`, for lines that belong to one machine).
+- `~/.config/tmux`, `~/.config/nvim`, `~/.config/zsh`, `~/.config/git`, `~/.config/ghostty` and `~/.config/mise` are directory links. The untracked `config/git/local` and `config/git/host` (reserved for the host overlays) and `config/zsh/local.zsh` live in the checkout, gitignored, and are what `~/.config/git/local` and `~/.config/git/host` resolve to; likewise the Debian-only `config/mise/conf.d/apt-gaps.toml` that `scripts/install-mise.sh` writes. `config/git/config` ends with `[include] path = ~/.config/git/host` and then `[include] path = ~/.config/git/local` (the per-machine identity, see `config/git/local.example` and `docs/new-mac.md`).
 - Add or move a link by editing `config/links` and rerunning `scripts/install-dotfiles.sh`. Keep state a tool writes out of the linked directories: point it at `$XDG_DATA_HOME`, `$XDG_STATE_HOME` or `$XDG_CACHE_HOME` in `.zshenv` instead.
 
 **Assumptions**
@@ -48,7 +48,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 
 - `.devcontainer/` templates are not implemented yet (parked in `TASKS.md`).
 - Shell startup time has not been measured yet; that is the first open item in `TASKS.md`.
-- Existing state from the older layout (`~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo`, `~/.rustup`, `~/.npmrc`) is not moved by the installer, see the README.
+- Existing state from the older layout (`~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo`, `~/.rustup`, `~/.npmrc`, and the `~/.z`, `~/.npm`, `~/.claude`, `~/.claude.json`, `~/.codex` and `~/.gemini` that the newer redirects replace) is not moved by the installer, see "Migrating an existing machine" in the README.
 
 **Roadmap (user intent)**
 

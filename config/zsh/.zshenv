@@ -27,7 +27,21 @@ export ZSH_CUSTOM="$XDG_DATA_HOME/oh-my-zsh-custom"
 export CARGO_HOME="$XDG_DATA_HOME/cargo"
 export RUSTUP_HOME="$XDG_DATA_HOME/rustup"
 export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
+export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export TMUX_PLUGIN_MANAGER_PATH="$XDG_DATA_HOME/tmux/plugins"
+# the oh-my-zsh z plugin, which creates the directory (and its lock file) on first use
+export ZSHZ_DATA="$XDG_DATA_HOME/z/data"
+
+# the AI CLIs, each with a home of its own
+# claude keeps settings, history and .claude.json here
+export CLAUDE_CONFIG_DIR="$XDG_CONFIG_HOME/claude"
+# codex keeps config.toml, sessions and the packages of its standalone install here, and exits when the directory is missing (.zshrc creates it)
+export CODEX_HOME="$XDG_DATA_HOME/codex"
+# gemini creates a .gemini folder inside this one
+export GEMINI_CLI_HOME="$XDG_DATA_HOME/gemini"
+
+# macOS Terminal saves a session file per tab under ZDOTDIR, which is this checkout
+export SHELL_SESSIONS_DISABLE=1
 
 # not exported, so bash and other shells started from here keep their own history
 # .zshrc creates the directories

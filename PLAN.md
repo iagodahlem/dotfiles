@@ -23,6 +23,7 @@ Status snapshot updated on 2026-09-25.
 9. Package layer reset: core Brewfile plus host overlay Brewfiles applied by `brew bundle`, categorized Arch and Debian lists, the Debian install path with its third-party apt repositories, node and pnpm from mise, and the AI CLIs from their own installers.
 10. XDG layout: one `~/.zshenv` that sets the XDG variables and `ZDOTDIR`, directory links into `~/.config` from the table in `config/links`, migration of the old `~` links, oh-my-zsh, Powerlevel10k, the zsh plugins and tpm cloned under the XDG data directory, the tracked LazyVim config with a headless plugin sync, and nvm dropped for mise.
 11. Installer: `install.sh --help`, `--only <step>` and `--dry-run` (every step prints what it would do and changes nothing, with `ci/dry-run.sh` as a CI job), `os/macos.sh` trimmed to the settings that still apply, `os/arch.sh` and `os/ubuntu.sh` cut to the login shell and the docker group, and the CI-only scripts moved from `scripts/` to `ci/`.
+12. Home directory cleanup: the z database, the npm cache and the claude, codex and gemini state under the XDG directories through variables in `~/.zshenv`, macOS Terminal sessions switched off, a gitignored `config/zsh/local.zsh` for machine-private lines, and one tracked ignore for `settings.local.json`.
 
 ## Phases
 

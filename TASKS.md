@@ -49,6 +49,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ## Done
 
+- [x] **Home directory cleanup**: the z database, the npm cache, `~/.claude` and `~/.claude.json`, `~/.codex` and `~/.gemini` moved under the XDG directories by `ZSHZ_DATA`, `NPM_CONFIG_CACHE`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` and `GEMINI_CLI_HOME`, macOS Terminal session files switched off with `SHELL_SESSIONS_DISABLE`, a gitignored `config/zsh/local.zsh` for machine-private lines, `**/.claude/settings.local.json` in the tracked git ignore, and the README covers what stays in `~` and how to migrate an existing machine.
 - [x] **Installer**: `install.sh --help`, `--only <step>` and `--dry-run`, with a dry-run mode in every step (the package lists and commands, each link with its state, what it would clone or install), a `ci/dry-run.sh` job, and the legacy-layout marker removed. The `NONINTERACTIVE` Homebrew bootstrap and `pacman -Syu --needed` landed with the packages pass, and the shell clones with the layout pass.
 - [x] **Trim `os/macos.sh`** to the settings that still apply: keyboard access and key repeat, no smart quotes, dashes or autocorrect, save to disk, screenshots folder and PNG, Dock on the right with minimize-to-app, Finder quit menu, no desktop drive icons, hidden files, extensions, Chrome swipe off, restart on freeze, then `killall Finder Dock SystemUIServer`.
 - [x] **Scripts split**: `scripts/` keeps what a machine runs to set itself up (`install.sh`, the `install-*.sh` steps, `utils/`), and `devbox-smoke.sh`, `lint-shell.sh` and the new `dry-run.sh` live in `ci/`.

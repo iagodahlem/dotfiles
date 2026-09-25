@@ -40,3 +40,6 @@ Thumbs.db
 
 # rufo
 .rufo
+
+# per-project tool settings that stay on this machine
+**/.claude/settings.local.json
