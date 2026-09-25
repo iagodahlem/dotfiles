@@ -10,7 +10,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG_TOML="$ROOT_DIR/config/mise/config.toml"
 CONF_D="$HOME/.config/mise/conf.d"
 # the runtimes this script installs, as a space-padded list
-INSTALL_TOOLS=" node pnpm "
+INSTALL_TOOLS=" node pnpm bun "
 
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/paths.sh"

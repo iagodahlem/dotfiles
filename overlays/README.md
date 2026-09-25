@@ -17,7 +17,7 @@ To use another overlay, export `DOTFILES_HOST=<name>` before the installer or th
 
 ## Where the overlay is looked for
 
-`host_overlay_dir` in `scripts/utils/host.sh` finds the overlay directory of this machine, and everything that reads one goes through it: the zsh loader in `config/zsh/.bootstrap`, the git link made by `scripts/install-dotfiles.sh`, the host Brewfile in `scripts/install-packages.sh` and the `host` step of `scripts/install.sh`. It takes the first of these that exists:
+`host_overlay_dir` in `scripts/utils/host.sh` finds the overlay directory of this machine, and everything that reads one goes through it: the zsh loader in `config/zsh/.bootstrap`, the git link made by `scripts/install-dotfiles.sh`, the host Brewfile and package lists in `scripts/install-packages.sh` and the `host` step of `scripts/install.sh`. It takes the first of these that exists:
 
 | Order | Directory | When it exists |
 |---|---|---|
@@ -55,7 +55,11 @@ Every file is optional.
 | `zsh/.bootstrap` | the same loader, last | anything that has to run after all of the above |
 | `git/config` | `scripts/install-dotfiles.sh`, host overlays only | git settings for this host, linked as `config/git/host` and included by `config/git/config`; the identity stays in `config/git/local` |
 | `Brewfile` | `scripts/install-packages.sh` on macOS, host overlays only | extra formulae and casks in `brew bundle` syntax, applied after `packages/Brewfile`; a Brewfile with no entries is skipped |
+| `packages/pacman.txt` | `scripts/install-packages.sh` on Arch, host overlays only | extra pacman packages, one per line with `#` comments like `packages/pacman.txt`, installed after the shared list in a second `pacman -S --needed --noconfirm` call; a list with no entries is skipped, and a call that fails (a name pacman does not know) warns and lets the rest of the step carry on |
+| `packages/apt.txt` | `scripts/install-packages.sh` on the Debian family, host overlays only | extra apt packages in the same format, installed after the shared list with the same candidate check: a package this release has no candidate for is skipped with a warning. Only what apt already knows, since `scripts/install-apt-repos.sh` adds the third-party sources for the shared list only |
 | `install.sh` | `scripts/install.sh`, host overlays only, as its `host` step, the last one | setup only this machine needs, an executable bash script with `set -euo pipefail`; safe to rerun, and it honours `DOTFILES_DRY_RUN=1` (`scripts/utils/dry-run.sh` has `is_dry_run`) |
+
+TinyTeX is not an install path: a machine that needs LaTeX lists its texlive packages in `packages/pacman.txt` or `packages/apt.txt`.
 
 The shell loader reads only the `zsh/` files and ignores everything else under an overlay. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
 
@@ -67,6 +71,8 @@ The shell loader reads only the `zsh/` files and ignores everything else under a
 Brewfile
 git/config
 install.sh
+packages/apt.txt
+packages/pacman.txt
 zsh/.aliases
 zsh/.bootstrap
 zsh/.exports

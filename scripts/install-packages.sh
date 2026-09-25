@@ -21,25 +21,38 @@ run_as_root() {
   fi
 }
 
-install_apt() {
-  local list_file="$PACKAGES_DIR/apt.txt"
+# Sets host_list to a file of this machine's host overlay (see host_overlay_dir): $1 is its path in the overlay (Brewfile,
+# packages/pacman.txt) and $2 names it in the messages. It is left empty, after saying why, when the overlay has no such file or it has no entries.
+find_host_list() {
+  local file="$1"
+  local label="$2"
+  local host overlay
+
+  host="$(host_id)"
+  overlay="$(host_overlay_dir "$ROOT_DIR")"
+  host_list="${overlay:+$overlay/$file}"
+
+  if [ ! -f "$host_list" ]; then
+    echo "No host $label for '$host' (overlays/README.md says where a host's overlay is looked for)."
+    host_list=""
+  elif [ -z "$(read_list_items "$host_list")" ]; then
+    echo "Host $label for '$host' has no entries."
+    host_list=""
+  fi
+}
+
+# apt-get install for the entries of one list file that have a candidate on this release
+apt_install_list() {
+  local list_file="$1"
   local packages=()
   local available=()
   local pkg candidate
-  [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
   while IFS= read -r pkg; do
     packages+=("$pkg")
   done < <(read_list_items "$list_file")
 
   [ "${#packages[@]}" -gt 0 ] || return 0
-
-  if is_dry_run; then
-    describe_list "$list_file"
-  fi
-
-  run "$ROOT_DIR/scripts/install-apt-repos.sh"
-  run_as_root apt-get update
 
   if is_dry_run; then
     # the third-party sources are not added in a dry run, so apt cannot say which packages have a candidate
@@ -59,12 +72,40 @@ install_apt() {
   if [ "${#available[@]}" -gt 0 ]; then
     run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${available[@]}"
   fi
+}
+
+install_apt() {
+  local list_file="$PACKAGES_DIR/apt.txt"
+  [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
+
+  [ -n "$(read_list_items "$list_file")" ] || return 0
+
+  if is_dry_run; then
+    describe_list "$list_file"
+  fi
+
+  run "$ROOT_DIR/scripts/install-apt-repos.sh"
+  run_as_root apt-get update
+
+  apt_install_list "$list_file"
+
+  # the host list goes through the same candidate check, so a package this release lacks is skipped there too, and it runs before the apt lists are removed
+  find_host_list packages/apt.txt "apt list"
+  if [ -n "$host_list" ]; then
+    if is_dry_run; then
+      describe_list "$host_list"
+    fi
+    apt_install_list "$host_list"
+  fi
+
   run_as_root sh -c 'rm -rf /var/lib/apt/lists/*'
 }
 
 install_pacman() {
   local list_file="$PACKAGES_DIR/pacman.txt"
   local packages=()
+  local host_packages=()
+  local pkg
   [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
   while IFS= read -r pkg; do
@@ -78,6 +119,20 @@ install_pacman() {
   fi
 
   run_as_root pacman -Syu --needed --noconfirm "${packages[@]}"
+
+  # a second call, so the full upgrade runs once (-Syu above refreshed the databases, and -Sy alone would risk a partial upgrade) and a name
+  # pacman does not know only costs the host list, not the shared packages or the AUR step; like the host Brewfile it warns and carries on
+  find_host_list packages/pacman.txt "pacman list"
+  if [ -n "$host_list" ]; then
+    while IFS= read -r pkg; do
+      host_packages+=("$pkg")
+    done < <(read_list_items "$host_list")
+
+    if is_dry_run; then
+      describe_list "$host_list"
+    fi
+    run_as_root pacman -S --needed --noconfirm "${host_packages[@]}" || echo "Some host pacman packages failed to install (a name that is not in the repositories stops the whole call). Fix $(display_path "$host_list") and rerun scripts/install-packages.sh." >&2
+  fi
 }
 
 install_aur() {
@@ -115,14 +170,7 @@ install_aur() {
 
 install_brew() {
   local brewfile="$PACKAGES_DIR/Brewfile"
-  local host
-  local overlay
-  local host_brewfile
   local failed=0
-
-  host="$(host_id)"
-  overlay="$(host_overlay_dir "$ROOT_DIR")"
-  host_brewfile="${overlay:+$overlay/Brewfile}"
 
   [ -f "$brewfile" ] || { echo "Missing $brewfile" >&2; exit 1; }
 
@@ -150,15 +198,12 @@ install_brew() {
 
   run brew bundle --file "$brewfile" || failed=1
 
-  if [ ! -f "$host_brewfile" ]; then
-    echo "No host Brewfile for '$host' (overlays/README.md says where a host's overlay is looked for)."
-  elif [ -z "$(read_list_items "$host_brewfile")" ]; then
-    echo "Host Brewfile for '$host' has no entries."
-  else
+  find_host_list Brewfile Brewfile
+  if [ -n "$host_list" ]; then
     if is_dry_run; then
-      describe_list "$host_brewfile"
+      describe_list "$host_list"
     fi
-    run brew bundle --file "$host_brewfile" || failed=1
+    run brew bundle --file "$host_list" || failed=1
   fi
 
   if [ "$failed" -ne 0 ]; then

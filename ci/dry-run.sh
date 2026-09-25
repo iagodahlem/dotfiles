@@ -30,6 +30,10 @@ fi
 HOOK
 chmod +x "$private/install.sh"
 printf '%s\n' '[credential]' '  helper = store' > "$private/git/config"
+# with a package list of each kind, which the packages step installs after the shared list
+mkdir -p "$private/packages"
+printf '%s\n' '# host packages' 'host-pacman-pkg  # with a comment' > "$private/packages/pacman.txt"
+printf '%s\n' 'host-apt-pkg' > "$private/packages/apt.txt"
 # and one directory that looks like a checkout of the private repo
 mkdir -p "$scratch/checkout/.git"
 
@@ -80,6 +84,20 @@ grep -qxF "running overlays/host/example/install.sh" <<<"$host" || { echo "$host
 # and a host with no overlay at all is only reported
 host="$(DOTFILES_HOST=nowhere installer --only host --dry-run 2>&1)" || { echo "$host"; fail "the host step failed for a host with no overlay"; }
 grep -q '^no install.sh in the host overlay of nowhere' <<<"$host" || { echo "$host"; fail "the host step did not report a host with no overlay"; }
+
+# the host package lists come after the shared ones, on the Arch and Debian paths alike (DOTFILES_OS_ID picks the path on any runner)
+pkgs="$(DOTFILES_OS_ID=arch DOTFILES_HOST=example installer --only packages --dry-run 2>&1)" || { echo "$pkgs"; fail "the packages step failed on the Arch path"; }
+grep -q '^~/.machines/example/dotfiles/packages/pacman.txt: 1 entry$' <<<"$pkgs" || { echo "$pkgs"; fail "the packages step did not read the host pacman list"; }
+grep -q 'pacman -S --needed --noconfirm host-pacman-pkg$' <<<"$pkgs" || { echo "$pkgs"; fail "the packages step would not install the host pacman list"; }
+pkgs="$(DOTFILES_OS_ID=debian DOTFILES_HOST=example installer --only packages --dry-run 2>&1)" || { echo "$pkgs"; fail "the packages step failed on the Debian path"; }
+grep -q '^~/.machines/example/dotfiles/packages/apt.txt: 1 entry$' <<<"$pkgs" || { echo "$pkgs"; fail "the packages step did not read the host apt list"; }
+grep -q 'apt-get install -y --no-install-recommends host-apt-pkg$' <<<"$pkgs" || { echo "$pkgs"; fail "the packages step would not install the host apt list"; }
+
+# a host with no list is only reported, and the example overlay in the checkout has lists with no entries
+pkgs="$(DOTFILES_OS_ID=arch DOTFILES_HOST=nowhere installer --only packages --dry-run 2>&1)" || { echo "$pkgs"; fail "the packages step failed for a host with no overlay"; }
+grep -q "^No host pacman list for 'nowhere'" <<<"$pkgs" || { echo "$pkgs"; fail "the packages step did not report a host with no pacman list"; }
+pkgs="$(DOTFILES_OS_ID=debian DOTFILES_HOST=example DOTFILES_PRIVATE="$scratch/none" installer --only packages --dry-run 2>&1)" || { echo "$pkgs"; fail "the packages step failed on the overlay in the checkout"; }
+grep -qxF "Host apt list for 'example' has no entries." <<<"$pkgs" || { echo "$pkgs"; fail "the packages step did not skip the empty apt list of overlays/host/example"; }
 
 # the git config of the private overlay is what config/git/host would link to
 links="$(DOTFILES_HOST=example installer --only dotfiles --dry-run 2>&1)" || { echo "$links"; fail "install.sh --only dotfiles --dry-run failed"; }

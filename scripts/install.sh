@@ -15,7 +15,7 @@ private      DOTFILES_SKIP_PRIVATE      scripts/install-private.sh   the private
 packages     DOTFILES_SKIP_PACKAGES     scripts/install-packages.sh  packages from packages/ (brew bundle, apt, pacman)
 dotfiles     DOTFILES_SKIP_DOTFILES     scripts/install-dotfiles.sh  link config/ into place from config/links, after clearing the older layout
 shell        DOTFILES_SKIP_SHELL        scripts/install-shell.sh     Oh My Zsh, Powerlevel10k, the zsh plugins and tpm
-mise         DOTFILES_SKIP_MISE         scripts/install-mise.sh      mise, node and pnpm
+mise         DOTFILES_SKIP_MISE         scripts/install-mise.sh      mise, node, pnpm and bun
 ai-clis      DOTFILES_SKIP_AI_CLIS      scripts/install-ai-clis.sh   claude, codex and gemini
 nvim         DOTFILES_SKIP_NVIM         scripts/install-nvim.sh      the LazyVim plugin sync
 os-defaults  DOTFILES_SKIP_OS_DEFAULTS  -                            the OS defaults (settings on macOS, login shell and docker group on Linux)

@@ -22,6 +22,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Packages
 
+- [ ] **Send bun's package cache under XDG**: bun keeps its cache in `~/.bun/install/cache` unless `BUN_INSTALL_CACHE_DIR` is set, so `~/.bun` comes back with the first `bun install` even though mise provides the binary. Set the variable in `config/zsh/.zshenv` (next to the other redirects) and check where `bun add -g` writes its packages and links.
 - [ ] **Move `atuin` and `procs` to `apt.txt` on Debian 13**: both are packaged there, so the mise fragment in `scripts/install-mise.sh` only matters for Debian 12 hosts. Drop it once every Debian host runs 13 or newer.
 
 ### Overlays
@@ -47,6 +48,10 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ## Done
 
+- [x] **Packages round two**: the desk apps (bartender, bettertouchtool, cleanshot, logi-options+, granola, notion-calendar) and nmap in the core `packages/Brewfile`, bun through mise, per-host package lists, and Homebrew on `PATH` for ssh commands. The items below are its parts.
+- [x] **Per-host package lists**: a host overlay may carry `packages/pacman.txt` and `packages/apt.txt`, installed after the shared lists by `scripts/install-packages.sh` (a second `pacman -S --needed --noconfirm` call on Arch, the same candidate check as the shared list on the Debian family), through `host_overlay_dir`. `overlays/host/example/` and `overlays/README.md` show the shape, `ci/dry-run.sh` checks both paths, and TinyTeX is gone as an install path: a host that needs LaTeX lists its texlive packages in its overlay.
+- [x] **bun through mise**: `bun = "latest"` in `config/mise/config.toml`, installed by `scripts/install-mise.sh` with node and pnpm. The README's migration block removes the curl-installed `~/.bun` and the TinyTeX leftovers.
+- [x] **Homebrew on `PATH` for ssh commands**: `config/zsh/.zshenv` prepends `/opt/homebrew/bin` (and the Linuxbrew `bin` on Linux) when it exists, so `mosh-server`, `scp` and git over ssh find what Homebrew installed; `config/brew/.homebrew` ends with `typeset -U path` so the full `brew shellenv` in interactive shells does not double the entry.
 - [x] **Home directory cleanup**: the z database, the npm cache, `~/.claude` and `~/.claude.json`, `~/.codex` and `~/.gemini` moved under the XDG directories by `ZSHZ_DATA`, `NPM_CONFIG_CACHE`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` and `GEMINI_CLI_HOME`, macOS Terminal session files switched off with `SHELL_SESSIONS_DISABLE`, a gitignored `config/zsh/local.zsh` for machine-private lines, `**/.claude/settings.local.json` in the tracked git ignore, and the README covers what stays in `~` and how to migrate an existing machine.
 - [x] **Karabiner config** in `config/karabiner/karabiner.json` (one profile, three rules), linked as the `~/.config/karabiner` directory on macOS only, since Karabiner stops watching `karabiner.json` when the file is a link. Its `automatic_backups/` is gitignored.
 - [x] **Installer**: `install.sh --help`, `--only <step>` and `--dry-run`, with a dry-run mode in every step (the package lists and commands, each link with its state, what it would clone or install), a `ci/dry-run.sh` job, and the legacy-layout marker removed. The `NONINTERACTIVE` Homebrew bootstrap and `pacman -Syu --needed` landed with the packages pass, and the shell clones with the layout pass.

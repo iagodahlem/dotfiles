@@ -48,7 +48,7 @@ Then run it:
 
 The overlay of this machine, when there is one, adds its Brewfile on top of the core one, a git config, shell files and an install hook (see `overlays/README.md`). A machine with no overlay, or with the private repo left out, just gets the shared config.
 
-This installs packages (`brew bundle` on the core Brewfile, then on the one in the host overlay), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults (`TOOLS.md` lists them; key repeat applies after the next login). It runs the install hook of the host overlay last, when there is one. It prints a reminder at the end if `config/git/local` is still missing. If the private, mise, AI CLI, nvim or host step fails, the installer warns and carries on; rerun `scripts/install-private.sh`, `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed, or the failed step with `./scripts/install.sh --only <step>`.
+This installs packages (`brew bundle` on the core Brewfile, then on the one in the host overlay), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node, pnpm and bun through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults (`TOOLS.md` lists them; key repeat applies after the next login). It runs the install hook of the host overlay last, when there is one. It prints a reminder at the end if `config/git/local` is still missing. If the private, mise, AI CLI, nvim or host step fails, the installer warns and carries on; rerun `scripts/install-private.sh`, `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed, or the failed step with `./scripts/install.sh --only <step>`.
 
 Ghostty reads `~/.config/ghostty/config`, a directory link to `config/ghostty/`. The tracked file is a scaffold with every key commented out, so Ghostty runs on its defaults until you set some; on macOS a file under `~/Library/Application Support/com.mitchellh.ghostty/` is read after it and wins where both set a key.
 
@@ -66,8 +66,11 @@ gh --version
 mise --version
 node --version
 pnpm --version
+bun --version
 mosh --version
 ```
+
+`mosh` needs `mosh-server` on the Mac when you connect to it, and ssh runs that command in a shell that reads only `~/.zshenv`. From another machine, `ssh <this-mac> 'command -v mosh-server'` should print the Homebrew path (`/opt/homebrew/bin/mosh-server`); `.zshenv` puts that directory on `PATH` for it. Logi Options+ needs a reboot to finish installing, which its cask says at the end of the install.
 
 ## Machine profile
 
@@ -76,7 +79,7 @@ mosh --version
 **Deliberately not part of the install:**
 
 - No secrets. Nothing in this repo reaches a password manager or any credential store. `packages/` and `config/` are static, non-secret config only.
-- No account data. 1Password, Chrome, and Slack get installed as apps, but nothing signs them in or restores a profile. Log into each one manually with the accounts that belong on this machine.
+- No account data. 1Password, Chrome, and Slack get installed as apps, but nothing signs them in or restores a profile. Log into each one manually with the accounts that belong on this machine, and enter the licenses of the paid ones (Bartender, BetterTouchTool, CleanShot) yourself.
 - No git identity by default. Step 1 above is what keeps commits on this machine on the right email.
 
 **Your call, not automated:** whether an app in the core Brewfile belongs on a given machine at all. The installer puts every app there; leaving one signed out costs nothing, and removing it afterwards is fine. Apps that only some machines need live in the `Brewfile` of the host overlay instead.
