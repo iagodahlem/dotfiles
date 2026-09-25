@@ -5,12 +5,17 @@
 #   codex   https://github.com/openai/codex (standalone installer from the README)
 #   gemini  https://github.com/google-gemini/gemini-cli (npm, run with the node mise installs)
 # Run it after install-mise.sh, gemini needs that node.
+# It sources config/zsh/.zshenv first, so the installers already see CLAUDE_CONFIG_DIR, CODEX_HOME, GEMINI_CLI_HOME and NPM_CONFIG_CACHE
+# and the first run writes into the XDG directories instead of ~/.claude, ~/.codex, ~/.gemini and ~/.npm.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/paths.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+
+# shellcheck source=/dev/null
+source "$ROOT_DIR/config/zsh/.zshenv"
 
 setup_tool_path
 
