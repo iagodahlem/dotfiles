@@ -198,7 +198,8 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 ├── ci/                      # what CI and a developer run, never a machine being set up
 │   ├── dry-run.sh
 │   ├── devbox-smoke.sh
-│   └── lint-shell.sh
+│   ├── lint-shell.sh
+│   └── shell-startup.sh     # times zsh -i -c exit, or profiles it with zprof
 ├── os/
 │   ├── macos.sh
 │   ├── ubuntu.sh            # also used for Debian
@@ -279,7 +280,33 @@ overlays/host/example/zsh/.exports
 - `ci/lint-shell.sh` runs shellcheck on installer/container shell scripts.
 - `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host, no Docker, with a scratch `$HOME`. It checks that every step prints its header, that `--help` and `--only` work, that a private overlay is found before one in the checkout, and that nothing lands in the home directory. Run it locally the same way.
 - `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
-- CI runs shellcheck in a dedicated container image, the installer dry run on the runner, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim, OS defaults, host and private skips.
+- `ci/shell-startup.sh` (see [Shell startup](#shell-startup)) times `zsh -i -c exit` (`-n <runs>`, 10 by default) and prints the min, median and max in milliseconds, or with `--profile` runs one shell under `zprof` and prints the 15 costliest entries. It measures whatever `$HOME` is, so it runs against the real home as it is (`ci/shell-startup.sh`) and against a scratch home laid out like a machine that cloned the checkout to `~/.dotfiles`. It starts every shell from `$HOME`, without the `XDG_*`, `ZDOTDIR` and `DOTFILES` variables of the terminal it runs in, and it does two shells first that it does not count, because the first ones in a home build the completion dump. `mise`, `atuin` and Homebrew are picked up from the `PATH` like in a real shell, so the numbers include whatever is installed on the machine. It prints numbers and gates nothing.
+- CI runs shellcheck in a dedicated container image, the installer dry run on the runner, the startup benchmark inside the Ubuntu image, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim, OS defaults, host and private skips.
+
+## Shell startup
+
+Measure it with `ci/shell-startup.sh`. On Arch, in a scratch home with oh-my-zsh, Powerlevel10k, mise, atuin and Homebrew, `zsh -i -c exit` takes about 88 ms (64 ms without mise), and 56 ms in the Ubuntu image, which has no mise, atuin or Homebrew.
+
+mise (21 ms), the oh-my-zsh plugins (20 ms), and atuin, compinit and `brew shellenv` (6 to 8 ms each) are the blocks that cost anything, and the benchmark stops before the first prompt: a terminal is ready to type into about 150 ms after it starts (`TOOLS.md` has the table and where the difference goes).
+
+On a machine that is already set up, the real home is the one to measure:
+
+```sh
+ci/shell-startup.sh              # min, median and max of 10 runs
+ci/shell-startup.sh --profile    # zprof: the 15 entries that spend the most in shell functions
+```
+
+A scratch home leaves the real one alone, and is what to use to compare a change against `main` or to try a fresh clone of oh-my-zsh:
+
+```sh
+scratch="$(mktemp -d)"
+ln -s "$PWD" "$scratch/.dotfiles"
+env -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME -u XDG_CACHE_HOME -u ZDOTDIR -u DOTFILES \
+  HOME="$scratch" scripts/install.sh --only dotfiles --only shell
+HOME="$scratch" ci/shell-startup.sh
+```
+
+`zprof` only lists shell functions, so what `mise activate`, `atuin init` and `brew shellenv` spend in the commands they run does not show up in `--profile`. Time those by switching the line off in `config/zsh/.bootstrap` and measuring again.
 
 ## Notes
 

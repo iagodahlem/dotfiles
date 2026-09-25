@@ -11,6 +11,10 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 # zsh reads .zshrc, .p10k.zsh and the rest from here, a directory link to config/zsh
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
+# Ubuntu's /etc/zsh/zshrc runs compinit before ~/.zshrc does, and oh-my-zsh runs it again, so every shell built and audited the completions twice: about 11 ms of 68 in the Ubuntu image
+# a parameter that file reads, not something to export; Debian and Arch run no global compinit, so it does nothing there
+skip_global_compinit=1
+
 # Homebrew on PATH for the shells that never read .zshrc: ssh runs a command (mosh-server, scp, git over ssh) in a non-interactive shell, which reads only this file
 # and would find nothing brew installed. The full `brew shellenv` (MANPATH, fpath, HOMEBREW_*) stays in config/brew/.homebrew for interactive shells, which dedupes the PATH.
 for brew_bin in /opt/homebrew/bin /home/linuxbrew/.linuxbrew/bin; do
