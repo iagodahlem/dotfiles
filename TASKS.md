@@ -29,7 +29,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 ### Overlays
 
 - [ ] **Host overlays for each machine**, selected by `DOTFILES_HOST` from `hostname -s`. The host Brewfiles (`mac`, `mini`) already fall back to `hostname -s`; the shell overlay loader in `.bootstrap` still only reads `DOTFILES_HOST`.
-- [ ] **Add overlay lint coverage**: extend `scripts/lint-shell.sh` to also check `overlays/` shell files.
+- [ ] **Add overlay lint coverage**: extend `ci/lint-shell.sh` to also check `overlays/` shell files.
 
 ### Editor & Terminal
 

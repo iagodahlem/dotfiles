@@ -132,9 +132,10 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install-mise.sh      # mise, node, pnpm
 │   ├── install-ai-clis.sh   # claude, codex, gemini
 │   ├── install-nvim.sh      # LazyVim plugin sync
-│   ├── devbox-smoke.sh
-│   ├── lint-shell.sh
 │   └── utils/               # os.sh, paths.sh, lists.sh
+├── ci/
+│   ├── devbox-smoke.sh
+│   └── lint-shell.sh
 ├── os/
 │   ├── macos.sh
 │   ├── ubuntu.sh            # also used for Debian
@@ -206,8 +207,8 @@ overlays/host/work-laptop/zsh/.exports
 
 ## CI and Smoke
 
-- `scripts/lint-shell.sh` runs shellcheck on installer/container shell scripts.
-- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
+- `ci/lint-shell.sh` runs shellcheck on installer/container shell scripts.
+- `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
 - CI runs shellcheck in a dedicated container image and smoke tests for Ubuntu + Arch Dockerfiles.
 
 ## Notes

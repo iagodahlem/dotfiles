@@ -3,7 +3,7 @@
 Repository context for Codex and other agents.
 
 **Overview**
-This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) setup. It contains static config under `config/`, installer scripts under `scripts/`, OS tweaks under `os/`, and optional overrides via `overlays/`.
+This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) setup. It contains static config under `config/`, installer scripts under `scripts/`, CI checks under `ci/`, OS tweaks under `os/`, and optional overrides via `overlays/`. `scripts/` holds only what a machine runs to set itself up; anything that only CI or a developer runs goes in `ci/`.
 
 **Key Paths**
 
@@ -15,8 +15,8 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `scripts/install-mise.sh` installs mise where no package list does (Debian family, `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` syncs the LazyVim plugins headless once `~/.config/nvim` is linked, and skips with a warning when nvim is older than 0.11.2, the minimum LazyVim needs.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers (`--update` refreshes installed ones).
-- `scripts/devbox-smoke.sh` builds and validates container images.
-- `scripts/lint-shell.sh` runs shellcheck over shell scripts.
+- `ci/devbox-smoke.sh` builds and validates container images.
+- `ci/lint-shell.sh` runs shellcheck over shell scripts.
 - `scripts/utils/os.sh` provides shared `os_id()` detection; `scripts/utils/paths.sh` puts Homebrew and `~/.local/bin` on `PATH` for installer steps; `scripts/utils/lists.sh` provides `read_list_items`, the comment-stripping reader shared by the package lists and `config/links`.
 - `os/macos.sh` applies macOS defaults (`defaults`, `nvram`, `pmset`).
 - `os/ubuntu.sh` (also used for Debian and Raspberry Pi OS) sets locale and timezone, switches the login shell to zsh, adds the user to the docker group, and enables the docker and tailscale services.

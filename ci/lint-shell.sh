@@ -4,5 +4,6 @@ set -euo pipefail
 shellcheck \
   scripts/*.sh \
   scripts/utils/*.sh \
+  ci/*.sh \
   os/*.sh \
   containers/entrypoint.sh
