@@ -17,9 +17,6 @@ alias dus="command du -h -d 2"
 if command -v procs >/dev/null 2>&1; then
   alias ps="procs"
 fi
-if command -v ctop >/dev/null 2>&1; then
-  alias dtop="ctop"
-fi
 
 # override rm -i alias which makes rm prompt for every action
 alias rm='nocorrect rm'
@@ -34,7 +31,8 @@ elif command -v batcat >/dev/null 2>&1; then
   alias cat="batcat"
 fi
 
-# ls family through eza (exa on older Debian), falling back to plain ls
+# ls and lt through eza (exa on older Debian), falling back to plain ls
+# oh-my-zsh's ll, la and l are aliases of ls, so they resolve to eza through the ls alias
 if command -v eza >/dev/null 2>&1; then
   _ls_bin="eza"
 elif command -v exa >/dev/null 2>&1; then
@@ -42,9 +40,6 @@ elif command -v exa >/dev/null 2>&1; then
 fi
 if [ -n "${_ls_bin:-}" ]; then
   alias ls="$_ls_bin --group-directories-first"
-  alias l="$_ls_bin -l --group-directories-first --git"
-  alias ll="$_ls_bin -l --group-directories-first --git"
-  alias la="$_ls_bin -la --group-directories-first --git"
   alias lt="$_ls_bin --tree --level=2 --group-directories-first"
 fi
 unset _ls_bin

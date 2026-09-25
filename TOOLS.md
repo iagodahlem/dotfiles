@@ -287,13 +287,10 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 | `du` | `ncdu` | disk usage browser; `du -h -d 2` when `ncdu` is not installed |
 | `dus` | `command du -h -d 2` | plain two-level disk usage, always the real `du` |
 | `ps` | `procs` | only set when `procs` is installed, plain `ps` otherwise |
-| `dtop` | `ctop` | container metrics; only set when `ctop` is installed |
 | `rm` | `nocorrect rm` | skip zsh correction |
 | `top` | `btop` | requires btop |
 | `cat` | `bat` | `batcat` where that is the binary name (Debian); only set when one of them is installed |
-| `ls` | `eza --group-directories-first` | `exa` on older Debian; only set when one of them is installed, plain `ls` otherwise |
-| `l` / `ll` | `eza -l --group-directories-first --git` | long list with git status |
-| `la` | `eza -la --group-directories-first --git` | long list including hidden files |
+| `ls` | `eza --group-directories-first` | `exa` on older Debian; only set when one of them is installed, plain `ls` otherwise; oh-my-zsh's `ll`, `la` and `l` go through it |
 | `lt` | `eza --tree --level=2 --group-directories-first` | two-level tree |
 | `reload` / `r` | `. $HOME/.zshrc` | reload shell config |
 | `dc` | `docker` | |
@@ -372,7 +369,7 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 |---|---|---|
 | xclip | tmux copy-pipe | in `apt.txt` only; install manually elsewhere |
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; no Debian package, installed through mise in the packages pass (noted in `apt.txt`) |
-| ctop | alias `dtop` | in `Brewfile` and `pacman.txt`; on Debian it is `docker-ctop` from the third-party Azlux apt repository (not Docker's), left out of `apt.txt` until that repository is configured |
+| ctop | run as `ctop` | in `Brewfile` and `pacman.txt`; on Debian it is `docker-ctop` from the third-party Azlux apt repository (not Docker's), left out of `apt.txt` until that repository is configured |
 | oh-my-zsh | `.zshrc` | installed by `scripts/install-shell.sh` |
 | powerlevel10k | `.zshrc` theme | installed by `scripts/install-shell.sh` |
 | tpm | `.tmux.conf` | not installed by any script; clone to `~/.tmux/plugins/tpm` |
