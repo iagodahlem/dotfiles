@@ -1,4 +1,5 @@
 # Arch packages, installed in one transaction by install_pacman (pacman -Syu --needed).
+# Not listed here: powerlevel10k, which is only in the AUR (zsh-theme-powerlevel10k, a source build), so scripts/install-shell.sh clones it.
 # Trailing comments are stripped by read_list_items in scripts/install-packages.sh.
 
 # --- CLI core ---
@@ -20,6 +21,8 @@ git
 git-delta       # diff pager
 github-cli      # gh
 zsh
+zsh-autosuggestions      # fish-like inline suggestions
+zsh-syntax-highlighting  # command syntax coloring
 
 # --- system tools ---
 bind            # dig and nslookup

@@ -23,4 +23,6 @@ docker run --rm "${IMAGE_NAME}" /bin/zsh -lc '\
   test -f "$HOME/.config/git/config" && \
   test "$ZDOTDIR" = "$HOME/.config/zsh" && \
   { [ ! -d "$ZSH" ] || test -z "$(/bin/zsh -ic true 2>&1)"; } && \
+  { [ ! -d "$ZSH" ] || /bin/zsh -ic "find_zsh_addon powerlevel10k && find_zsh_addon zsh-autosuggestions && find_zsh_addon zsh-syntax-highlighting"; } && \
+  { [ ! -d "$ZSH" ] || { test ! -e "$ZSH_CUSTOM/plugins/zsh-autosuggestions" && test ! -e "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"; }; } && \
   echo "smoke ok"'

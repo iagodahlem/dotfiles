@@ -28,7 +28,7 @@ DOTFILES_HOST=<name> ./scripts/install.sh
 
 `DOTFILES_HOST` picks the host Brewfile in `overlays/host/<name>/` that goes on top of the core one: `mac` for the personal Mac, `mini` for a work machine. Without it the installer looks for a folder named after `hostname -s`, and a machine with no Brewfile of its own just gets the core.
 
-This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
+This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh and tpm (Powerlevel10k and the two zsh plugins come from the Brewfile), installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
 
 Ghostty reads `~/.config/ghostty/config`, a directory link to `config/ghostty/`. The tracked file is a scaffold with every key commented out, so Ghostty runs on its defaults until you set some; on macOS a file under `~/Library/Application Support/com.mitchellh.ghostty/` is read after it and wins where both set a key.
 
@@ -67,7 +67,7 @@ Each machine gets its own `config/git/local` with the email for that machine, it
 
 ## What the container tests don't cover
 
-The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
+The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install (with the packaged plugins and the Powerlevel10k clone fallback on Ubuntu and Arch), and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
 
 - Homebrew's own bootstrap install, and `brew bundle` actually installing every formula, cask, and font on real macOS (the container tests only exercise apt and pacman).
 - The mise, AI CLI and nvim installs: the container builds skip all three, so `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` and `scripts/install-nvim.sh` are not exercised there.
