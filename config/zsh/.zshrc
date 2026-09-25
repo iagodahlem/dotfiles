@@ -29,7 +29,6 @@ plugins=(
   z
   zsh-autosuggestions
   zsh-syntax-highlighting
-  web-search
 )
 
 # overlays are loaded from .bootstrap

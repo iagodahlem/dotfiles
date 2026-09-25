@@ -351,7 +351,6 @@ Loaded in `.zshrc`:
 | z | frecency-based directory jumping |
 | zsh-autosuggestions | fish-like inline suggestions |
 | zsh-syntax-highlighting | command syntax coloring |
-| web-search | `google <query>` from terminal |
 
 ### Theme
 
