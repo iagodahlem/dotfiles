@@ -1,7 +1,10 @@
 # Global mise config, linked to ~/.config/mise/config.toml by scripts/install-dotfiles.sh.
-# The go, ruby and rust pins stay in .tool-versions next to this file.
-# scripts/install-mise.sh installs every tool listed here, so keep the values one line each.
+# scripts/install-mise.sh installs node and pnpm from here; the go, ruby and rust pins wait for an explicit `mise install`.
+# Keep the values one line each, install-mise.sh reads this table line by line.
 
 [tools]
 node = "lts"
 pnpm = "latest"
+go = "1.23.4"
+ruby = "3.1.3"
+rust = "1.68.2"

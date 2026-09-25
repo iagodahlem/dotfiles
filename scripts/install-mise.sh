@@ -3,12 +3,14 @@
 # mise itself comes from the package lists on macOS and Arch, and from https://mise.run on the Debian family.
 # There it also installs atuin and procs, which the Debian family has no current package for.
 # Run it after install-dotfiles.sh has linked config/mise/config.toml into ~/.config/mise.
-# The go, ruby and rust pins in ~/.tool-versions are left for an explicit `mise install`.
+# The go, ruby and rust pins in config.toml are left for an explicit `mise install`.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG_TOML="$ROOT_DIR/config/mise/config.toml"
 CONF_D="$HOME/.config/mise/conf.d"
+# the runtimes this script installs, as a space-padded list
+INSTALL_TOOLS=" node pnpm "
 
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/paths.sh"
@@ -66,7 +68,9 @@ ensure_mise
 
 tools=()
 while IFS= read -r tool; do
-  tools+=("$tool")
+  case "$INSTALL_TOOLS" in
+    *" ${tool%%@*} "*) tools+=("$tool") ;;
+  esac
 done < <(declared_tools "$CONFIG_TOML")
 
 if is_apt_family; then
