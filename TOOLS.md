@@ -242,10 +242,13 @@ Written with `defaults write`, one line each, with a comment in the script. Key 
 | `NSGlobalDomain` | `NSAutomaticSpellingCorrectionEnabled` | `false` | no autocorrect |
 | `NSGlobalDomain` | `AppleShowAllExtensions` | `true` | show all filename extensions |
 | `com.google.Chrome` | `AppleEnableSwipeNavigateWithScrolls` | `false` | no back and forward navigation on a horizontal scroll |
-| `com.apple.screencapture` | `location` | `~/Documents/Screenshots` | screenshots go there (the script creates the folder) |
+| `com.apple.screencapture` | `location` | `~/Pictures/Screenshots` | screenshots go there (the script creates the folder) |
 | `com.apple.screencapture` | `type` | `png` | screenshots as PNG |
 | `com.apple.dock` | `orientation` | `right` | Dock on the right |
 | `com.apple.dock` | `minimize-to-application` | `true` | windows minimize into their application's icon |
+| `com.apple.dock` | `show-recents` | `false` | no recent applications in the Dock |
+| `com.apple.dock` | `tilesize` | `48` | smaller Dock icons (the default is 64) |
+| `com.apple.WindowManager` | `EnableStandardClickToShowDesktop` | `false` | clicking the wallpaper reveals the desktop only in Stage Manager, not always |
 | `com.apple.finder` | `QuitMenuItem` | `true` | Cmd+Q quits Finder |
 | `com.apple.finder` | `ShowExternalHardDrivesOnDesktop`, `ShowHardDrivesOnDesktop`, `ShowMountedServersOnDesktop`, `ShowRemovableMediaOnDesktop` | `false` | no drive, server or removable media icons on the desktop |
 | `com.apple.finder` | `AppleShowAllFiles` | `true` | show hidden files |
