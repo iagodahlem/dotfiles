@@ -33,10 +33,13 @@ run() {
 }
 
 # A path as it reads best in the output: relative to the checkout ($ROOT_DIR must be set), or with ~ for the home directory.
+# The ~ goes through a variable because ${1/#"$HOME"/\~} keeps the backslash in bash 3.2, the bash macOS ships.
 display_path() {
+  local tilde="~"
+
   case "$1" in
     "$ROOT_DIR"/*) echo "${1#"$ROOT_DIR"/}" ;;
-    "$HOME"/*) echo "${1/#"$HOME"/\~}" ;;
+    "$HOME"/*) echo "$tilde/${1#"$HOME"/}" ;;
     *) echo "$1" ;;
   esac
 }
