@@ -1,6 +1,6 @@
 # .dotfiles
 
-Personal dotfiles for **macOS** and **Linux** with a unified installer, overlays, and container support.
+Personal dotfiles with a unified installer, overlays, and container support. Targets: macOS, Arch, Debian (Raspberry Pi OS).
 
 [![container-ci](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml/badge.svg)](https://github.com/iagodahlem/dotfiles/actions/workflows/devbox-smoke.yml)
 
@@ -87,9 +87,9 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── Brewfile             # Homebrew formulae
 │   ├── Caskfile             # Homebrew casks
 │   ├── Fontfile             # Homebrew font casks
-│   ├── apt.txt
-│   ├── pacman.txt
-│   └── aur.txt
+│   ├── apt.txt              # Debian / Ubuntu
+│   ├── pacman.txt           # Arch
+│   └── aur.txt              # Arch (AUR)
 ├── scripts/
 │   ├── install.sh           # main entrypoint
 │   ├── install-packages.sh
@@ -101,49 +101,60 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   └── utils/os.sh
 ├── os/
 │   ├── macos.sh
-│   ├── ubuntu.sh
+│   ├── ubuntu.sh            # also used for Debian
 │   └── arch.sh
 ├── config/
-│   ├── atuin/
-│   ├── brew/
-│   ├── cargo/
-│   ├── git/
-│   ├── mise/
-│   ├── npm/
-│   ├── nvm/
-│   ├── tmux/
-│   └── zsh/
+│   ├── atuin/.atuin
+│   ├── brew/.homebrew
+│   ├── cargo/.cargo
+│   ├── git/                 # .gitconfig, .gitconfig.override.example, .gitignore_global, .gitmessage
+│   ├── mise/                # .mise, .tool-versions
+│   ├── npm/                 # .npm, globals
+│   ├── nvm/.nvm
+│   ├── tmux/.tmux.conf
+│   └── zsh/                 # .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
 │   └── entrypoint.sh
 ├── overlays/
-│   ├── os/
-│   └── host/
+│   ├── README.md
+│   ├── os/                  # arch, macos, ubuntu (zsh/.aliases)
+│   └── host/                # example
+├── docs/
+│   └── new-mac.md
+├── .github/workflows/
+│   └── devbox-smoke.yml
 ├── docker-compose.yml
 ├── .dockerignore
+├── .editorconfig
+├── .gitignore
 ├── README.md
 ├── AGENTS.md
+├── TOOLS.md
+├── TASKS.md
 └── PLAN.md
 ```
 
 ## Runtime Flow
 
 - `scripts/install.sh` orchestrates install sub-steps.
-- `scripts/utils/os.sh` resolves `os_id` (`macos`, `ubuntu`, `debian`, `arch`, or `unknown`).
+- `scripts/utils/os.sh` resolves `os_id` (`macos`, `ubuntu`, `debian`, `arch`, or `unknown`). `ubuntu` and `debian` share the apt list and `os/ubuntu.sh`.
 - `scripts/install-packages.sh` installs from `packages/` per OS.
-- `scripts/install-dotfiles.sh` creates symlinks in `$HOME` and backs up existing files as `*.bak.<timestamp>`.
+- `scripts/install-dotfiles.sh` creates symlinks in `$HOME` and backs up existing files as `*.bak.<timestamp>`. `config/mise/.tool-versions` pins the language runtimes and links to `~/.tool-versions`.
 - `scripts/install-shell.sh` installs Oh My Zsh, Powerlevel10k, and Zsh plugins.
 - `scripts/install-node-globals.sh` installs globals from `config/npm/globals` with `pnpm`.
-- `os/*.sh` applies OS-specific tweaks/defaults.
+- `os/macos.sh` applies macOS `defaults`, `nvram`, and `pmset` settings (keyboard, screenshots, Dock, Finder, sleep).
+- `os/ubuntu.sh` sets the locale and timezone, switches the login shell to zsh, adds the user to the docker group, and enables the docker and tailscale services.
+- `os/arch.sh` does what `os/ubuntu.sh` does, plus the weekly paccache timer, the ufw defaults, and the liquidctl service.
 
 ## Overlays
 
 Overlays provide optional OS- and host-specific shell customizations without separate repositories.
 
-- OS overlay: `overlays/os/<os>/` where `<os>` matches `os_id`.
+- OS overlay: `overlays/os/<id>/` where `<id>` matches `os_id`.
 - Host overlay: `overlays/host/<name>/` with `DOTFILES_HOST=<name>`.
-- Supported overlay files today: `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.bootstrap`.
+- Supported overlay files today: `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.bootstrap` (see `overlays/README.md`).
 
 Example:
 
@@ -160,8 +171,8 @@ overlays/host/work-laptop/zsh/.exports
 
 ## Notes
 
-- `os/ubuntu.sh` and `os/arch.sh` are currently placeholders.
 - Install scripts are intentionally stateful and can modify system settings/packages.
+- `TOOLS.md` lists everything the repo installs and aliases, `TASKS.md` tracks open work, and `PLAN.md` lays out the next phases.
 
 ## Thanks
 
