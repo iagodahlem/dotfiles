@@ -16,12 +16,12 @@ Use this to compare against your system and spot what's missing.
 | atuin | shell history search and sync |
 | bat | cat clone with syntax highlighting |
 | btop | system monitor |
+| ctop | container metrics |
 | git-delta | syntax-highlighting git diff pager |
 | duf | disk usage utility |
 | eza | modern ls replacement |
 | gemini-cli | terminal coding assistant |
 | gh | GitHub CLI |
-| htop | interactive process viewer |
 | jq | JSON processor |
 | mise | runtime version manager |
 | mosh | mobile shell (SSH replacement) |
@@ -54,7 +54,7 @@ Use this to compare against your system and spot what's missing.
 
 ### Debian / Ubuntu (apt)
 
-`packages/apt.txt` (20):
+`packages/apt.txt` (19):
 
 | Package | Description |
 |---|---|
@@ -65,7 +65,6 @@ Use this to compare against your system and spot what's missing.
 | duf | disk usage utility |
 | eza | modern ls replacement |
 | git | version control |
-| htop | interactive process viewer |
 | jq | JSON processor |
 | less | pager |
 | locales | locale data |
@@ -78,6 +77,8 @@ Use this to compare against your system and spot what's missing.
 | vim | text editor |
 | xclip | X11 clipboard tool (tmux copy-pipe) |
 | zsh | Z shell |
+
+`procs` and `ctop` have no apt entry, see the table at the end of this file: `procs` is installed through mise in the packages pass, and `docker-ctop` comes from the third-party Azlux apt repository, which nothing configures yet.
 
 ### Arch Linux (pacman)
 
@@ -282,8 +283,11 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 | Alias | Command | Notes |
 |---|---|---|
 | `dots` | `cd $DOTFILES` | jump to dotfiles dir |
-| `df` | `df -h` | human-readable disk free |
-| `du` | `du -h -d 2` | human-readable disk usage |
+| `df` | `duf` | disk free; `df -h` when `duf` is not installed |
+| `du` | `ncdu` | disk usage browser; `du -h -d 2` when `ncdu` is not installed |
+| `dus` | `command du -h -d 2` | plain two-level disk usage, always the real `du` |
+| `ps` | `procs` | only set when `procs` is installed, plain `ps` otherwise |
+| `dtop` | `ctop` | container metrics; only set when `ctop` is installed |
 | `rm` | `nocorrect rm` | skip zsh correction |
 | `top` | `btop` | requires btop |
 | `cat` | `bat` | `batcat` where that is the binary name (Debian); only set when one of them is installed |
@@ -367,6 +371,8 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | Tool | Where referenced | How it's expected |
 |---|---|---|
 | xclip | tmux copy-pipe | in `apt.txt` only; install manually elsewhere |
+| procs | alias `ps` | in `Brewfile` and `pacman.txt`; no Debian package, installed through mise in the packages pass (noted in `apt.txt`) |
+| ctop | alias `dtop` | in `Brewfile` and `pacman.txt`; on Debian it is `docker-ctop` from the third-party Azlux apt repository (not Docker's), left out of `apt.txt` until that repository is configured |
 | oh-my-zsh | `.zshrc` | installed by `scripts/install-shell.sh` |
 | powerlevel10k | `.zshrc` theme | installed by `scripts/install-shell.sh` |
 | tpm | `.tmux.conf` | not installed by any script; clone to `~/.tmux/plugins/tpm` |

@@ -1,9 +1,25 @@
 # dotfiles
 alias dots="cd $DOTFILES"
 
-# show human friendly numbers and colors
-alias df='df -h'
-alias du='du -h -d 2'
+# disk, processes, containers
+if command -v duf >/dev/null 2>&1; then
+  alias df="duf"
+else
+  alias df="df -h"
+fi
+if command -v ncdu >/dev/null 2>&1; then
+  alias du="ncdu"
+else
+  alias du="du -h -d 2"
+fi
+# plain non-interactive form; `command` keeps it off the du alias above
+alias dus="command du -h -d 2"
+if command -v procs >/dev/null 2>&1; then
+  alias ps="procs"
+fi
+if command -v ctop >/dev/null 2>&1; then
+  alias dtop="ctop"
+fi
 
 # override rm -i alias which makes rm prompt for every action
 alias rm='nocorrect rm'

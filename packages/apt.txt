@@ -5,7 +5,6 @@ curl
 duf
 eza
 git
-htop
 jq
 less
 locales
@@ -18,3 +17,7 @@ tzdata
 vim
 xclip
 zsh
+
+# Not listed above because apt cannot install them on Debian out of the box:
+# - ctop: docker-ctop lives in the third-party Azlux apt repository (packages.azlux.fr), not in Debian or Docker's repository; list it here once that repository is configured
+# - procs: no bookworm package, installed through mise in the packages pass
