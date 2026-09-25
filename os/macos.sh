@@ -45,6 +45,12 @@ run defaults write com.apple.dock minimize-to-application -bool true
 # No recent applications in the Dock
 run defaults write com.apple.dock show-recents -bool false
 
+# Smaller Dock icons, 48 instead of the default 64
+run defaults write com.apple.dock tilesize -int 48
+
+# Clicking the wallpaper reveals the desktop only in Stage Manager, not always
+run defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
+
 # Allow quitting Finder with Cmd+Q
 run defaults write com.apple.finder QuitMenuItem -bool true
 
