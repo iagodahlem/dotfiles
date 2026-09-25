@@ -29,9 +29,9 @@ run defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool fal
 # Chrome: no back and forward navigation on a horizontal scroll
 run defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
 
-# Screenshots go to ~/Documents/Screenshots
-run mkdir -p "$HOME/Documents/Screenshots"
-run defaults write com.apple.screencapture location -string "$HOME/Documents/Screenshots"
+# Screenshots go to ~/Pictures/Screenshots
+run mkdir -p "$HOME/Pictures/Screenshots"
+run defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"
 
 # Screenshots as PNG
 run defaults write com.apple.screencapture type -string png
@@ -41,6 +41,9 @@ run defaults write com.apple.dock orientation -string right
 
 # Minimize windows into their application's icon
 run defaults write com.apple.dock minimize-to-application -bool true
+
+# No recent applications in the Dock
+run defaults write com.apple.dock show-recents -bool false
 
 # Allow quitting Finder with Cmd+Q
 run defaults write com.apple.finder QuitMenuItem -bool true
