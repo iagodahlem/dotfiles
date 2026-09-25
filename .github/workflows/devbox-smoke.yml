@@ -30,6 +30,21 @@ jobs:
       - name: Installer dry run
         run: ci/dry-run.sh
 
+  shell-startup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the Ubuntu image
+        run: docker build -f containers/Dockerfile -t dotfiles-devbox .
+
+      # prints numbers and gates nothing: the runner's speed is not the author's, and the image has no mise, atuin or Homebrew
+      - name: Shell startup
+        run: |
+          docker run --rm dotfiles-devbox bash -c '"$HOME/.dotfiles/ci/shell-startup.sh" -n 20'
+          docker run --rm dotfiles-devbox bash -c '"$HOME/.dotfiles/ci/shell-startup.sh" --profile'
+
   devbox-smoke:
     runs-on: ubuntu-latest
     strategy:

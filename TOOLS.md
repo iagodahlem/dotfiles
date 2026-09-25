@@ -361,6 +361,22 @@ Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p
 
 Loaded in order: mise, atuin, homebrew, cargo.
 
+### Startup benchmark (`ci/shell-startup.sh`)
+
+Times `zsh -i -c exit` and prints numbers, gating nothing. It measures whatever `$HOME` is, so there are two invocations:
+
+| Invocation | What it measures |
+|---|---|
+| `ci/shell-startup.sh` | the real home, as it is |
+| `HOME=<scratch> ci/shell-startup.sh` | a scratch home with the checkout linked as `~/.dotfiles`, `~/.zshenv` and `~/.config/zsh`, and oh-my-zsh cloned (`scripts/install.sh --only dotfiles --only shell` with `HOME=<scratch>` builds one, see the README) |
+
+| Flag | Effect |
+|---|---|
+| `-n <runs>` | number of timed shells, 10 by default; prints the min, median and max in milliseconds |
+| `--profile` | one shell under `zsh/zprof`, prints the 15 entries with the most self time (shell functions only: what `mise`, `atuin` and `brew` spend in their own processes is charged to the code that ran them) |
+
+Two shells run first and are not counted, since the first ones in a home build and compile the completion dump. Every shell starts from `$HOME` with `XDG_*`, `ZDOTDIR`, `DOTFILES` and `DOTFILES_PRIVATE` removed from the environment, so a terminal that has them set cannot point a scratch home at the real one. The script refuses a home with no `~/.zshenv` link or no oh-my-zsh, whose shell would start much faster than the setup it is meant to measure. CI runs it inside the Ubuntu image (job `shell-startup`), where there is no mise, atuin or Homebrew.
+
 ---
 
 ## tmux Plugins (TPM)
