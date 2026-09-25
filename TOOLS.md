@@ -287,6 +287,10 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 | `rm` | `nocorrect rm` | skip zsh correction |
 | `top` | `btop` | requires btop |
 | `cat` | `bat` | `batcat` where that is the binary name (Debian); only set when one of them is installed |
+| `ls` | `eza --group-directories-first` | `exa` on older Debian; only set when one of them is installed, plain `ls` otherwise |
+| `l` / `ll` | `eza -l --group-directories-first --git` | long list with git status |
+| `la` | `eza -la --group-directories-first --git` | long list including hidden files |
+| `lt` | `eza --tree --level=2 --group-directories-first` | two-level tree |
 | `reload` / `r` | `. $HOME/.zshrc` | reload shell config |
 | `dc` | `docker` | |
 | `dcc` | `docker compose` | |
