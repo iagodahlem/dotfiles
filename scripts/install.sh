@@ -8,7 +8,7 @@ MIGRATION_MARKER="$STATE_DIR/migrated"
 source "$ROOT_DIR/scripts/utils/os.sh"
 OS_ID="$(os_id)"
 
-# mise and the AI CLIs come from remote installers: a failure warns and the rest of the install carries on
+# mise, the AI CLIs and the nvim plugins come from remote sources: a failure warns and the rest of the install carries on
 run_optional() {
   "$ROOT_DIR/scripts/$1" || echo "warning: $1 failed, rerun it on its own once the cause is fixed" >&2
 }
@@ -40,6 +40,10 @@ fi
 
 if [ "${DOTFILES_SKIP_AI_CLIS:-0}" != "1" ]; then
   run_optional install-ai-clis.sh
+fi
+
+if [ "${DOTFILES_SKIP_NVIM:-0}" != "1" ]; then
+  run_optional install-nvim.sh
 fi
 
 if [ "${DOTFILES_SKIP_OS_DEFAULTS:-0}" != "1" ]; then
