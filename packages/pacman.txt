@@ -37,7 +37,7 @@ docker
 docker-buildx
 docker-compose
 tailscale       # mesh VPN
-ufw             # firewall, defaults are set by os/arch.sh
+ufw             # firewall, configured in the machines repo
 
 # --- dev ---
 base-devel      # gcc, make and friends; also what makepkg needs for AUR builds
@@ -50,5 +50,5 @@ ttf-firacode-nerd
 ttf-meslo-nerd  # Powerlevel10k and tmux powerline glyphs
 
 # --- hardware and maintenance ---
-liquidctl       # liquid cooler control, service enabled by os/arch.sh
-pacman-contrib  # paccache, trimmed weekly by the timer os/arch.sh enables
+liquidctl       # liquid cooler control, service enabled in the machines repo
+pacman-contrib  # paccache, the weekly timer is enabled in the machines repo

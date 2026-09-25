@@ -19,13 +19,19 @@ git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
-3. Run the unified installer.
+3. Read what the installer would do, then run it.
 
 ```sh
+./scripts/install.sh --dry-run
 ./scripts/install.sh
 ```
 
-Optional installer flags:
+The installer runs seven steps in order: `packages`, `dotfiles`, `shell`, `mise`, `ai-clis`, `nvim` and `os-defaults`. `./scripts/install.sh --help` lists them with the variable that skips each one.
+
+- `--dry-run` prints what each step would do and changes nothing: the package lists it would read with their entry counts and the commands it would run, each link and migration with its current state (missing, correct, a real file to back up, an old link to remove), what it would clone or install and whether that is already there, and the `defaults` commands. `DOTFILES_DRY_RUN=1` does the same. It reports the machine as it is now, so a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.
+- `--only <step>` runs just that step, and can be repeated: `./scripts/install.sh --only dotfiles --only shell`. A step named this way runs even when its skip variable is set.
+
+Skip variables:
 
 - `DOTFILES_SKIP_PACKAGES=1` skip package installation.
 - `DOTFILES_SKIP_DOTFILES=1` skip symlink creation.
@@ -123,8 +129,8 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── apt.txt              # Debian / Raspberry Pi OS / Ubuntu
 │   ├── pacman.txt           # Arch
 │   └── aur.txt              # Arch (AUR)
-├── scripts/
-│   ├── install.sh           # main entrypoint
+├── scripts/                 # what a machine runs to set itself up
+│   ├── install.sh           # main entrypoint (--help, --only, --dry-run)
 │   ├── install-packages.sh
 │   ├── install-apt-repos.sh # Docker, Tailscale, eza and Azlux apt sources
 │   ├── install-dotfiles.sh # reads config/links
@@ -132,8 +138,9 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install-mise.sh      # mise, node, pnpm
 │   ├── install-ai-clis.sh   # claude, codex, gemini
 │   ├── install-nvim.sh      # LazyVim plugin sync
-│   └── utils/               # os.sh, paths.sh, lists.sh
-├── ci/
+│   └── utils/               # os.sh, paths.sh, lists.sh, dry-run.sh, linux-defaults.sh
+├── ci/                      # what CI and a developer run, never a machine being set up
+│   ├── dry-run.sh
 │   ├── devbox-smoke.sh
 │   └── lint-shell.sh
 ├── os/
@@ -177,8 +184,9 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 
 ## Runtime Flow
 
-- `scripts/install.sh` orchestrates install sub-steps.
+- `scripts/install.sh` runs the install steps in the order of its `STEPS` table, one `== <step> ==` header each, and passes `--dry-run` on to them as `DOTFILES_DRY_RUN=1`. A step that fetches from the network (`mise`, `ai-clis`, `nvim`) warns on failure and lets the rest carry on.
 - `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`.
+- `scripts/utils/dry-run.sh` is what every step shares for the dry run: `is_dry_run`, and `run`, which runs a command or prints it. `scripts/utils/linux-defaults.sh` holds the login shell and docker group actions that `os/arch.sh` and `os/ubuntu.sh` share.
 - `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch.
 - `scripts/install-apt-repos.sh` adds the third-party apt sources `install_apt` needs before `apt-get update`, and skips any that is already configured.
 - `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (see [Layout](#layout)). A real file or directory in the way is backed up as `*.bak.<timestamp>`.
@@ -186,9 +194,8 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 - `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` runs `nvim --headless "+Lazy! sync" +qa` once `~/.config/nvim` is linked, and skips with a warning when nvim is missing or older than 0.11.2, the minimum LazyVim needs. The sync writes `config/nvim/lazy-lock.json`, so commit it to pin the plugin versions.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed.
-- `os/macos.sh` applies macOS `defaults`, `nvram`, and `pmset` settings (keyboard, screenshots, Dock, Finder, sleep).
-- `os/ubuntu.sh` sets the locale and timezone, switches the login shell to zsh, adds the user to the docker group, and enables the docker and tailscale services.
-- `os/arch.sh` does what `os/ubuntu.sh` does, plus the weekly paccache timer, the ufw defaults, and the liquidctl service.
+- `os/macos.sh` writes the macOS `defaults` that still apply on a current Mac (save to disk, keyboard access and key repeat, no smart quotes, dashes or autocorrect, screenshots in `~/Documents/Screenshots` as PNG, the Dock on the right, Finder and the hidden files and extensions), then restarts Finder, Dock and SystemUIServer. `sudo systemsetup -setrestartfreeze on` is its one line that needs sudo, and a failure there only warns. Key repeat applies after the next login. `TOOLS.md` lists every setting.
+- `os/ubuntu.sh` and `os/arch.sh` switch the login shell to zsh and add the user to the docker group, each guarded so a refusal only warns. Locale, timezone, services, the firewall and drivers are host-level settings and live in the machines repo.
 
 ## Overlays
 
@@ -207,9 +214,12 @@ overlays/host/work-laptop/zsh/.exports
 
 ## CI and Smoke
 
+`scripts/` holds only what a machine runs to set itself up: `install.sh`, the `install-*.sh` steps and `utils/`. What only CI or a developer runs lives in `ci/`.
+
 - `ci/lint-shell.sh` runs shellcheck on installer/container shell scripts.
+- `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host, no Docker, with a scratch `$HOME`. It checks that every step prints its header, that `--help` and `--only` work, and that nothing lands in the home directory. Run it locally the same way.
 - `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
-- CI runs shellcheck in a dedicated container image and smoke tests for Ubuntu + Arch Dockerfiles.
+- CI runs shellcheck in a dedicated container image, the installer dry run on the runner, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim and OS defaults skips.
 
 ## Notes
 
