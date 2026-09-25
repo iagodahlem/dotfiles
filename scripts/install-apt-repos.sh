@@ -14,6 +14,9 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/scripts/utils/ui.sh"
+
 # shellcheck disable=SC1091
 . /etc/os-release
 
@@ -83,7 +86,7 @@ add_repo() {
 
 # a repository that cannot be added only costs its own packages, install_apt skips them with a warning
 try_repo() {
-  add_repo "$@" || echo "warning: could not add the apt repository $1, its packages will be skipped" >&2
+  add_repo "$@" || report_warning "could not add the apt repository $1, its packages will be skipped"
 }
 
 # https://docs.docker.com/engine/install/debian/ (and .../ubuntu/)

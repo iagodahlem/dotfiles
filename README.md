@@ -30,6 +30,46 @@ The installer runs nine steps in order: `private`, `packages`, `dotfiles`, `shel
 
 - `--dry-run` prints what each step would do and changes nothing: the package lists it would read with their entry counts and the commands it would run, each link and migration with its current state (missing, correct, a real file to back up, an old link to remove), what it would clone or install and whether that is already there, and the `defaults` commands. `DOTFILES_DRY_RUN=1` does the same. It reports the machine as it is now, so a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.
 - `--only <step>` runs just that step, and can be repeated: `./scripts/install.sh --only dotfiles --only shell`. A step named this way runs even when its skip variable is set.
+- `--yes` skips the question a real run asks first, and `DOTFILES_YES=1` does the same. The question comes only from a terminal: a dry run never asks, and neither does a run with no terminal (CI, the container builds, which pass `--yes` anyway).
+- `NO_COLOR=1` turns the colour off. Colour and bold show only when stdout is a terminal, so a log or a pipe gets plain text either way.
+
+What the installer prints, in order:
+
+1. A banner: the host, the OS, the checkout, the host overlay it found (the private one, or the one in `overlays/host/`), the mode (real or dry run), the steps that run and the ones that do not, each with the variable behind it. A real run then asks `Run these steps? [Y/n]`, and no answer in 15 seconds counts as yes.
+2. Per step, one `==> <step>` header, the step's own output, and a line that says how it went: `ok` with its seconds, `skip` with the reason (a skip variable, nothing to do), `warn` (an optional step failed, or the step raised warnings on the way) or `fail` (a required step failed: the run stops there and exits with the status of the step).
+3. A summary: every step with its outcome and seconds, then the warnings word for word (or `no warnings`), then what is left to do by hand when it applies: `config/git/local` missing, logging out for key repeat after the macOS defaults, Karabiner's permissions after the run that installed it.
+
+```text
+dotfiles installer
+  host      example
+  os        macos
+  checkout  ~/.dotfiles
+  mode      real
+
+  steps     private packages dotfiles shell mise ai-clis nvim os-defaults host
+
+Run these steps? [Y/n]
+
+==> nvim         the LazyVim plugin sync
+warning: nvim 0.9.5 is older than 0.11.2, the minimum LazyVim needs, skipping the plugin sync
+  warn  done in 0s, with 1 warning(s) above
+
+==> os-defaults  the OS defaults (settings on macOS, login shell and docker group on Linux)
+  ok    done in 3s
+
+==> summary
+
+  step         outcome  seconds
+  ...
+  nvim         warn           0
+  os-defaults  ok             3
+  host         skip           0  no install.sh in the host overlay of example
+  total                     212
+
+  warn  nvim 0.9.5 is older than 0.11.2, the minimum LazyVim needs, skipping the plugin sync
+
+  note  log out and back in for the key repeat setting to apply
+```
 
 Skip variables:
 
@@ -194,7 +234,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install-mise.sh      # mise, node, pnpm, bun
 │   ├── install-ai-clis.sh   # claude, codex, gemini
 │   ├── install-nvim.sh      # LazyVim plugin sync
-│   └── utils/               # os.sh, host.sh, paths.sh, lists.sh, dry-run.sh, linux-defaults.sh
+│   └── utils/               # os.sh, host.sh, paths.sh, lists.sh, dry-run.sh, ui.sh, linux-defaults.sh
 ├── ci/                      # what CI and a developer run, never a machine being set up
 │   ├── dry-run.sh
 │   ├── devbox-smoke.sh
@@ -242,9 +282,10 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 
 ## Runtime Flow
 
-- `scripts/install.sh` runs the install steps in the order of its `STEPS` table, one `== <step> ==` header each, and passes `--dry-run` on to them as `DOTFILES_DRY_RUN=1`. A step that fetches from the network (`private`, `mise`, `ai-clis`, `nvim`, `host`) warns on failure and lets the rest carry on.
+- `scripts/install.sh` runs the install steps in the order of its `STEPS` table, one `==> <step>` header each, and passes `--dry-run` on to them as `DOTFILES_DRY_RUN=1`. A step that fetches from the network (`private`, `mise`, `ai-clis`, `nvim`, `host`) warns on failure and lets the rest carry on. It opens with a banner (and the question, see above) and ends with a summary of the steps, their seconds and the warnings.
 - `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`. `DOTFILES_OS_ID` overrides the detection for tests, for example `DOTFILES_OS_ID=macos scripts/install-dotfiles.sh` in a scratch `$HOME` on Linux to apply the `macos` entries of `config/links`.
 - `scripts/utils/host.sh` names this machine (`host_id`, `DOTFILES_HOST` or the short hostname) and finds its overlay (`host_overlay_dir`), for the installer scripts and for `config/zsh/.bootstrap` alike.
+- `scripts/utils/ui.sh` is the installer's output: `ui_banner`, `ui_step`, the lines that close a step (`ui_ok`, `ui_skip`, `ui_warn`, `ui_fail`), `ui_note`, `ui_confirm` and `ui_summary`, with the colour switched off unless stdout is a terminal and `NO_COLOR` is unset. It also has `report_warning`, which a step calls instead of printing `warning: ...` itself: the line reaches stderr as before, and when the step runs under `install.sh` the summary lists it too. It sticks to what bash 3.2 has (no associative arrays, no `${var,,}`), since that is the bash macOS ships.
 - `scripts/utils/dry-run.sh` is what every step shares for the dry run: `is_dry_run`, and `run`, which runs a command or prints it. `scripts/utils/linux-defaults.sh` holds the login shell and docker group actions that `os/arch.sh` and `os/ubuntu.sh` share.
 - `scripts/install-private.sh` runs first: it clones `DOTFILES_PRIVATE_REPO` to `DOTFILES_PRIVATE` (`~/.machines`) with `git clone --depth 1`, or runs `git pull --ff-only` when that is already a checkout, so the overlay of this machine is there for the steps after it. It only prints a line when `DOTFILES_PRIVATE_REPO` is not set, and a failure only warns.
 - `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch. On the last two the host overlay's `packages/apt.txt` or `packages/pacman.txt` follows in a second call (`pacman -S --needed`, so the upgrade runs once; a package apt has no candidate for is skipped with a warning, and a failing host pacman call warns and lets the rest carry on), all found through `host_overlay_dir`.
@@ -278,10 +319,10 @@ overlays/host/example/zsh/.exports
 `scripts/` holds only what a machine runs to set itself up: `install.sh`, the `install-*.sh` steps and `utils/`. What only CI or a developer runs lives in `ci/`.
 
 - `ci/lint-shell.sh` runs shellcheck on installer/container shell scripts.
-- `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host, no Docker, with a scratch `$HOME`. It checks that every step prints its header, that `--help` and `--only` work, that a private overlay is found before one in the checkout, and that nothing lands in the home directory. Run it locally the same way.
-- `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
+- `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host, no Docker, with a scratch `$HOME`. It checks that the banner, every step's `==> <step>` header and the summary are there, that the output has no escape codes in a pipe and that the summary repeats each warning word for word, that `--help`, `--only` and the skip variables work, that a private overlay is found before one in the checkout, that a real run with every step skipped never asks, that a failing optional step warns and a failing required one exits with its status, and that nothing lands in the home directory. Run it locally the same way.
+- `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, that `ZDOTDIR` is `~/.config/zsh`, and that a dry run of the installer inside the image reaches its summary.
 - `ci/shell-startup.sh` (see [Shell startup](#shell-startup)) times `zsh -i -c exit` (`-n <runs>`, 10 by default) and prints the min, median and max in milliseconds, or with `--profile` runs one shell under `zprof` and prints the 15 costliest entries. It measures whatever `$HOME` is, so it runs against the real home as it is (`ci/shell-startup.sh`) and against a scratch home laid out like a machine that cloned the checkout to `~/.dotfiles`. It starts every shell from `$HOME`, without the `XDG_*`, `ZDOTDIR` and `DOTFILES` variables of the terminal it runs in, and it does two shells first that it does not count, because the first ones in a home build the completion dump. `mise`, `atuin` and Homebrew are picked up from the `PATH` like in a real shell, so the numbers include whatever is installed on the machine. It prints numbers and gates nothing.
-- CI runs shellcheck in a dedicated container image, the installer dry run on the runner, the startup benchmark inside the Ubuntu image, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim, OS defaults, host and private skips.
+- CI runs shellcheck in a dedicated container image, the installer dry run on the runner, the startup benchmark inside the Ubuntu image, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds run the installer with `--yes` and keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim, OS defaults, host and private skips.
 
 ## Shell startup
 
@@ -302,7 +343,7 @@ A scratch home leaves the real one alone, and is what to use to compare a change
 scratch="$(mktemp -d)"
 ln -s "$PWD" "$scratch/.dotfiles"
 env -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME -u XDG_CACHE_HOME -u ZDOTDIR -u DOTFILES \
-  HOME="$scratch" scripts/install.sh --only dotfiles --only shell
+  HOME="$scratch" scripts/install.sh --yes --only dotfiles --only shell
 HOME="$scratch" ci/shell-startup.sh
 ```
 

@@ -8,6 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 REPO="${DOTFILES_PRIVATE_REPO:-}"
 DEST="$(private_dir)"
@@ -19,7 +20,7 @@ if [ -e "$DEST/.git" ]; then
     exit 0
   fi
   # an existing checkout still works when it cannot be updated (offline, a diverged branch), so it stays as it is
-  git -C "$DEST" pull -q --ff-only || echo "warning: could not update $(display_path "$DEST"), leaving it as it is" >&2
+  git -C "$DEST" pull -q --ff-only || report_warning "could not update $(display_path "$DEST"), leaving it as it is"
   exit 0
 fi
 

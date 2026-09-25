@@ -13,6 +13,7 @@ source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 # Dry run only: how many migration actions it has reported, so it can say when there are none, and the directories those actions would
 # remove (one per line), so that the link report after them sees the directory gone instead of in the way.
@@ -52,7 +53,7 @@ safe_link() {
   local ts state
 
   if [ ! -e "$src" ]; then
-    echo "warning: $src does not exist, not linking $dst" >&2
+    report_warning "$src does not exist, not linking $dst"
     return 0
   fi
 
@@ -274,7 +275,7 @@ apply_links() {
   if [ ! -f "$LINKS_FILE" ]; then
     # a dry run is there to show this, so it goes on to the other steps
     if is_dry_run; then
-      echo "warning: $LINKS_FILE not found, a real run stops here (the links are made from the checkout at $DOTS)" >&2
+      report_warning "$LINKS_FILE not found, a real run stops here (the links are made from the checkout at $DOTS)"
       return 0
     fi
     echo "Missing $LINKS_FILE" >&2
@@ -290,7 +291,7 @@ apply_links() {
   while read -r src dst os; do
     case "$os" in
       "" | macos | linux) ;;
-      *) echo "warning: $LINKS_FILE: unknown os '$os' for $src, skipping it" >&2; continue ;;
+      *) report_warning "$LINKS_FILE: unknown os '$os' for $src, skipping it"; continue ;;
     esac
     if [ -n "$os" ] && [ "$os" != "$host_os" ]; then
       continue
@@ -298,20 +299,20 @@ apply_links() {
 
     case "$dst" in
       \~/*) dst="$HOME/${dst#\~/}" ;;
-      *) echo "warning: $LINKS_FILE: target $dst must start with ~/, skipping it" >&2; continue ;;
+      *) report_warning "$LINKS_FILE: target $dst must start with ~/, skipping it"; continue ;;
     esac
 
     case "$src" in
       */)
         src="${src%/}"
         if [ ! -d "$CONFIG_DIR/$src" ]; then
-          echo "warning: $LINKS_FILE: $src/ is not a directory under config/, skipping it" >&2
+          report_warning "$LINKS_FILE: $src/ is not a directory under config/, skipping it"
           continue
         fi
         ;;
       *)
         if [ ! -f "$CONFIG_DIR/$src" ]; then
-          echo "warning: $LINKS_FILE: $src is not a file under config/, skipping it" >&2
+          report_warning "$LINKS_FILE: $src is not a file under config/, skipping it"
           continue
         fi
         ;;

@@ -8,6 +8,7 @@ source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 is_root() {
   [ "${EUID:-$(id -u)}" -eq 0 ]
@@ -64,7 +65,7 @@ apt_install_list() {
       if [ -n "$candidate" ] && [ "$candidate" != "(none)" ]; then
         available+=("$pkg")
       else
-        echo "warning: no apt candidate for $pkg on this release, skipping it" >&2
+        report_warning "no apt candidate for $pkg on this release, skipping it"
       fi
     done
   fi
@@ -131,7 +132,7 @@ install_pacman() {
     if is_dry_run; then
       describe_list "$host_list"
     fi
-    run_as_root pacman -S --needed --noconfirm "${host_packages[@]}" || echo "Some host pacman packages failed to install (a name that is not in the repositories stops the whole call). Fix $(display_path "$host_list") and rerun scripts/install-packages.sh." >&2
+    run_as_root pacman -S --needed --noconfirm "${host_packages[@]}" || report_warning "Some host pacman packages failed to install (a name that is not in the repositories stops the whole call). Fix $(display_path "$host_list") and rerun scripts/install-packages.sh."
   fi
 }
 
@@ -207,7 +208,7 @@ install_brew() {
   fi
 
   if [ "$failed" -ne 0 ]; then
-    echo "Some Brewfile entries failed to install (an app that already exists outside Homebrew is one common cause). Fix them and rerun brew bundle --file on the Brewfile." >&2
+    report_warning "Some Brewfile entries failed to install (an app that already exists outside Homebrew is one common cause). Fix them and rerun brew bundle --file on the Brewfile."
   fi
 }
 
