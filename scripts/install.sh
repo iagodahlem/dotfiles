@@ -38,7 +38,7 @@ if [ "${DOTFILES_SKIP_OS_DEFAULTS:-0}" != "1" ]; then
     macos)
       "$ROOT_DIR/os/macos.sh"
       ;;
-    ubuntu|debian)
+    ubuntu|debian|raspbian)
       [ -x "$ROOT_DIR/os/ubuntu.sh" ] && "$ROOT_DIR/os/ubuntu.sh"
       ;;
     arch)

@@ -1,23 +1,49 @@
-bat
-btop
+# Debian family packages (Debian, Raspberry Pi OS, Ubuntu), installed in one call by install_apt.
+# scripts/install-apt-repos.sh adds the third-party sources first (docker, tailscale, eza, docker-ctop).
+# A package with no candidate on the running release is skipped with a warning.
+# Not listed here: mise (mise.run installer) and atuin and procs (installed through mise),
+# all three handled by scripts/install-mise.sh.
+# Trailing comments are stripped by read_list_items in scripts/install-packages.sh.
+
+# --- base ---
 ca-certificates
 curl
-duf
-eza
-git
+locales
+sudo
+tzdata
+
+# --- CLI core ---
+bat             # cat with syntax highlighting, installs as batcat
+eza             # ls replacement, from the eza repository
+fd-find         # find replacement, installs as fdfind
+fzf             # fuzzy finder
 jq
 less
-locales
-mosh
-ncdu
+mosh            # roaming SSH
 neovim
-sudo
+ripgrep         # grep replacement
 tmux
-tzdata
-vim
-xclip
+
+# --- git and shell ---
+gh              # GitHub CLI
+git
+git-delta       # diff pager
 zsh
 
-# Not listed above because apt cannot install them on Debian out of the box:
-# - ctop: docker-ctop lives in the third-party Azlux apt repository (packages.azlux.fr), not in Debian or Docker's repository; list it here once that repository is configured
-# - procs: no bookworm package, installed through mise in the packages pass
+# --- system tools ---
+bind9-dnsutils  # dig and nslookup (dnsutils is a virtual name for it on Debian 13)
+btop            # system monitor
+docker-ctop     # container metrics, from the Azlux repository
+duf             # disk usage overview
+fastfetch       # system info, Debian 13 and newer
+ncdu            # disk usage browser
+speedtest-cli   # internet speed test
+xclip           # X11 clipboard tool (tmux copy-pipe)
+
+# --- containers and network ---
+containerd.io   # from the Docker repository, as are the docker packages below
+docker-buildx-plugin
+docker-ce
+docker-ce-cli
+docker-compose-plugin
+tailscale       # mesh VPN, from the Tailscale repository

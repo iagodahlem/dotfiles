@@ -27,6 +27,8 @@ read_list_items() {
 install_apt() {
   local list_file="$PACKAGES_DIR/apt.txt"
   local packages=()
+  local available=()
+  local pkg candidate
   [ -f "$list_file" ] || { echo "Missing $list_file" >&2; exit 1; }
 
   while IFS= read -r pkg; do
@@ -35,8 +37,22 @@ install_apt() {
 
   [ "${#packages[@]}" -gt 0 ] || return 0
 
+  "$ROOT_DIR/scripts/install-apt-repos.sh"
   run_as_root apt-get update
-  run_as_root apt-get install -y --no-install-recommends "${packages[@]}"
+
+  # one missing package would fail the whole apt-get install, and releases differ (fastfetch is Debian 13 and newer)
+  for pkg in "${packages[@]}"; do
+    candidate="$(apt-cache policy "$pkg" 2>/dev/null | awk '/Candidate:/ { c = $2 } END { print c }' || true)"
+    if [ -n "$candidate" ] && [ "$candidate" != "(none)" ]; then
+      available+=("$pkg")
+    else
+      echo "warning: no apt candidate for $pkg on this release, skipping it" >&2
+    fi
+  done
+
+  if [ "${#available[@]}" -gt 0 ]; then
+    run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${available[@]}"
+  fi
   run_as_root rm -rf /var/lib/apt/lists/*
 }
 
@@ -118,7 +134,7 @@ case "$OS_ID" in
   macos)
     install_brew
     ;;
-  ubuntu|debian)
+  ubuntu|debian|raspbian)
     install_apt
     ;;
   arch)
