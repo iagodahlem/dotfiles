@@ -11,6 +11,7 @@ OS_ID="$(os_id)"
 # One row per step, in run order: the name, the variable that skips it, its script and what it does.
 # A script of "-" is the OS defaults script for this OS, see os_defaults_script, and "@host" is the install.sh of this machine's host overlay, see host_script.
 STEPS='
+private      DOTFILES_SKIP_PRIVATE      scripts/install-private.sh   the private overlays repo: cloned to DOTFILES_PRIVATE when DOTFILES_PRIVATE_REPO is set, pulled when already there
 packages     DOTFILES_SKIP_PACKAGES     scripts/install-packages.sh  packages from packages/ (brew bundle, apt, pacman)
 dotfiles     DOTFILES_SKIP_DOTFILES     scripts/install-dotfiles.sh  link config/ into place from config/links, after clearing the older layout
 shell        DOTFILES_SKIP_SHELL        scripts/install-shell.sh     Oh My Zsh, Powerlevel10k, the zsh plugins and tpm
@@ -21,8 +22,8 @@ os-defaults  DOTFILES_SKIP_OS_DEFAULTS  -                            the OS defa
 host         DOTFILES_SKIP_HOST         @host                        what this machine needs beyond the shared steps, the install.sh of its host overlay when there is one
 '
 
-# mise, the AI CLIs, the nvim plugins and the host hook come from remote sources: a failure warns and the rest of the install carries on
-OPTIONAL_STEPS=" mise ai-clis nvim host "
+# the private overlays repo, mise, the AI CLIs, the nvim plugins and the host hook come from remote sources: a failure warns and the rest of the install carries on
+OPTIONAL_STEPS=" private mise ai-clis nvim host "
 
 usage() {
   local name var desc
@@ -45,7 +46,8 @@ Options:
   --dry-run      print what each step would do and change nothing (DOTFILES_DRY_RUN=1 does the same)
   -h, --help     print this help
 
-mise, ai-clis, nvim and host fetch from the network, so a failure in one of them warns and the run carries on.
+private, mise, ai-clis, nvim and host fetch from the network, so a failure in one of them warns and the run carries on.
+private runs first, so the overlay of this machine is there for the steps after it. It clones DOTFILES_PRIVATE_REPO (ssh form) to DOTFILES_PRIVATE, ~/.machines by default, and does nothing while that is unset.
 DOTFILES_HOST names this machine, the short hostname by default. Its overlay is <DOTFILES_PRIVATE>/<name>/dotfiles/ when that exists, else overlays/host/<name>/:
 its Brewfile on macOS, its git config, and its install.sh for the host step.
 A dry run reports the machine as it is now: a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.

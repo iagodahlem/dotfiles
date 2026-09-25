@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STEPS="packages dotfiles shell mise ai-clis nvim os-defaults host"
+STEPS="private packages dotfiles shell mise ai-clis nvim os-defaults host"
 
 fail() {
   echo "dry-run: $*" >&2
@@ -30,6 +30,8 @@ fi
 HOOK
 chmod +x "$private/install.sh"
 printf '%s\n' '[credential]' '  helper = store' > "$private/git/config"
+# and one directory that looks like a checkout of the private repo
+mkdir -p "$scratch/checkout/.git"
 
 # the XDG variables and DOTFILES would point the steps at the real home, so they are dropped
 installer() {
@@ -54,6 +56,17 @@ only="$(installer --only dotfiles --dry-run 2>&1)" || { echo "$only"; fail "inst
 if [ "$(grep -c '^== ' <<<"$only")" != 1 ] || ! grep -qxF "== dotfiles ==" <<<"$only"; then
   fail "--only dotfiles did not run just the dotfiles step"
 fi
+
+# the private step clones the repo named by DOTFILES_PRIVATE_REPO, pulls a checkout, leaves a directory somebody filled by hand alone, and is off without a repo
+repo="git@example.invalid:me/overlays.git"
+out="$(DOTFILES_PRIVATE="$scratch/none" installer --only private --dry-run 2>&1)" || { echo "$out"; fail "install.sh --only private --dry-run failed"; }
+grep -q '^private overlays are off' <<<"$out" || { echo "$out"; fail "the private step did not say it is off without DOTFILES_PRIVATE_REPO"; }
+out="$(DOTFILES_PRIVATE="$scratch/none" DOTFILES_PRIVATE_REPO="$repo" installer --only private --dry-run 2>&1)" || { echo "$out"; fail "the private step failed with DOTFILES_PRIVATE_REPO set"; }
+grep -qxF "would run: git clone --depth 1 $repo $scratch/none" <<<"$out" || { echo "$out"; fail "the private step would not clone DOTFILES_PRIVATE_REPO"; }
+out="$(DOTFILES_PRIVATE="$scratch/checkout" DOTFILES_PRIVATE_REPO="$repo" installer --only private --dry-run 2>&1)" || { echo "$out"; fail "the private step failed on a checkout"; }
+grep -q 'would run git pull --ff-only' <<<"$out" || { echo "$out"; fail "the private step would not pull an existing checkout"; }
+out="$(DOTFILES_PRIVATE_REPO="$repo" installer --only private --dry-run 2>&1)" || { echo "$out"; fail "the private step failed on a directory that is not a checkout"; }
+grep -q 'not a git checkout, using it as it is' <<<"$out" || { echo "$out"; fail "the private step did not leave a directory that is not a checkout alone"; }
 
 # the private overlay wins over the one in the checkout, and its hook has to see the dry run
 host="$(DOTFILES_HOST=example installer --only host --dry-run 2>&1)" || { echo "$host"; fail "install.sh --only host --dry-run failed"; }
