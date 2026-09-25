@@ -74,7 +74,7 @@ Use this to compare against your system and spot what's missing.
 
 **Host overlays** (`overlays/host/<name>/Brewfile`):
 
-`mac`, the personal Mac (21 entries, everything on top of the core):
+`mac`, the personal Mac (20 entries, everything on top of the core):
 
 | Entry | Kind | Description |
 |---|---|---|
@@ -98,7 +98,6 @@ Use this to compare against your system and spot what's missing.
 | logi-options+ | cask | Logitech mouse and keyboard settings, installed outside Homebrew today |
 | readdle-spark | cask | mail client, installed outside Homebrew today |
 | whatsapp | cask | messaging, installed outside Homebrew today |
-| zoom | cask | video calls, installed outside Homebrew today |
 
 `mini`, a work machine (0 entries): empty on purpose, the core Brewfile is all it gets.
 

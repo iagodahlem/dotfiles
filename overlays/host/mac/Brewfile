@@ -27,4 +27,3 @@ cask "cleanshot"      # screenshots and screen recording
 cask "logi-options+"  # Logitech mouse and keyboard settings
 cask "readdle-spark"  # mail client
 cask "whatsapp"
-cask "zoom"
