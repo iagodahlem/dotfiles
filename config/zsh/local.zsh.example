@@ -1,0 +1,11 @@
+# Copy this file to config/zsh/local.zsh, inside the checkout, for the lines that belong to THIS machine only.
+#
+# config/zsh/.bootstrap sources config/zsh/local.zsh last, after the overlays and the tool init,
+# so anything set here wins over the defaults from the tracked files.
+#
+# ~/.config/zsh links to config/zsh, so ~/.config/zsh/local.zsh is this same file.
+# config/zsh/local.zsh is gitignored and never committed, so it is safe to put private values here.
+# It exists only in this checkout: back it up before deleting the checkout, and note that `git clean -x` removes it.
+
+# The order tmux session names are listed in (space separated)
+export TMUX_LS_ORDER="home homelab"

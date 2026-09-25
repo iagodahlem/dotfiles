@@ -29,3 +29,8 @@ source "$DOTFILES_CONFIG"/mise/.mise
 source "$DOTFILES_CONFIG"/atuin/.atuin
 source "$DOTFILES_CONFIG"/brew/.homebrew
 source "$DOTFILES_CONFIG"/cargo/.cargo
+
+# Machine-private lines (gitignored, see local.zsh.example), last so they win over everything above
+if [ -r "$DOTFILES_ZSH/local.zsh" ]; then
+  source "$DOTFILES_ZSH/local.zsh"
+fi
