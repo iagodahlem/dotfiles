@@ -32,6 +32,7 @@ Use this to compare against your system and spot what's missing.
 | neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
 | mise | `config/mise/` | `~/.config/mise` (directory link) | `XDG_CONFIG_HOME` |
 | mise Debian fragment | none, untracked and gitignored, written by `scripts/install-mise.sh` on the Debian family | `config/mise/conf.d/` in the checkout, reached as `~/.config/mise/conf.d/` | none, mise loads `conf.d/*.toml` from its config directory |
+| bun | `config/mise/config.toml` (`bun = "latest"`), installed by mise | the binary under `~/.local/share/mise/installs/bun/`; the package cache is still `~/.bun/install/cache`, an open item in `TASKS.md` (`BUN_INSTALL_CACHE_DIR` would move it) | `XDG_DATA_HOME` for the binary, none for the cache |
 | cargo | none | `~/.local/share/cargo` | `CARGO_HOME` |
 | rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
 | npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
@@ -46,9 +47,9 @@ Use this to compare against your system and spot what's missing.
 
 ### macOS (Homebrew)
 
-`packages/Brewfile` (46 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The `Brewfile` in the host overlay of this machine, when it has one (see Host overlay below), is applied on top of it.
+`packages/Brewfile` (53 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The `Brewfile` in the host overlay of this machine, when it has one (see Host overlay below), is applied on top of it.
 
-**Formulae** (25):
+**Formulae** (26):
 
 | Package | Description |
 |---|---|
@@ -71,6 +72,7 @@ Use this to compare against your system and spot what's missing.
 | mosh | mobile shell (SSH replacement) |
 | ncdu | disk usage analyzer |
 | neovim | text editor |
+| nmap | port scanner |
 | procs | modern ps replacement |
 | ripgrep | grep replacement |
 | rtk | compresses noisy command output |
@@ -78,17 +80,23 @@ Use this to compare against your system and spot what's missing.
 | tmux | terminal multiplexer |
 | zsh | Z shell |
 
-**Casks** (19):
+**Casks** (25):
 
 | App | Description |
 |---|---|
 | 1password | password manager |
 | 1password-cli | 1Password command line client |
+| bartender | menu bar icon organiser |
+| bettertouchtool | trackpad, mouse and keyboard gestures |
+| cleanshot | screenshots and screen recordings |
 | codexbar | menu bar usage monitor |
 | ghostty | GPU-accelerated terminal emulator |
 | google-chrome | web browser |
+| granola | meeting notes |
 | karabiner-elements | keyboard customizer |
 | keepingyouawake | keeps the Mac from sleeping |
+| logi-options+ | Logitech mouse and keyboard settings (its cask says to reboot to finish the install) |
+| notion-calendar | calendar |
 | obsidian | notes |
 | orbstack | container runtime and Linux VMs (provides the docker CLI) |
 | raycast | launcher / productivity |
@@ -113,7 +121,7 @@ Use this to compare against your system and spot what's missing.
 
 ### Debian / Raspberry Pi OS / Ubuntu (apt)
 
-`packages/apt.txt` (33) is installed in one `apt-get install --no-install-recommends` after `scripts/install-apt-repos.sh` adds the third-party sources below. A package with no candidate on the running release is skipped with a warning (`fastfetch` needs Debian 13 or newer, for instance).
+`packages/apt.txt` (33) is installed in one `apt-get install --no-install-recommends` after `scripts/install-apt-repos.sh` adds the third-party sources below. A package with no candidate on the running release is skipped with a warning (`fastfetch` needs Debian 13 or newer, for instance). The `packages/apt.txt` of the host overlay, when it has one with entries, is installed the same way right after it, with the same candidate check.
 
 | Package | Description |
 |---|---|
@@ -151,7 +159,7 @@ Use this to compare against your system and spot what's missing.
 | xclip | X11 clipboard tool (tmux copy-pipe) |
 | zsh | Z shell |
 
-`mise` comes from its installer and `atuin` and `procs` through mise, see [Version Managers & Runtimes](#version-managers--runtimes).
+`mise` comes from its installer and `atuin` and `procs` through mise, see [Version Managers & Runtimes](#version-managers--runtimes). LaTeX is not in the list, and TinyTeX is not an install path: a host that needs it lists its texlive packages in its overlay's `packages/apt.txt`.
 
 **Third-party apt repositories** (added by `scripts/install-apt-repos.sh`, each skipped when its sources file already exists):
 
@@ -164,7 +172,7 @@ Use this to compare against your system and spot what's missing.
 
 ### Arch Linux (pacman)
 
-`packages/pacman.txt` (38) is installed in one `pacman -Syu --needed` transaction.
+`packages/pacman.txt` (38) is installed in one `pacman -Syu --needed` transaction. The `packages/pacman.txt` of the host overlay, when it has one with entries, follows in a second `pacman -S --needed --noconfirm` call (the full upgrade already ran, and a name pacman does not know only costs that call: it warns and the AUR step still runs). LaTeX is not in the list either: texlive packages go in the overlay's list.
 
 | Package | Description |
 |---|---|
@@ -259,7 +267,7 @@ Locale, timezone, service enables, the firewall and drivers are host-level setti
 
 ## Host overlay
 
-The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and the host step all go through it. It takes the first directory that exists:
+The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and package lists and the host step all go through it. It takes the first directory that exists:
 
 1. `$DOTFILES_PRIVATE/<name>/dotfiles/`: the private overlays repo, checked out at `~/.machines`, which the `private` step clones from `DOTFILES_PRIVATE_REPO` (ssh form, never written in this repo) and pulls on later runs.
 2. `overlays/host/<name>/`: an overlay kept in this repo.
@@ -271,6 +279,8 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 | `zsh/.exports`, `.aliases`, `.functions`, `.zshrc.local`, `.bootstrap` | sourced by `config/zsh/.bootstrap` after the OS overlay, in that order |
 | `git/config` | linked as `config/git/host`, which git includes before `config/git/local` |
 | `Brewfile` | applied by `brew bundle` on macOS, after `packages/Brewfile`; skipped while it has no entries |
+| `packages/pacman.txt` | installed on Arch after `packages/pacman.txt`, in a second `pacman -S --needed --noconfirm` call; skipped while it has no entries |
+| `packages/apt.txt` | installed on the Debian family after `packages/apt.txt`, skipping a package with no candidate on the release; skipped while it has no entries |
 | `install.sh` | run by the `host` step, the last one, with `DOTFILES_DRY_RUN=1` on a dry run; a failure only warns |
 
 | Variable | Purpose |
@@ -292,6 +302,7 @@ Activated first on shell start. `mise` itself comes from `packages/Brewfile` on 
 |---|---|---|
 | node | lts | `config/mise/config.toml` |
 | pnpm | latest | `config/mise/config.toml` |
+| bun | latest | `config/mise/config.toml` |
 | go | 1.23.4 | `config/mise/config.toml` (not installed by the installer) |
 | ruby | 3.1.3 | `config/mise/config.toml` (not installed by the installer) |
 | rust | 1.68.2 | `config/mise/config.toml` (not installed by the installer) |
@@ -304,7 +315,7 @@ Rust toolchain sourced from `$CARGO_HOME/env` (`~/.local/share/cargo`).
 
 ### Homebrew (macOS + Linuxbrew)
 
-Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbrew`) when present.
+Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbrew`) when present. `config/brew/.homebrew` runs the full `brew shellenv` for interactive shells and ends with `typeset -U path`. `config/zsh/.zshenv` also prepends the `bin` directory to `PATH` for every zsh, so an ssh command (`mosh-server`, `scp`, git over ssh), which runs a non-interactive shell that reads only `.zshenv`, finds what Homebrew installed.
 
 ---
 
@@ -516,6 +527,7 @@ From `config/zsh/.zshenv`, read by every zsh:
 |---|---|
 | `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME` | `~/.config`, `~/.local/share`, `~/.local/state`, `~/.cache`; a value already exported wins |
 | `ZDOTDIR` | `$XDG_CONFIG_HOME/zsh` |
+| `PATH` | `/opt/homebrew/bin` and `/home/linuxbrew/.linuxbrew/bin` prepended when the directory exists and is not on `PATH` already, for shells that never read `.zshrc` (ssh commands) |
 | `DOTFILES` | `~/.dotfiles` unless already exported; `DOTFILES_BIN`, `DOTFILES_CONFIG`, `DOTFILES_ZSH`, `DOTFILES_GIT` and `DOTFILES_OVERLAYS` hang off it |
 | `DOTFILES_HOST` | the short hostname in lower case unless already exported, the name of the host overlay (see Host overlay) |
 | `DOTFILES_PRIVATE` | `~/.machines` unless already exported, the checkout of the private overlays repo |
@@ -555,7 +567,7 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | mise | `.bootstrap` → `.mise` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
 | atuin | `.bootstrap` → `.atuin` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
-| node, pnpm | npm-based CLIs | installed through mise by `scripts/install-mise.sh` |
+| node, pnpm, bun | npm-based CLIs, and bun for its own scripts | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |
 | oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH` |
 | powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM` |

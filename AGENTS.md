@@ -9,11 +9,11 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 
 - `scripts/install.sh` is the public entrypoint (orchestration + OS detection). Its `STEPS` table lists the steps in run order (`private`, `packages`, `dotfiles`, `shell`, `mise`, `ai-clis`, `nvim`, `os-defaults`, `host`) with each one's `DOTFILES_SKIP_*` variable and script; `--help` prints it, `--only <step>` runs just that step (repeatable, skip variables ignored), and `--dry-run` sets `DOTFILES_DRY_RUN=1` for every step. Each step gets a `== <step> ==` header in both modes.
 - `scripts/install-private.sh` is the first step: it clones `DOTFILES_PRIVATE_REPO` (never written in this repo) to `DOTFILES_PRIVATE` (`~/.machines`) with `git clone --depth 1`, runs `git pull --ff-only` when that is already a checkout, and prints one line when `DOTFILES_PRIVATE_REPO` is empty. It is optional: a failure warns.
-- `scripts/install-packages.sh` installs dependencies from `packages/`: `brew bundle` on `packages/Brewfile` plus the `Brewfile` of the host overlay (see `host_overlay_dir`) on macOS, `apt.txt` on the Debian family, `pacman.txt` and `aur.txt` on Arch.
+- `scripts/install-packages.sh` installs dependencies from `packages/`: `brew bundle` on `packages/Brewfile` plus the `Brewfile` of the host overlay (see `host_overlay_dir`) on macOS, `apt.txt` on the Debian family, `pacman.txt` and `aur.txt` on Arch. On the last two the host overlay's `packages/apt.txt` or `packages/pacman.txt` is applied after the shared list (`find_host_list` finds it, `apt_install_list` does the candidate check for both apt lists, and Arch runs a second `pacman -S --needed --noconfirm` call so the upgrade runs once).
 - `scripts/install-apt-repos.sh` adds the Docker, Tailscale, eza and Azlux apt sources before `install_apt` runs `apt-get update`; it is idempotent and never prompts.
 - `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (`source  target  [os]`, paths relative to `config/` and `~`, a trailing `/` on the source for a directory link). `~/.zshenv` is the only link left in `$HOME`.
 - `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory at their default branches, unpinned. Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater; Oh My Zsh's own updater stays off in `.zshrc`.
-- `scripts/install-mise.sh` installs mise where no package list does (Debian family, `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), atuin and procs on the Debian family, and runs `corepack enable`.
+- `scripts/install-mise.sh` installs mise where no package list does (Debian family, `https://mise.run`), then node, pnpm and bun from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` syncs the LazyVim plugins headless once `~/.config/nvim` is linked, and skips with a warning when nvim is older than 0.11.2, the minimum LazyVim needs.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers (`--update` refreshes installed ones). It sources `config/zsh/.zshenv` first, so the installers see `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `GEMINI_CLI_HOME` and `NPM_CONFIG_CACHE` and write under the XDG directories from the first run.
 - The `host` step, the last one, runs the `install.sh` of this machine's host overlay when it has one (`DOTFILES_DRY_RUN=1` on a dry run); it is optional, so a failure warns.
@@ -26,13 +26,13 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `os/ubuntu.sh` (also used for Debian and Raspberry Pi OS) and `os/arch.sh` only switch the login shell to zsh and add the user to the docker group, both guarded. Locale, timezone, services, the firewall and drivers are host-level settings that live in the machines repo.
 - `containers/` contains Ubuntu/Arch devbox Dockerfiles plus shared entrypoint.
 - `docker-compose.yml` defines all devbox services (`devbox`, `devbox-arch`, `devbox-isolated`).
-- `overlays/` holds the OS-specific shell overrides and `overlays/host/example/`, the shape of a host overlay. The real host overlays (shell files, a git config, a Brewfile, an install hook) live in the private overlays repo at `~/.machines`, one folder per machine, and `host_overlay_dir` finds the one for this machine there first, then in `overlays/host/` (see `overlays/README.md`).
+- `overlays/` holds the OS-specific shell overrides and `overlays/host/example/`, the shape of a host overlay. The real host overlays (shell files, a git config, a Brewfile, pacman and apt package lists, an install hook) live in the private overlays repo at `~/.machines`, one folder per machine, and `host_overlay_dir` finds the one for this machine there first, then in `overlays/host/` (see `overlays/README.md`).
 - `docs/new-mac.md` is the setup sequence for a new machine, including the per-machine git identity.
 - `TOOLS.md` lists everything installed and aliased, `TASKS.md` tracks open work, and `PLAN.md` lays out the next phases.
 
 **How Config Loads**
 
-- `~/.zshenv` (a link to `config/zsh/.zshenv`) is the only dotfile in `$HOME`. It sets the XDG variables (keeping values already exported), `ZDOTDIR=$XDG_CONFIG_HOME/zsh`, the `DOTFILES*` variables (`DOTFILES_HOST`, the short hostname unless set, and `DOTFILES_PRIVATE`, `~/.machines` unless set), and the redirects for oh-my-zsh, cargo, rustup, npm (config and cache), tpm, the z plugin (`ZSHZ_DATA`), claude (`CLAUDE_CONFIG_DIR`), codex (`CODEX_HOME`) and gemini (`GEMINI_CLI_HOME`), plus `SHELL_SESSIONS_DISABLE=1` for macOS Terminal. It stays plain POSIX assignments because `install-shell.sh` sources it from bash.
+- `~/.zshenv` (a link to `config/zsh/.zshenv`) is the only dotfile in `$HOME`. It sets the XDG variables (keeping values already exported), `ZDOTDIR=$XDG_CONFIG_HOME/zsh`, the `DOTFILES*` variables (`DOTFILES_HOST`, the short hostname unless set, and `DOTFILES_PRIVATE`, `~/.machines` unless set), and the redirects for oh-my-zsh, cargo, rustup, npm (config and cache), tpm, the z plugin (`ZSHZ_DATA`), claude (`CLAUDE_CONFIG_DIR`), codex (`CODEX_HOME`) and gemini (`GEMINI_CLI_HOME`), plus `SHELL_SESSIONS_DISABLE=1` for macOS Terminal. It also prepends `/opt/homebrew/bin` and `/home/linuxbrew/.linuxbrew/bin` to `PATH` when they exist and are not there yet, because ssh commands (mosh-server, scp, git over ssh) run a non-interactive shell that reads only this file; `config/brew/.homebrew` keeps the full `brew shellenv` for interactive shells and ends with `typeset -U path`, so the two do not double the entry. It stays plain POSIX because `install-shell.sh` sources it from bash.
 - `~/.config/zsh` is a directory link to `config/zsh`, so `ZDOTDIR` finds `.zshrc`, `.p10k.zsh`, `.exports`, `.aliases`, `.functions` and `.bootstrap` there.
 - `config/zsh/.zshrc` creates the state and cache directories and `$CODEX_HOME` (codex exits when it is missing), loads Oh My Zsh from `$ZSH`, then sources `config/zsh/.bootstrap`.
 - `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<id>/` and the host overlay (`host_overlay_dir`: `$DOTFILES_PRIVATE/<name>/dotfiles/`, else `overlays/host/<name>/`), then per-tool init (`mise`, `atuin`, `brew`, `cargo`), then `config/zsh/local.zsh` when it exists (untracked, from `local.zsh.example`, for lines that belong to one machine).
@@ -50,14 +50,14 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 
 - `.devcontainer/` templates are not implemented yet (parked in `TASKS.md`).
 - Shell startup time has not been measured yet; that is the first open item in `TASKS.md`.
-- Existing state from the older layout (`~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo`, `~/.rustup`, `~/.npmrc`, and the `~/.z`, `~/.npm`, `~/.claude`, `~/.claude.json`, `~/.codex` and `~/.gemini` that the newer redirects replace) is not moved by the installer, see "Migrating an existing machine" in the README.
+- Existing state from the older layout (`~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo`, `~/.rustup`, `~/.npmrc`, and the `~/.z`, `~/.npm`, `~/.claude`, `~/.claude.json`, `~/.codex` and `~/.gemini` that the newer redirects replace, and the curl-installed `~/.bun` and `~/.TinyTeX` that mise and the overlay package lists replace) is not moved by the installer, see "Migrating an existing machine" in the README. bun's package cache still lands in `~/.bun/install/cache`, an open item in `TASKS.md`.
 
 **Roadmap (user intent)**
 
 - Keep one unified install flow with OS/distro-specific branches.
 - Keep dotfiles runnable inside Docker devboxes for client/testing contexts.
 - Continue reducing shell startup overhead while preserving behavior.
-- Follow the phases in `PLAN.md`: the host-level split is next (the packages, XDG layout, installer and host overlay phases are done).
+- Follow the phases in `PLAN.md`: the host-level split is next (the packages, XDG layout, installer, host overlay and packages round two phases are done).
 
 **Editing Guidelines**
 
@@ -69,7 +69,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `scripts/` is for what a machine runs to set itself up; a script only CI or a developer runs goes in `ci/`.
 - Keep new files ASCII-only unless the file already contains Unicode.
 - Prefer `pnpm` over `npm` for global package installs, except where a vendor documents an npm command (gemini in `install-ai-clis.sh`).
-- Package lists take trailing `# comments` (`read_list_items` strips them), so keep a short comment on any entry whose name does not explain itself. Debian names go in `apt.txt`; a package that only exists in a third-party repo needs its source in `install-apt-repos.sh`.
+- Package lists take trailing `# comments` (`read_list_items` strips them), so keep a short comment on any entry whose name does not explain itself. Debian names go in `apt.txt`; a package that only exists in a third-party repo needs its source in `install-apt-repos.sh`. A package one machine needs goes in that host overlay's `packages/` list, not in the shared one, and LaTeX comes from texlive packages there (TinyTeX is not an install path).
 
 **Principles**
 

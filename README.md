@@ -37,7 +37,7 @@ Skip variables:
 - `DOTFILES_SKIP_PACKAGES=1` skip package installation.
 - `DOTFILES_SKIP_DOTFILES=1` skip symlink creation.
 - `DOTFILES_SKIP_SHELL=1` skip Oh My Zsh, its plugins and tpm.
-- `DOTFILES_SKIP_MISE=1` skip mise, node and pnpm.
+- `DOTFILES_SKIP_MISE=1` skip mise, node, pnpm and bun.
 - `DOTFILES_SKIP_AI_CLIS=1` skip the AI CLI installs (claude, codex, gemini).
 - `DOTFILES_SKIP_NVIM=1` skip the LazyVim plugin sync.
 - `DOTFILES_SKIP_OS_DEFAULTS=1` skip OS-specific defaults/tweaks.
@@ -45,15 +45,15 @@ Skip variables:
 
 Per-machine settings do not live in this repo. They live in a private repo of overlays, one folder per machine, and this repo only knows how to find and load them. To use them, set `DOTFILES_PRIVATE_REPO` to that repo in the ssh form (`git@github.com:<user>/<repo>.git`) and make sure the key of the machine can reach it: the `private` step clones it to `~/.machines` (`DOTFILES_PRIVATE` moves it) and pulls it on later runs. Without `DOTFILES_PRIVATE_REPO` the step only says private overlays are off, and everything else works with the shared config. See [Overlays](#overlays).
 
-On macOS the packages are one core `packages/Brewfile` applied with `brew bundle`, plus the `Brewfile` in the overlay of this machine's host when it has one (see [Overlays](#overlays)). Debian, Raspberry Pi OS and Ubuntu use `packages/apt.txt`, after `scripts/install-apt-repos.sh` adds the Docker, Tailscale, eza and Azlux repositories. Arch uses `packages/pacman.txt` and `packages/aur.txt`.
+On macOS the packages are one core `packages/Brewfile` applied with `brew bundle`, plus the `Brewfile` in the overlay of this machine's host when it has one (see [Overlays](#overlays)). Debian, Raspberry Pi OS and Ubuntu use `packages/apt.txt`, after `scripts/install-apt-repos.sh` adds the Docker, Tailscale, eza and Azlux repositories. Arch uses `packages/pacman.txt` and `packages/aur.txt`. The host overlay can add to those too: its `packages/pacman.txt` and `packages/apt.txt` are installed after the shared lists on Arch and on the Debian family, so a package one machine needs stays out of the shared ones. TinyTeX is not an install path any more: a host that needs LaTeX lists its texlive packages in its overlay.
 
-`scripts/install-mise.sh` sets up mise, node and pnpm from `config/mise/config.toml`, and `scripts/install-ai-clis.sh` installs the AI CLIs from their own installers (`--update` refreshes ones already installed). If either step fails the installer warns and carries on.
+`scripts/install-mise.sh` sets up mise, node, pnpm and bun from `config/mise/config.toml`, and `scripts/install-ai-clis.sh` installs the AI CLIs from their own installers (`--update` refreshes ones already installed). If either step fails the installer warns and carries on.
 
 Setting up a new machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact sequence, the machine profile, and the per-machine git identity step.
 
 ## Layout
 
-`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
+`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). It also puts Homebrew's `bin` directory on `PATH` when it exists (`/opt/homebrew/bin`, `/home/linuxbrew/.linuxbrew/bin`), because ssh runs a command such as `mosh-server`, `scp` or git over ssh in a non-interactive shell that reads only this file, and `config/brew/.homebrew` (the full `brew shellenv`) is for interactive shells only. zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
 
 Everything else lives under `~/.config`, linked from `config/` by the table in `config/links`:
 
@@ -119,7 +119,17 @@ mkdir -p "$GEMINI_CLI_HOME" && mv ~/.gemini "$GEMINI_CLI_HOME/.gemini"
 
 # codex: a new shell made $CODEX_HOME empty, and ~/.local/bin/codex links into the old ~/.codex, so relink it after the move
 rmdir "$CODEX_HOME" && mv ~/.codex "$CODEX_HOME" && "$DOTFILES/scripts/install-ai-clis.sh"
+
+# bun: mise installs it now, so the curl-installed one goes (run the mise step first, so a bun is always on hand)
+rm -rf ~/.bun
+
+# TinyTeX: no longer an install path, and a host that needs LaTeX lists its texlive packages in its overlay; remove it and the links it made in ~/.local/bin
+# (its own way out is `tlmgr path remove` before the `rm`, and on a Mac it lives in ~/Library/TinyTeX)
+rm -rf ~/.TinyTeX
+for link in ~/.local/bin/*; do case "$(readlink "$link")" in */.TinyTeX/*) rm "$link" ;; esac; done
 ```
+
+The bun installer also appended a `# bun` block to the shell file it found: `export BUN_INSTALL="$HOME/.bun"` and `export PATH="$BUN_INSTALL/bin:$PATH"` (plus a completions line, on some versions). Drop those lines from the shell files of the machine. In `~/.zshrc` that means `config/zsh/.zshrc`, since `~/.config/zsh` links there, so `git diff config/zsh/.zshrc` shows them; a bash or profile file of its own is edited in place. bun still keeps its package cache in `~/.bun/install/cache` (`BUN_INSTALL_CACHE_DIR` moves it, an open item in `TASKS.md`), so the directory comes back with the first `bun install`.
 
 If a directory reappears in `~` afterwards, something started the tool without going through zsh (a launcher, a GUI app that does not read the shell environment), so it never saw the variable.
 
@@ -181,7 +191,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install-apt-repos.sh # Docker, Tailscale, eza and Azlux apt sources
 │   ├── install-dotfiles.sh # reads config/links
 │   ├── install-shell.sh     # oh-my-zsh, Powerlevel10k, zsh plugins, tpm (cloned, pulled on rerun)
-│   ├── install-mise.sh      # mise, node, pnpm
+│   ├── install-mise.sh      # mise, node, pnpm, bun
 │   ├── install-ai-clis.sh   # claude, codex, gemini
 │   ├── install-nvim.sh      # LazyVim plugin sync
 │   └── utils/               # os.sh, host.sh, paths.sh, lists.sh, dry-run.sh, linux-defaults.sh
@@ -236,11 +246,11 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 - `scripts/utils/host.sh` names this machine (`host_id`, `DOTFILES_HOST` or the short hostname) and finds its overlay (`host_overlay_dir`), for the installer scripts and for `config/zsh/.bootstrap` alike.
 - `scripts/utils/dry-run.sh` is what every step shares for the dry run: `is_dry_run`, and `run`, which runs a command or prints it. `scripts/utils/linux-defaults.sh` holds the login shell and docker group actions that `os/arch.sh` and `os/ubuntu.sh` share.
 - `scripts/install-private.sh` runs first: it clones `DOTFILES_PRIVATE_REPO` to `DOTFILES_PRIVATE` (`~/.machines`) with `git clone --depth 1`, or runs `git pull --ff-only` when that is already a checkout, so the overlay of this machine is there for the steps after it. It only prints a line when `DOTFILES_PRIVATE_REPO` is not set, and a failure only warns.
-- `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch.
+- `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch. On the last two the host overlay's `packages/apt.txt` or `packages/pacman.txt` follows in a second call (`pacman -S --needed`, so the upgrade runs once; a package apt has no candidate for is skipped with a warning, and a failing host pacman call warns and lets the rest carry on), all found through `host_overlay_dir`.
 - `scripts/install-apt-repos.sh` adds the third-party apt sources `install_apt` needs before `apt-get update`, and skips any that is already configured.
 - `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (see [Layout](#layout)). A real file or directory in the way is backed up as `*.bak.<timestamp>`.
 - `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory at their default branches, unpinned. Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater, and it warns and leaves a clone alone when the pull fails (offline, or a clone left at a commit by an earlier revision of the installer: delete it and rerun). Oh My Zsh's own updater stays off in `.zshrc`, so there is one updater.
-- `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
+- `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node, pnpm and bun from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` runs `nvim --headless "+Lazy! sync" +qa` once `~/.config/nvim` is linked, and skips with a warning when nvim is missing or older than 0.11.2, the minimum LazyVim needs. The sync writes `config/nvim/lazy-lock.json`, so commit it to pin the plugin versions.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed. It sources `config/zsh/.zshenv` first, so they write their state under the XDG directories from the first run.
 - The `host` step, the last one, runs the `install.sh` of this machine's host overlay when there is one, with `DOTFILES_DRY_RUN=1` on a dry run, and a failure only warns.
@@ -253,7 +263,7 @@ Overlays provide optional OS- and host-specific customizations without separate 
 
 - OS overlay: `overlays/os/<id>/` where `<id>` matches `os_id`, shell files only.
 - Host overlay: one folder per machine, named after its short hostname in lower case (`DOTFILES_HOST` picks another). It is `<name>/dotfiles/` in the private overlays repo, checked out at `~/.machines`, and `overlays/host/<name>/` in this repo is only the fallback and the documented shape. The real overlays are private, so they are not in this repo.
-- An overlay may hold `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.zshrc.local` and `zsh/.bootstrap` (read by `config/zsh/.bootstrap`), a `git/config` (linked as `config/git/host`), a `Brewfile` (applied on macOS) and an `install.sh` (the `host` step). Every file is optional.
+- An overlay may hold `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.zshrc.local` and `zsh/.bootstrap` (read by `config/zsh/.bootstrap`), a `git/config` (linked as `config/git/host`), a `Brewfile` (applied on macOS), `packages/pacman.txt` and `packages/apt.txt` (applied on Arch and on the Debian family, after the shared lists) and an `install.sh` (the `host` step). Every file is optional.
 
 Example:
 
