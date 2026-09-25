@@ -9,19 +9,34 @@ Use this to compare against your system and spot what's missing.
 
 ### macOS (Homebrew)
 
-**Formulae** (`packages/Brewfile`):
+**Formulae** (`packages/Brewfile`, 16):
 
 | Package | Description |
 |---|---|
+| atuin | shell history search and sync |
 | bat | cat clone with syntax highlighting |
+| btop | system monitor |
+| ctop | container metrics |
 | git-delta | syntax-highlighting git diff pager |
+| duf | disk usage utility |
+| eza | modern ls replacement |
+| gemini-cli | terminal coding assistant |
+| gh | GitHub CLI |
+| jq | JSON processor |
+| mise | runtime version manager |
+| mosh | mobile shell (SSH replacement) |
+| ncdu | disk usage analyzer |
+| neovim | text editor |
+| procs | modern ps replacement |
 | tmux | terminal multiplexer |
 
-**Casks** (`packages/Caskfile`):
+**Casks** (`packages/Caskfile`, 11):
 
 | App | Description |
 |---|---|
 | 1password | password manager |
+| claude-code | terminal coding assistant |
+| codex | terminal coding assistant |
 | ghostty | GPU-accelerated terminal emulator |
 | google-chrome | web browser |
 | karabiner-elements | keyboard customizer |
@@ -31,36 +46,49 @@ Use this to compare against your system and spot what's missing.
 | visual-studio-code | code editor |
 | workflowy | outliner / note-taking |
 
-**Fonts** (`packages/Fontfile`):
+**Fonts** (`packages/Fontfile`, 1):
 
-Empty — no fonts installed yet. Needs Nerd Font for Powerlevel10k and tmux powerline glyphs.
+| Font | Description |
+|---|---|
+| font-meslo-lg-nerd-font | Meslo Nerd Font for Powerlevel10k and tmux powerline glyphs |
 
-### Ubuntu / Debian (apt)
+### Debian / Ubuntu (apt)
 
-`packages/apt.txt`:
+`packages/apt.txt` (19):
 
 | Package | Description |
 |---|---|
+| bat | cat clone with syntax highlighting |
+| btop | system monitor |
 | ca-certificates | SSL/TLS root certs |
 | curl | HTTP client |
+| duf | disk usage utility |
+| eza | modern ls replacement |
 | git | version control |
-| sudo | privilege escalation |
-| zsh | Z shell |
-| tmux | terminal multiplexer |
-| vim | text editor |
+| jq | JSON processor |
 | less | pager |
 | locales | locale data |
+| mosh | mobile shell (SSH replacement) |
+| ncdu | disk usage analyzer |
+| neovim | text editor |
+| sudo | privilege escalation |
+| tmux | terminal multiplexer |
 | tzdata | timezone data |
+| vim | text editor |
+| xclip | X11 clipboard tool (tmux copy-pipe) |
+| zsh | Z shell |
+
+`procs` and `ctop` have no apt entry, see the table at the end of this file: `procs` is installed through mise in the packages pass, and `docker-ctop` comes from the third-party Azlux apt repository, which nothing configures yet.
 
 ### Arch Linux (pacman)
 
-`packages/pacman.txt`:
+`packages/pacman.txt` (35):
 
 | Package | Description |
 |---|---|
-| atuin | shell history search/sync |
+| atuin | shell history search and sync |
 | base-devel | build tools (gcc, make, etc.) |
-| bat | cat with syntax highlighting |
+| bat | cat clone with syntax highlighting |
 | btop | system monitor |
 | cmatrix | matrix rain screensaver |
 | ctop | container metrics |
@@ -70,14 +98,18 @@ Empty — no fonts installed yet. Needs Nerd Font for Powerlevel10k and tmux pow
 | duf | disk usage utility |
 | eza | modern ls replacement |
 | fastfetch | system info display |
+| gemini-cli | terminal coding assistant |
 | git | version control |
+| github-cli | GitHub CLI |
 | jq | JSON processor |
 | liquidctl | liquid cooler control |
+| mise | runtime version manager |
 | mkcert | local TLS certificates |
 | mosh | mobile shell (SSH replacement) |
 | ncdu | disk usage analyzer |
 | neovim | text editor |
-| pacman-contrib | pacman cache tools — paccache.timer auto-trims cache weekly (enabled by os/arch.sh) |
+| openai-codex | terminal coding assistant |
+| pacman-contrib | pacman cache tools; paccache.timer auto-trims the cache weekly (enabled by os/arch.sh) |
 | podman | daemonless container runtime |
 | podman-compose | podman orchestration |
 | procs | modern ps replacement |
@@ -90,26 +122,30 @@ Empty — no fonts installed yet. Needs Nerd Font for Powerlevel10k and tmux pow
 | unzip | archive extractor |
 | zsh | Z shell |
 
-**AUR** (`packages/aur.txt`):
+**AUR** (`packages/aur.txt`, 1):
 
-Empty — no AUR packages configured yet.
+| Package | Description |
+|---|---|
+| claude-code | terminal coding assistant |
 
 ---
 
 ## Version Managers & Runtimes
 
-### asdf (`config/asdf/.tool-versions`)
+### mise (`config/mise/`)
 
-| Plugin | Version |
+Activated first on shell start. Runtime versions are pinned in `config/mise/`:
+
+| Runtime | Version |
 |---|---|
 | golang | 1.23.4 |
 | ruby | 3.1.3 |
-| nodejs | 23.5.0 |
 | rust | 1.68.2 |
+| nodejs | managed by mise (planned; nvm still provides node today, see `TASKS.md`) |
 
 ### nvm
 
-Also loaded on shell start for `.nvmrc` auto-switching. Overlaps with asdf for Node.
+Also loaded on shell start for `.nvmrc` auto-switching. Overlaps with mise for Node; dropping it is an open item in `TASKS.md`.
 
 ### cargo
 
@@ -123,11 +159,7 @@ Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbr
 
 ## Node Global Packages
 
-Installed via `pnpm` from `config/npm/globals`:
-
-| Package | Description |
-|---|---|
-| codex | OpenAI CLI agent |
+Installed via `pnpm` from `config/npm/globals` by `scripts/install-node-globals.sh`. The list is empty right now: the coding assistant CLIs come from the package lists above, so only packages without a formula belong here.
 
 ---
 
@@ -156,7 +188,7 @@ Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p
 
 ### Tool initialization (via `.bootstrap`)
 
-Loaded in order: asdf, atuin, homebrew, cargo, nvm.
+Loaded in order: mise, atuin, homebrew, cargo, nvm.
 
 ---
 
@@ -168,7 +200,7 @@ Loaded in order: asdf, atuin, homebrew, cargo, nvm.
 | tmux-plugins/tmux-sensible | sensible defaults |
 | tmux-plugins/tmux-resurrect | session save/restore |
 | tmux-plugins/tmux-continuum | auto session restore |
-| dracula/tmux | status bar theme (planned: replace with tmux2k) |
+| dracula/tmux | status bar theme (a switch to tmux2k is parked in `TASKS.md`) |
 
 ---
 
@@ -251,28 +283,20 @@ Loaded in order: asdf, atuin, homebrew, cargo, nvm.
 | Alias | Command | Notes |
 |---|---|---|
 | `dots` | `cd $DOTFILES` | jump to dotfiles dir |
-| `install` | `brew install` | overridden per OS |
-| `cask` | `brew cask install` | macOS only |
-| `update` | `brew update` | overridden per OS |
-| `upgrade` | `brew upgrade` | overridden per OS |
-| `up` | `update && upgrade` | overridden per OS |
-| `cleanup` | `brew cleanup` | overridden per OS |
-| `dev` | `cd $CODE` | jump to code dir |
-| `desktop` | `cd $DESKTOP` | |
-| `downloads` | `cd $DOWNLOADS` | |
-| `dlist` | `dirs -v \| head -10` | directory stack |
-| `dv` | `dev` | shortcut |
-| `dt` | `desktop` | shortcut |
-| `dl` | `downloads` | shortcut |
-| `df` | `df -h` | human-readable disk free |
-| `du` | `du -h -d 2` | human-readable disk usage |
+| `df` | `duf` | disk free; `df -h` when `duf` is not installed |
+| `du` | `ncdu` | disk usage browser; `du -h -d 2` when `ncdu` is not installed |
+| `dus` | `command du -h -d 2` | plain two-level disk usage, always the real `du` |
+| `ps` | `procs` | only set when `procs` is installed, plain `ps` otherwise |
 | `rm` | `nocorrect rm` | skip zsh correction |
-| `top` | `htop` | requires htop |
+| `top` | `btop` | requires btop |
+| `cat` | `bat` | `batcat` where that is the binary name (Debian); only set when one of them is installed |
+| `ls` | `eza --group-directories-first` | `exa` on older Debian; only set when one of them is installed, plain `ls` otherwise; oh-my-zsh's `ll`, `la` and `l` go through it |
+| `lt` | `eza --tree --level=2 --group-directories-first` | two-level tree |
 | `reload` / `r` | `. $HOME/.zshrc` | reload shell config |
 | `dc` | `docker` | |
 | `dcc` | `docker compose` | |
-| `bi` | `bundle install` | Ruby bundler |
-| `bx` | `bundle exec` | Ruby bundler |
+
+The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) live in the per-OS overlays below.
 
 ### macOS overlay — `overlays/os/macos/zsh/.aliases`
 
@@ -280,7 +304,7 @@ Loaded in order: asdf, atuin, homebrew, cargo, nvm.
 |---|---|
 | `install` | `brew install` |
 | `i` | `install` |
-| `cask` | `brew cask install` |
+| `cask` | `brew install --cask` |
 | `update` | `brew update` |
 | `upgrade` | `brew upgrade` |
 | `up` | `update && upgrade` |
@@ -330,28 +354,26 @@ From `config/zsh/.exports`:
 
 | Variable | Value / Purpose |
 |---|---|
+| `HISTIGNORE` | patterns kept out of shell history (`ls`, `cd`, `date`, `* --help`) |
 | `LANG` | `en_US.UTF-8` |
-| `EDITOR` | `code` (local) / `vim` (SSH) |
-| `NODE_EXTRA_CA_CERTS` | auto-set from `mkcert -CAROOT` when mkcert is available |
+| `EDITOR` | `nvim` |
+| `PATH` | `/usr/local/bin`, `/usr/local/sbin`, `~/.local/bin`, and `$DOTFILES_BIN` prepended; `/snap/bin` appended when present |
 
 ---
 
 ## Tools Referenced but NOT in Package Lists
 
-These tools appear in aliases, configs, or init scripts but are **not** listed in any `packages/` file — they are expected to be installed manually or via version managers:
+These tools appear in aliases, configs, or init scripts but are not listed in every `packages/` file they would need to be. Expect to install them manually, from a script, or via a version manager:
 
 | Tool | Where referenced | How it's expected |
 |---|---|---|
-| htop | alias `top=htop` | manual install / missing from package lists |
-| xclip | tmux copy-pipe | manual install / missing from package lists |
+| xclip | tmux copy-pipe | in `apt.txt` only; install manually elsewhere |
+| procs | alias `ps` | in `Brewfile` and `pacman.txt`; no Debian package, installed through mise in the packages pass (noted in `apt.txt`) |
+| ctop | run as `ctop` | in `Brewfile` and `pacman.txt`; on Debian it is `docker-ctop` from the third-party Azlux apt repository (not Docker's), left out of `apt.txt` until that repository is configured |
 | oh-my-zsh | `.zshrc` | installed by `scripts/install-shell.sh` |
 | powerlevel10k | `.zshrc` theme | installed by `scripts/install-shell.sh` |
+| tpm | `.tmux.conf` | not installed by any script; clone to `~/.tmux/plugins/tpm` |
 | pnpm | `.zshrc`, node globals | installed via corepack or npm |
-| nvm | `.bootstrap` → `.nvm` | installed manually / not in packages |
-| asdf | `.bootstrap` → `.asdf` | installed manually / not in packages |
-| atuin | `.bootstrap` → `.atuin` | in pacman.txt only (missing from Brewfile/apt) |
-| mkcert | `.exports` | in pacman.txt only (missing from Brewfile/apt) |
-| neovim | `.gitconfig` core.editor | in pacman.txt only (missing from Brewfile/apt) |
-| docker | alias `dc`, omz plugin | in pacman.txt only (missing from Brewfile/apt) |
-| jq | — | in pacman.txt only (missing from Brewfile/apt) |
-| eza | — | in pacman.txt only (missing from Brewfile/apt) |
+| nvm | `.bootstrap` → `.nvm` | installed manually, not in packages |
+| atuin | `.bootstrap` → `.atuin` | in `Brewfile` and `pacman.txt` (missing from `apt.txt`) |
+| docker | alias `dc`, omz plugin | in `pacman.txt` only (missing from `Brewfile`, `Caskfile`, `apt.txt`) |

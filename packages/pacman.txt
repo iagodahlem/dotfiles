@@ -12,6 +12,7 @@ eza
 fastfetch
 gemini-cli
 git
+github-cli
 jq
 liquidctl
 mise

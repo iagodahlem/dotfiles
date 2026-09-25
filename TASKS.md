@@ -1,6 +1,6 @@
 # TASKS
 
-Tracked tasks for dotfiles repo. Updated 2026-03-17.
+Tracked tasks for dotfiles repo. Updated 2026-09-24.
 
 ## Legend
 
@@ -10,32 +10,48 @@ Tracked tasks for dotfiles repo. Updated 2026-03-17.
 
 ---
 
-## Theme & Appearance
+## Open
 
-- [ ] **Switch tmux theme to tmux2k** — Replace Dracula plugin with [tmux2k](https://github.com/2KAbhishek/tmux2k). Remove `dracula/tmux` plugin + custom Dracula color variables (lines 28, 33-51 in `.tmux.conf`). Add tmux2k plugin via TPM and configure theme/plugins/colors. Update nested-session status-left bindings to use tmux2k's color scheme instead of hardcoded Dracula hex values.
-- [ ] **Populate `packages/Fontfile`** — Add Nerd Font cask(s) (e.g. `font-jetbrains-mono-nerd-font`) needed for tmux2k powerline glyphs and Powerlevel10k.
+### Shell & Startup
 
-## OS Defaults
+- [ ] **mise everywhere**: node and pnpm from `config/mise`, drop nvm on every machine.
+- [ ] **Measure and reduce shell startup time**: add a repeatable benchmark (`zsh -i -c exit` timing) before and after changes, then lazy-load the slow init blocks. Do this after mise replaces nvm.
 
-- [ ] **Implement `os/ubuntu.sh`** — Add safe, reversible Ubuntu defaults (timezone, locale, apt unattended-upgrades, sysctl tweaks, ufw baseline). Keep parity with what `os/macos.sh` covers.
-- [ ] **Implement `os/arch.sh`** — Add safe Arch defaults (locale-gen, systemd services enable, makepkg flags, pacman color/parallel downloads).
-- [ ] **Populate `packages/aur.txt`** — Decide which AUR packages (if any) should be installed by default on Arch.
+### Layout & Installer
 
-## Containers & Dev Environments
+- [ ] **XDG layout**: `~/.zshenv` sets the XDG variables and `ZDOTDIR`, directory links into `~/.config`, a declarative link table, migration of the old `~` links.
+- [ ] **Installer hardening**: `--help` and `--dry-run`, `NONINTERACTIVE` Homebrew bootstrap, `pacman -Syu --needed`, pinned shell plugins.
+- [ ] **Trim `os/macos.sh`** to the settings that still apply. Keep: keyboard access, smart quotes and dashes and autocorrect off, save to disk, screenshots folder and PNG, Dock minimize-to-app, Finder quit menu, no desktop drive icons, hidden files, extensions, Chrome swipe off, restart on freeze. Add: Dock on the right, `KeyRepeat` 2 and `InitialKeyRepeat` 15, `killall Finder Dock SystemUIServer`. Drop the rest.
+- [ ] **Host-level settings move out**: firewall, timezone, services, and drivers move out of the dotfiles to the host configuration repo; `os/*.sh` keep only `chsh` and the docker group.
 
-- [ ] **Add `.devcontainer/` templates** — Create `devcontainer.json` variants: one bind-mount (reuses `containers/Dockerfile`), one isolated volume. Wire features and extensions list.
-- [ ] **Verify Arch container smoke parity** — Ensure `devbox-smoke.sh` matrix covers the same assertions for Arch as Ubuntu (non-root, symlinks, shell login).
+### Packages
 
-## Shell & Startup
+- [ ] **Brewfile core plus host overlays**: a core Brewfile plus a Brewfile per host overlay, applied by `brew bundle`.
+- [ ] **Categorized package lists**: one-line comments per entry and a Debian path (Raspberry Pi OS).
+- [ ] **`install-ai-clis.sh`**: install the AI CLIs from their own installers instead of the package lists.
 
-- [ ] **Measure and reduce shell startup time** — Add a repeatable benchmark (`zsh -i -c exit` timing) before/after changes. Target: identify and lazy-load slow init blocks (asdf, nvm, cargo).
-- [ ] **Consolidate asdf and nvm init** — Both are loaded on every shell start. Evaluate lazy-loading nvm or switching fully to asdf for Node.
+### Overlays
 
-## CI & Quality
+- [ ] **Host overlays for each machine**, selected by `DOTFILES_HOST` from `hostname -s`.
+- [ ] **Add overlay lint coverage**: extend `scripts/lint-shell.sh` to also check `overlays/` shell files.
 
-- [ ] **Commit pending working-tree changes** — Stage and commit the current batch of modified/new files (Dockerfiles, compose, smoke script, lint script, docs).
-- [ ] **Add overlay lint coverage** — Extend `scripts/lint-shell.sh` to also check `overlays/` shell files.
+### Editor & Terminal
 
-## Documentation
+- [ ] **Tracked LazyVim config** with a headless plugin sync.
+- [ ] **Clipboard fixes**: tmux `set-clipboard`, `pngpaste` on macOS.
 
-- [ ] **Keep README/AGENTS/PLAN in sync** — After completing tasks above, update all three docs to reflect new state.
+### Documentation
+
+- [~] **Keep README, AGENTS, TOOLS and PLAN in sync**: standing rule, update them in the same change as any install or layout edit. Synced to the current state on 2026-09-24.
+
+## Parked
+
+- [ ] **Switch tmux theme to tmux2k**
+- [ ] **Add `.devcontainer/` templates**
+
+## Done
+
+- [x] **Populate `packages/Fontfile`**: `font-meslo-lg-nerd-font` is in the list.
+- [x] **Populate `packages/aur.txt`**: superseded, the AI CLIs will install from their own installers and the list empties in the packages pass.
+- [x] **Commit pending working-tree changes**
+- [x] **Verify Arch container smoke parity**
