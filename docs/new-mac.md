@@ -42,6 +42,8 @@ This installs packages (`brew bundle` on the core Brewfile, then on the host one
 
 Ghostty reads `~/.config/ghostty/config`, a directory link to `config/ghostty/`. The tracked file is a scaffold with every key commented out, so Ghostty runs on its defaults until you set some; on macOS a file under `~/Library/Application Support/com.mitchellh.ghostty/` is read after it and wins where both set a key.
 
+Karabiner-Elements reads `~/.config/karabiner/karabiner.json`, and `~/.config/karabiner` is a directory link to `config/karabiner/` that only a Mac gets, so the remaps come with the links. Karabiner still needs its permissions granted by hand from System Settings on the first launch: Accessibility (Privacy & Security, which also covers Input Monitoring from Karabiner-Elements 16.0.0), the driver extension (Login Items & Extensions), and the background items in General > Login Items. See the [required macOS settings](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/).
+
 To rerun part of it, name the steps with `--only` (`./scripts/install.sh --only dotfiles --only shell`), or skip some with the variables `DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM` and `DOTFILES_SKIP_OS_DEFAULTS`. `./scripts/install.sh --help` lists the steps. See the README.
 
 ## 3. Restart the shell and verify

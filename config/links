@@ -14,3 +14,4 @@ nvim/                  ~/.config/nvim
 git/                   ~/.config/git
 ghostty/               ~/.config/ghostty
 mise/                  ~/.config/mise
+karabiner/             ~/.config/karabiner  macos

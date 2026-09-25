@@ -62,8 +62,11 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/git` | `config/git/` | directory |
 | `~/.config/ghostty` | `config/ghostty/` | directory |
 | `~/.config/mise` | `config/mise/` | directory |
+| `~/.config/karabiner` | `config/karabiner/` | directory, macOS only |
 
 `~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `~/.config/zsh` keeps one untracked file the same way, `local.zsh` (copy `config/zsh/local.zsh.example`), which `.bootstrap` sources last for the lines that belong to one machine only, such as `TMUX_LS_ORDER`. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
+
+`~/.config/karabiner` is a directory link on macOS only, and it has to be the directory: Karabiner-Elements stops noticing changes to `karabiner.json` when the file itself is a link ([the location of the configuration file](https://karabiner-elements.pqrs.org/docs/manual/misc/configuration-file-path/)). The dated backups it writes to `automatic_backups/` before it rewrites the file land in `config/karabiner/` and are gitignored. On a Mac where Karabiner is already running, restart its config watcher once after the link is made, so it watches the new location: `launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.Karabiner-Console-User-Server`.
 
 To add a link, add a line to `config/links` and rerun `scripts/install-dotfiles.sh`:
 
@@ -191,6 +194,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── cargo/.cargo
 │   ├── ghostty/config       # scaffold, every key commented out
 │   ├── git/                 # config, ignore, message, local.example (local and host stay untracked)
+│   ├── karabiner/           # karabiner.json (automatic_backups stays untracked), macOS only
 │   ├── links                # link table read by install-dotfiles.sh
 │   ├── mise/                # .mise, config.toml (conf.d stays untracked)
 │   ├── npm/.npm
@@ -223,7 +227,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 ## Runtime Flow
 
 - `scripts/install.sh` runs the install steps in the order of its `STEPS` table, one `== <step> ==` header each, and passes `--dry-run` on to them as `DOTFILES_DRY_RUN=1`. A step that fetches from the network (`mise`, `ai-clis`, `nvim`) warns on failure and lets the rest carry on.
-- `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`.
+- `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`. `DOTFILES_OS_ID` overrides the detection for tests, for example `DOTFILES_OS_ID=macos scripts/install-dotfiles.sh` in a scratch `$HOME` on Linux to apply the `macos` entries of `config/links`.
 - `scripts/utils/dry-run.sh` is what every step shares for the dry run: `is_dry_run`, and `run`, which runs a command or prints it. `scripts/utils/linux-defaults.sh` holds the login shell and docker group actions that `os/arch.sh` and `os/ubuntu.sh` share.
 - `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch.
 - `scripts/install-apt-repos.sh` adds the third-party apt sources `install_apt` needs before `apt-get update`, and skips any that is already configured.

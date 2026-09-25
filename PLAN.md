@@ -33,4 +33,4 @@ Status snapshot updated on 2026-09-25.
 4. Installer (done): `--help`, `--only` and `--dry-run`, `os/macos.sh` trimmed to the settings that still apply, `os/*.sh` cut to the login shell and the docker group, and the scripts split into `scripts/` (setup) and `ci/` (CI and developer checks). The `NONINTERACTIVE` Homebrew bootstrap and `pacman -Syu --needed` landed with phase 2.
 5. Host overlays and host-level split: one overlay per machine selected by `DOTFILES_HOST` from `hostname -s`, and the host-level settings (firewall, timezone, services, drivers) that `os/*.sh` no longer carry landing in the machines repo, with the packages that only served them leaving `packages/pacman.txt`.
 
-Items that are not tied to a phase (clipboard fixes, overlay lint, startup timing, the ghostty, karabiner, atuin and ripgrep configs) stay in `TASKS.md`.
+Items that are not tied to a phase (clipboard fixes, overlay lint, startup timing, the ghostty, atuin and ripgrep configs) stay in `TASKS.md`.
