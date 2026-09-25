@@ -33,7 +33,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `~/.config/zsh` is a directory link to `config/zsh`, so `ZDOTDIR` finds `.zshrc`, `.p10k.zsh`, `.exports`, `.aliases`, `.functions` and `.bootstrap` there.
 - `config/zsh/.zshrc` creates the state and cache directories, loads Oh My Zsh from `$ZSH`, then sources `config/zsh/.bootstrap`.
 - `config/zsh/.bootstrap` loads base shell files (`.exports`, `.aliases`, `.functions`), then optional overlays from `overlays/os/<id>/` and `overlays/host/<name>/`, then per-tool init (`mise`, `atuin`, `brew`, `cargo`).
-- `~/.config/tmux`, `~/.config/nvim` and `~/.config/zsh` are directory links; `~/.config/git` is a real directory holding file links, so the untracked `local` file (and `host`, reserved for the host overlays) can sit beside them. `config/git/config` ends with `[include] path = ~/.config/git/host` and then `[include] path = ~/.config/git/local` (the per-machine identity, see `config/git/local.example` and `docs/new-mac.md`).
+- `~/.config/tmux`, `~/.config/nvim`, `~/.config/zsh` and `~/.config/git` are directory links. The untracked `config/git/local` and `config/git/host` (reserved for the host overlays) live in the checkout, gitignored, and are what `~/.config/git/local` and `~/.config/git/host` resolve to. `config/git/config` ends with `[include] path = ~/.config/git/host` and then `[include] path = ~/.config/git/local` (the per-machine identity, see `config/git/local.example` and `docs/new-mac.md`).
 - Add or move a link by editing `config/links` and rerunning `scripts/install-dotfiles.sh`. Keep state a tool writes out of the linked directories: point it at `$XDG_DATA_HOME`, `$XDG_STATE_HOME` or `$XDG_CACHE_HOME` in `.zshenv` instead.
 
 **Assumptions**

@@ -153,6 +153,6 @@
 [include]
   path = ~/.config/git/host
 
-# identity for this machine, untracked (see local.example)
+# identity for this machine, untracked and gitignored, in config/git/local (see local.example)
 [include]
   path = ~/.config/git/local

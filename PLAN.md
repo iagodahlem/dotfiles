@@ -19,7 +19,7 @@ Status snapshot updated on 2026-09-25.
 5. Single compose file with multiple services (`devbox`, `devbox-arch`, `devbox-isolated`).
 6. CI runs shellcheck in a dedicated container and smoke tests for both Dockerfiles.
 7. Overlay model replacing extension repositories.
-8. Per-machine git identity override (`~/.config/git/local`) and the new-machine setup doc (`docs/new-mac.md`).
+8. Per-machine git identity override (`config/git/local`) and the new-machine setup doc (`docs/new-mac.md`).
 9. Package layer reset: core Brewfile plus host overlay Brewfiles applied by `brew bundle`, categorized Arch and Debian lists, the Debian install path with its third-party apt repositories, node and pnpm from mise, and the AI CLIs from their own installers.
 10. XDG layout: one `~/.zshenv` that sets the XDG variables and `ZDOTDIR`, directory links into `~/.config` from the table in `config/links`, migration of the old `~` links, oh-my-zsh, Powerlevel10k, the zsh plugins and tpm pinned under the XDG data directory, the tracked LazyVim config with a headless plugin sync, and nvm dropped for mise.
 

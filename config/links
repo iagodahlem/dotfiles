@@ -4,14 +4,12 @@
 # target  path under ~, written with a leading ~/. Missing parent directories are created.
 # os      macos or linux. Leave it out to link on both.
 #
-# Link a directory when the tool owns all of it. Link files into a real directory when untracked files
-# have to sit beside them: ~/.config/git also holds host and local, which stay out of the repo.
+# Link a directory when the tool owns all of it, and a single file when the tool keeps other things in the same directory.
+# Untracked files that have to sit inside a linked directory (git's host and local) live in the checkout under config/ and are gitignored.
 
 zsh/.zshenv            ~/.zshenv
 zsh/                   ~/.config/zsh
 tmux/                  ~/.config/tmux
 nvim/                  ~/.config/nvim
-git/config             ~/.config/git/config
-git/ignore             ~/.config/git/ignore
-git/message            ~/.config/git/message
+git/                   ~/.config/git
 mise/config.toml       ~/.config/mise/config.toml

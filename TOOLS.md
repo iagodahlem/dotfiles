@@ -19,8 +19,8 @@ Use this to compare against your system and spot what's missing.
 | Powerlevel10k and zsh plugins | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh-custom` | `ZSH_CUSTOM` |
 | tmux | `config/tmux/` | `~/.config/tmux` (directory link) | `XDG_CONFIG_HOME` (tmux 3.2 and newer) |
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
-| git | `config/git/{config,ignore,message}` | `~/.config/git/` (real directory, file links) | `XDG_CONFIG_HOME` |
-| git identity and host settings | none, untracked (`local.example` is the template; `host` is reserved for the host overlays) | `~/.config/git/local`, `~/.config/git/host` | none, included by path from `config` |
+| git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
+| git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is reserved for the host overlays) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
 | neovim config | `config/nvim/` | `~/.config/nvim` (directory link) | `XDG_CONFIG_HOME` |
 | neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
 | mise | `config/mise/config.toml` | `~/.config/mise/config.toml` (file link) | `XDG_CONFIG_HOME` |

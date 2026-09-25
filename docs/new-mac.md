@@ -13,11 +13,10 @@ The exact sequence for a fresh Mac, start to working shell in about 10 minutes. 
 ```sh
 git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-mkdir -p ~/.config/git
-cp config/git/local.example ~/.config/git/local
+cp config/git/local.example config/git/local
 ```
 
-Edit `~/.config/git/local` and set `user.email` to the email for this machine. `config/git/config` includes this file last, so it overrides the name, email, and signing key baked into the tracked config. Do this before the installer runs, and definitely before the first commit: with no local file, commits on this machine silently use the default identity from the tracked config.
+Edit `config/git/local` and set `user.email` to the email for this machine. `config/git/config` includes it last (as `~/.config/git/local`, which is the same file once the installer links `~/.config/git` to `config/git`), so it overrides the name, email, and signing key baked into the tracked config. The file is gitignored and lives only in this checkout, so `git clean -x` would remove it. Do this before the installer runs, and definitely before the first commit: with no local file, commits on this machine silently use the default identity from the tracked config.
 
 If this machine signs commits with a different SSH key than the default, uncomment `signingkey` in the file and point it at that key.
 
@@ -29,7 +28,7 @@ DOTFILES_HOST=<name> ./scripts/install.sh
 
 `DOTFILES_HOST` picks the host Brewfile in `overlays/host/<name>/` that goes on top of the core one: `mac` for the personal Mac, `mini` for a work machine. Without it the installer looks for a folder named after `hostname -s`, and a machine with no Brewfile of its own just gets the core.
 
-This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `~/.config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
+This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
 
 Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
 
@@ -60,9 +59,9 @@ mosh --version
 
 ## One machine, one identity
 
-Each machine gets its own `~/.config/git/local` with the email for that machine, its own SSH key, and its own app logins. This file only covers what the dotfiles installer does and doesn't do.
+Each machine gets its own `config/git/local` with the email for that machine, its own SSH key, and its own app logins. This file only covers what the dotfiles installer does and doesn't do.
 
-`DOTFILES_HOST` also selects host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `~/.config/git/local` regardless of hostname.
+`DOTFILES_HOST` also selects host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `config/git/local` regardless of hostname.
 
 ## What the container tests don't cover
 

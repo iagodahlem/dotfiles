@@ -53,10 +53,10 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/zsh` | `config/zsh/` | directory |
 | `~/.config/tmux` | `config/tmux/` | directory |
 | `~/.config/nvim` | `config/nvim/` | directory |
-| `~/.config/git/{config,ignore,message}` | `config/git/{config,ignore,message}` | files |
+| `~/.config/git` | `config/git/` | directory |
 | `~/.config/mise/config.toml` | `config/mise/config.toml` | file |
 
-`~/.config/git` is a real directory with file links, so the untracked `~/.config/git/local` (the identity for this machine, from `config/git/local.example`) sits beside them, and so will `~/.config/git/host`, which the host overlays will write and the config already includes. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
+`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `git clean -x` would remove them. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
 
 To add a link, add a line to `config/links` and rerun `scripts/install-dotfiles.sh`:
 
@@ -69,7 +69,7 @@ source  target  [os]
 - `os` is `macos` or `linux`. Leave it out to link on both.
 - Text after `#` is a comment.
 
-The first run on a machine that used the older layout also clears what it left in `$HOME`: a link into this repo is removed, a real file is backed up, and `~/.gitconfig.override` moves to `~/.config/git/local`. It prints one line per action and does nothing on the next run. It does not move state the tools kept elsewhere: an existing `~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo` and `~/.rustup` stay where they are (delete them, or move the cargo and rustup directories to `~/.local/share/cargo` and `~/.local/share/rustup` to keep their toolchains), and npm settings in `~/.npmrc` go to `~/.config/npm/npmrc`.
+The first run on a machine that used the older layout also clears what it left in `$HOME`: a link into this repo is removed, a real file is backed up, `~/.gitconfig.override` moves to `config/git/local`, and a real `~/.config/git` directory is cleared for the link (an identity file in it moves to `config/git/local` too, and if it holds anything besides our old links it is backed up whole). It prints one line per action and does nothing on the next run. It does not move state the tools kept elsewhere: an existing `~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo` and `~/.rustup` stay where they are (delete them, or move the cargo and rustup directories to `~/.local/share/cargo` and `~/.local/share/rustup` to keep their toolchains), and npm settings in `~/.npmrc` go to `~/.config/npm/npmrc`.
 
 ## Containers
 
@@ -142,7 +142,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── atuin/.atuin
 │   ├── brew/.homebrew
 │   ├── cargo/.cargo
-│   ├── git/                 # config, ignore, message, local.example
+│   ├── git/                 # config, ignore, message, local.example (local and host stay untracked)
 │   ├── links                # link table read by install-dotfiles.sh
 │   ├── mise/                # .mise, config.toml
 │   ├── npm/.npm
