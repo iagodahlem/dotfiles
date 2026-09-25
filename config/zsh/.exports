@@ -13,11 +13,3 @@ PATH=$HOME/.local/bin:$PATH
 PATH=$DOTFILES_BIN:$PATH
 [ -d /snap/bin ] && PATH=$PATH:/snap/bin
 export PATH
-
-if command -v mkcert >/dev/null 2>&1; then
-  _mkcert_ca_root="$(mkcert -CAROOT 2>/dev/null || true)"
-  if [ -n "${_mkcert_ca_root:-}" ] && [ -f "$_mkcert_ca_root/rootCA.pem" ]; then
-    export NODE_EXTRA_CA_CERTS="$_mkcert_ca_root/rootCA.pem"
-  fi
-  unset _mkcert_ca_root
-fi

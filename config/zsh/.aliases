@@ -1,18 +1,6 @@
 # dotfiles
 alias dots="cd $DOTFILES"
 
-# directories
-alias dev="cd $CODE"
-alias desktop="cd $DESKTOP"
-alias downloads="cd $DOWNLOADS"
-
-alias dlist="dirs -v | head -10"
-
-# directories shortcuts
-alias dv="dev"
-alias dt="desktop"
-alias dl="downloads"
-
 # show human friendly numbers and colors
 alias df='df -h'
 alias du='du -h -d 2'
@@ -21,7 +9,14 @@ alias du='du -h -d 2'
 alias rm='nocorrect rm'
 
 # general commands
-alias top="htop"
+alias top="btop"
+
+# bat is installed as batcat on Debian
+if command -v bat >/dev/null 2>&1; then
+  alias cat="bat"
+elif command -v batcat >/dev/null 2>&1; then
+  alias cat="batcat"
+fi
 
 # zsh & oh-my-zsh
 alias reload=". $HOME/.zshrc"
@@ -30,7 +25,3 @@ alias r="reload"
 # docker
 alias dc="docker"
 alias dcc="docker compose"
-
-# bundle
-alias bi="bundle install"
-alias bx="bundle exec"
