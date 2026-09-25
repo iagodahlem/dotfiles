@@ -109,6 +109,61 @@ migrate_git_dir() {
   fi
 }
 
+# Whether every fragment in the old ~/.config/mise/conf.d is a plain file that has no namesake in the checkout's config/mise/conf.d.
+mise_fragments_movable() {
+  local frag
+
+  while IFS= read -r frag; do
+    if [ -L "$frag" ] || [ ! -f "$frag" ] || [ -e "$CONFIG_DIR/mise/conf.d/$(basename "$frag")" ]; then
+      return 1
+    fi
+  done < <(find "$HOME/.config/mise/conf.d" -mindepth 1 -maxdepth 1)
+}
+
+# ~/.config/mise used to be a real directory holding a link to config.toml, plus the conf.d fragment install-mise.sh writes on the Debian
+# family. The fragments move into config/mise/conf.d in the checkout, and the directory is removed when it holds only that, so the
+# directory link can take its place. Anything else in it is left for safe_link, which backs the whole directory up.
+migrate_mise_dir() {
+  local dir="$HOME/.config/mise"
+  local dest="$CONFIG_DIR/mise/conf.d"
+  local entry name frag ours=1
+
+  if [ -L "$dir" ] || [ ! -d "$dir" ]; then
+    return 0
+  fi
+
+  while IFS= read -r entry; do
+    name="$(basename "$entry")"
+    case "$name" in
+      config.toml)
+        if [ -L "$entry" ] && [ "$(readlink "$entry")" = "$CONFIG_DIR/mise/config.toml" ]; then
+          continue
+        fi
+        ;;
+      conf.d)
+        if [ -d "$entry" ] && [ ! -L "$entry" ] && mise_fragments_movable; then
+          continue
+        fi
+        ;;
+    esac
+    ours=0
+  done < <(find "$dir" -mindepth 1 -maxdepth 1)
+
+  if [ "$ours" = 1 ]; then
+    if [ -d "$dir/conf.d" ]; then
+      mkdir -p "$dest"
+      while IFS= read -r frag; do
+        mv "$frag" "$dest/"
+        echo "migrate: moved ~/.config/mise/conf.d/$(basename "$frag") to ${dest/#"$HOME"/\~}/"
+      done < <(find "$dir/conf.d" -mindepth 1 -maxdepth 1)
+      rmdir "$dir/conf.d"
+    fi
+    rm -f "$dir/config.toml"
+    rmdir "$dir"
+    echo "migrate: removed the old ~/.config/mise directory"
+  fi
+}
+
 # One safe_link per non-blank line of config/links, skipping the entries for the other OS.
 apply_links() {
   local host_os="linux"
@@ -155,6 +210,7 @@ apply_links() {
 
 migrate_legacy
 migrate_git_dir
+migrate_mise_dir
 apply_links
 
 if [ ! -e "$GIT_LOCAL" ]; then

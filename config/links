@@ -5,7 +5,7 @@
 # os      macos or linux. Leave it out to link on both.
 #
 # Link a directory when the tool owns all of it, and a single file when the tool keeps other things in the same directory.
-# Untracked files that have to sit inside a linked directory (git's host and local) live in the checkout under config/ and are gitignored.
+# Untracked files that have to sit inside a linked directory (git's host and local, mise's conf.d) live in the checkout under config/ and are gitignored.
 
 zsh/.zshenv            ~/.zshenv
 zsh/                   ~/.config/zsh
@@ -13,4 +13,4 @@ tmux/                  ~/.config/tmux
 nvim/                  ~/.config/nvim
 git/                   ~/.config/git
 ghostty/               ~/.config/ghostty
-mise/config.toml       ~/.config/mise/config.toml
+mise/                  ~/.config/mise

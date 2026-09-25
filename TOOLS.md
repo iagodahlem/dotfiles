@@ -24,7 +24,8 @@ Use this to compare against your system and spot what's missing.
 | ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
 | neovim config | `config/nvim/` | `~/.config/nvim` (directory link) | `XDG_CONFIG_HOME` |
 | neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
-| mise | `config/mise/config.toml` | `~/.config/mise/config.toml` (file link) | `XDG_CONFIG_HOME` |
+| mise | `config/mise/` | `~/.config/mise` (directory link) | `XDG_CONFIG_HOME` |
+| mise Debian fragment | none, untracked and gitignored, written by `scripts/install-mise.sh` on the Debian family | `config/mise/conf.d/` in the checkout, reached as `~/.config/mise/conf.d/` | none, mise loads `conf.d/*.toml` from its config directory |
 | cargo | none | `~/.local/share/cargo` | `CARGO_HOME` |
 | rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
 | npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
@@ -244,7 +245,7 @@ Activated first on shell start. `mise` itself comes from `packages/Brewfile` on 
 | go | 1.23.4 | `config/mise/config.toml` (not installed by the installer) |
 | ruby | 3.1.3 | `config/mise/config.toml` (not installed by the installer) |
 | rust | 1.68.2 | `config/mise/config.toml` (not installed by the installer) |
-| atuin | latest | Debian family only, `~/.config/mise/conf.d/apt-gaps.toml` written by `scripts/install-mise.sh` |
+| atuin | latest | Debian family only, `config/mise/conf.d/apt-gaps.toml` (gitignored, reached as `~/.config/mise/conf.d/apt-gaps.toml`) written by `scripts/install-mise.sh` |
 | github:dalance/procs | latest | Debian family only, same fragment (`procs`) |
 
 ### cargo

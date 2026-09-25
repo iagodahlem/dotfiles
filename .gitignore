@@ -7,3 +7,6 @@ config/zsh/*.zwc
 # ~/.config/git links into this repo, so the machine-local files sit in config/git untracked: the identity, and the host settings the overlays link in
 config/git/local
 config/git/host
+
+# ~/.config/mise links into this repo, so the fragment scripts/install-mise.sh writes on the Debian family lands in config/mise/conf.d untracked
+config/mise/conf.d/

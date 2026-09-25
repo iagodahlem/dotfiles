@@ -2,7 +2,7 @@
 # Sets up mise and the runtimes from config/mise/config.toml.
 # mise itself comes from the package lists on macOS and Arch, and from https://mise.run on the Debian family.
 # There it also installs atuin and procs, which the Debian family has no current package for.
-# Run it after install-dotfiles.sh has linked config/mise/config.toml into ~/.config/mise.
+# Run it after install-dotfiles.sh has linked config/mise as ~/.config/mise.
 # The go, ruby and rust pins in config.toml are left for an explicit `mise install`.
 set -euo pipefail
 
@@ -35,7 +35,8 @@ ensure_mise() {
   curl -fsSL https://mise.run | sh
 }
 
-# a fragment under conf.d instead of `mise use -g`, which would write through the config.toml symlink into the repo
+# a fragment under conf.d instead of `mise use -g`, which would edit the tracked config.toml; through the directory link the fragment
+# lands in config/mise/conf.d, which is gitignored
 write_apt_gaps() {
   mkdir -p "$CONF_D"
   cat > "$CONF_D/apt-gaps.toml" <<'TOML'
