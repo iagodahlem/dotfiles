@@ -1,16 +1,21 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Enable Powerlevel10k instant prompt. Should stay close to the top of .zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+# history and the completion dump live under XDG state and cache (paths set in .zshenv), and zsh does not create the directories
+[[ -d "$XDG_STATE_HOME/zsh" ]] || mkdir -p "$XDG_STATE_HOME/zsh"
+[[ -d "$XDG_CACHE_HOME/zsh" ]] || mkdir -p "$XDG_CACHE_HOME/zsh"
+# some /etc/zshrc files (macOS) assign HISTFILE before this file runs, so set it again
+HISTFILE="$XDG_STATE_HOME/zsh/history"
 
-# zsh configuration
+# zsh configuration (ZSH and ZSH_CUSTOM come from .zshenv)
 ZSH_THEME="powerlevel10k/powerlevel10k"
-ZSH_CUSTOM="$HOME/.custom"
+
+# oh-my-zsh and its plugins are pinned by scripts/install-shell.sh, so oh-my-zsh must not update itself
+zstyle ':omz:update' mode disabled
 
 plugins=(
   docker
@@ -25,14 +30,6 @@ plugins=(
   web-search
 )
 
-# config
-export DOTFILES="$HOME/.dotfiles"
-export DOTFILES_BIN="$DOTFILES/bin"
-export DOTFILES_CONFIG="$DOTFILES/config"
-export DOTFILES_ZSH="$DOTFILES_CONFIG/zsh"
-export DOTFILES_GIT="$DOTFILES_CONFIG/git"
-export DOTFILES_OVERLAYS="$DOTFILES/overlays"
-
 # overlays are loaded from .bootstrap
 
 # oh-my-zsh
@@ -44,13 +41,5 @@ source $DOTFILES_ZSH/.bootstrap
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
-# pnpm
-export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# To customize prompt, run `p10k configure` or edit $ZDOTDIR/.p10k.zsh.
+[[ ! -f "$ZDOTDIR/.p10k.zsh" ]] || source "$ZDOTDIR/.p10k.zsh"

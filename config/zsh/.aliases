@@ -50,7 +50,7 @@ fi
 unset _ls_bin
 
 # zsh & oh-my-zsh
-alias reload=". $HOME/.zshrc"
+alias reload=". $ZDOTDIR/.zshrc"
 alias r="reload"
 
 # docker
