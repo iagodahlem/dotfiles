@@ -301,7 +301,7 @@ Loaded in order: mise, atuin, homebrew, cargo.
 
 ## tmux Plugins (TPM)
 
-`scripts/install-shell.sh` clones tpm, pinned to a commit, into `$TMUX_PLUGIN_MANAGER_PATH/tpm`, and `config/tmux/tmux.conf` runs it from there. Press `prefix + I` inside tmux to install the plugins below.
+`scripts/install-shell.sh` clones tpm into `$TMUX_PLUGIN_MANAGER_PATH/tpm` (default branch, fast-forwarded on each rerun), and `config/tmux/tmux.conf` runs it from there. Press `prefix + I` inside tmux to install the plugins below.
 
 | Plugin | Purpose |
 |---|---|
@@ -496,7 +496,7 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | node, pnpm | npm-based CLIs | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |
-| oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH`, pinned |
-| powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM`, pinned |
+| oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH` |
+| powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM` |
 | tpm | `tmux.conf` | installed by `scripts/install-shell.sh` into `$TMUX_PLUGIN_MANAGER_PATH/tpm` |
 | LazyVim plugins | `config/nvim` | synced by `scripts/install-nvim.sh` when nvim is 0.11.2 or newer |

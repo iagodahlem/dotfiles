@@ -14,7 +14,7 @@ HISTFILE="$XDG_STATE_HOME/zsh/history"
 # zsh configuration (ZSH and ZSH_CUSTOM come from .zshenv)
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# oh-my-zsh and its plugins are pinned by scripts/install-shell.sh, so oh-my-zsh must not update itself
+# scripts/install-shell.sh updates oh-my-zsh and its plugins each time it runs, so oh-my-zsh must not update itself too
 zstyle ':omz:update' mode disabled
 
 plugins=(

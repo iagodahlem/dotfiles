@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Clones oh-my-zsh, Powerlevel10k, the two zsh plugins and tpm (the tmux plugin manager), each pinned to a commit.
+# Clones oh-my-zsh, Powerlevel10k, the two zsh plugins and tpm (the tmux plugin manager), each at the default branch, unpinned.
+# Rerunning this script fast-forwards an existing clone, so it is also the updater (oh-my-zsh's own updater is off in .zshrc).
 # Where they go comes from config/zsh/.zshenv ($ZSH, $ZSH_CUSTOM and $TMUX_PLUGIN_MANAGER_PATH), so nothing here needs an interactive shell.
-# To bump a pin: `git ls-remote <repo url> HEAD`, replace the sha below, rerun this script. An existing clone moves to the new pin.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,35 +14,22 @@ fi
 # shellcheck source=/dev/null
 source "$ROOT_DIR/config/zsh/.zshenv"
 
-# HEAD of each repository on 2026-09-25
-OMZ_REV="74965c96098134b192f00084f966b4b02438a739"
-P10K_REV="d05a1b00f9a61f9578bf9dc19b8451942dde8734"
-SYNTAX_HIGHLIGHTING_REV="0bfcb582e71d3abe604ce67bc0fe5a21f377507e"
-AUTOSUGGESTIONS_REV="85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5"
-TPM_REV="e261deb1b47614eed3400089ce7197dc68acc4eb"
-
-# Puts a shallow checkout of one commit in dest. A no-op when dest is already there, so a rerun after a bump only moves what changed.
-clone_pinned() {
+# An existing clone is fast-forwarded. When that fails (offline, or a clone detached at a commit by an earlier layout) it stays as it is: it still works, just not updated.
+clone_or_pull() {
   local url="$1"
-  local rev="$2"
-  local dest="$3"
+  local dest="$2"
 
-  if [ -d "$dest/.git" ] && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" = "$rev" ]; then
+  if [ -d "$dest/.git" ]; then
+    git -C "$dest" pull -q --ff-only || echo "warning: could not update ${dest#"$HOME"/}, leaving it as it is (delete it and rerun to clone it afresh)" >&2
     return 0
   fi
 
-  echo "Installing ${dest#"$HOME"/} at ${rev:0:9}"
-  mkdir -p "$dest"
-  if [ ! -d "$dest/.git" ]; then
-    git -C "$dest" init -q
-    git -C "$dest" remote add origin "$url"
-  fi
-  git -C "$dest" fetch -q --depth 1 origin "$rev"
-  git -C "$dest" checkout -q --detach FETCH_HEAD
+  echo "Installing ${dest#"$HOME"/}"
+  git clone -q --depth 1 "$url" "$dest"
 }
 
-clone_pinned https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_REV" "$ZSH"
-clone_pinned https://github.com/romkatv/powerlevel10k.git "$P10K_REV" "$ZSH_CUSTOM/themes/powerlevel10k"
-clone_pinned https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_HIGHLIGHTING_REV" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-clone_pinned https://github.com/zsh-users/zsh-autosuggestions.git "$AUTOSUGGESTIONS_REV" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-clone_pinned https://github.com/tmux-plugins/tpm.git "$TPM_REV" "$TMUX_PLUGIN_MANAGER_PATH/tpm"
+clone_or_pull https://github.com/ohmyzsh/ohmyzsh.git "$ZSH"
+clone_or_pull https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+clone_or_pull https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+clone_or_pull https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+clone_or_pull https://github.com/tmux-plugins/tpm.git "$TMUX_PLUGIN_MANAGER_PATH/tpm"
