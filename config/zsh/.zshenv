@@ -11,6 +11,18 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 # zsh reads .zshrc, .p10k.zsh and the rest from here, a directory link to config/zsh
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
+# Homebrew on PATH for the shells that never read .zshrc: ssh runs a command (mosh-server, scp, git over ssh) in a non-interactive shell, which reads only this file
+# and would find nothing brew installed. The full `brew shellenv` (MANPATH, fpath, HOMEBREW_*) stays in config/brew/.homebrew for interactive shells, which dedupes the PATH.
+for brew_bin in /opt/homebrew/bin /home/linuxbrew/.linuxbrew/bin; do
+  if [ -d "$brew_bin" ]; then
+    case ":$PATH:" in
+      *":$brew_bin:"*) ;;
+      *) export PATH="$brew_bin:$PATH" ;;
+    esac
+  fi
+done
+unset brew_bin
+
 # dotfiles
 export DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 export DOTFILES_BIN="$DOTFILES/bin"
