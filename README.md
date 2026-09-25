@@ -54,6 +54,7 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/tmux` | `config/tmux/` | directory |
 | `~/.config/nvim` | `config/nvim/` | directory |
 | `~/.config/git` | `config/git/` | directory |
+| `~/.config/ghostty` | `config/ghostty/` | directory |
 | `~/.config/mise/config.toml` | `config/mise/config.toml` | file |
 
 `~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `git clean -x` would remove them. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
@@ -142,6 +143,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── atuin/.atuin
 │   ├── brew/.homebrew
 │   ├── cargo/.cargo
+│   ├── ghostty/config       # scaffold, every key commented out
 │   ├── git/                 # config, ignore, message, local.example (local and host stay untracked)
 │   ├── links                # link table read by install-dotfiles.sh
 │   ├── mise/                # .mise, config.toml

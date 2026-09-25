@@ -34,7 +34,8 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 ### Editor & Terminal
 
 - [ ] **Clipboard fixes**: tmux `set-clipboard`, `pngpaste` on macOS.
-- [ ] **Bring the ghostty and karabiner configs into `config/`** from the personal Mac, and add them to `config/links`. Link the `~/.config/karabiner` directory, not `karabiner.json`, which Karabiner stops watching when it is a link.
+- [ ] **Tweak the ghostty config** in `config/ghostty/config`: the scaffold is linked with every key commented out, pick the font, theme and padding.
+- [ ] **Bring the karabiner config into `config/`** from the personal Mac, and add it to `config/links`. Link the `~/.config/karabiner` directory, not `karabiner.json`, which Karabiner stops watching when it is a link.
 - [ ] **Track an atuin config** (`~/.config/atuin/config.toml`) in `config/atuin/` and link it.
 - [ ] **Track a ripgrep config** in `config/ripgrep/` and link it, then set `RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config"` in `config/zsh/.zshenv` (ripgrep reads no file without it).
 - [ ] **Commit `config/nvim/lazy-lock.json`** after the first plugin sync on the personal machine, to pin the plugin versions.

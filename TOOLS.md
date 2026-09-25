@@ -21,6 +21,7 @@ Use this to compare against your system and spot what's missing.
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
 | git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is reserved for the host overlays) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
+| ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
 | neovim config | `config/nvim/` | `~/.config/nvim` (directory link) | `XDG_CONFIG_HOME` |
 | neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
 | mise | `config/mise/config.toml` | `~/.config/mise/config.toml` (file link) | `XDG_CONFIG_HOME` |

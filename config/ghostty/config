@@ -1,0 +1,26 @@
+# Ghostty configuration. Nothing is set here yet: Ghostty works with no config,
+# and every line below is an example, commented out, with its default noted.
+#
+# Ghostty reads $XDG_CONFIG_HOME/ghostty/config (~/.config/ghostty/config), and on
+# macOS then ~/Library/Application Support/com.mitchellh.ghostty/config, whose
+# values override this file where both set a key. From 1.2.3 it also reads
+# config.ghostty next to it.
+# https://ghostty.org/docs/config
+#
+# Syntax is "key = value", comments only on their own line, an empty value resets
+# a key to its default. Every key: https://ghostty.org/docs/config/reference
+
+# Default: the embedded JetBrains Mono. "ghostty +list-fonts" lists what is installed.
+# font-family = MesloLGS Nerd Font
+
+# Default: 13 on macOS, 12 elsewhere.
+# font-size = 13
+
+# Default: none, the built-in colors. "ghostty +list-themes" lists the bundled ones.
+# theme = Catppuccin Mocha
+
+# Default: 2 (points, both sides).
+# window-padding-x = 8
+
+# Default: transparent. Other values: native, tabs, hidden.
+# macos-titlebar-style = native

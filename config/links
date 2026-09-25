@@ -12,4 +12,5 @@ zsh/                   ~/.config/zsh
 tmux/                  ~/.config/tmux
 nvim/                  ~/.config/nvim
 git/                   ~/.config/git
+ghostty/               ~/.config/ghostty
 mise/config.toml       ~/.config/mise/config.toml

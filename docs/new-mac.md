@@ -30,6 +30,8 @@ DOTFILES_HOST=<name> ./scripts/install.sh
 
 This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
 
+Ghostty reads `~/.config/ghostty/config`, a directory link to `config/ghostty/`. The tracked file is a scaffold with every key commented out, so Ghostty runs on its defaults until you set some; on macOS a file under `~/Library/Application Support/com.mitchellh.ghostty/` is read after it and wins where both set a key.
+
 Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
 
 ## 3. Restart the shell and verify
