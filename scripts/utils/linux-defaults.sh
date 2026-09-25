@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# The Linux defaults shared by os/arch.sh and os/ubuntu.sh. Source scripts/utils/dry-run.sh first, they go through its run().
+# The Linux defaults shared by os/arch.sh and os/ubuntu.sh. Source scripts/utils/dry-run.sh first, they go through its run(), and scripts/utils/ui.sh for report_warning.
 
 # Switches the login shell to zsh once zsh is installed. A failure is a warning, chsh asks for a password and can be refused.
 use_zsh_login_shell() {
@@ -12,7 +12,7 @@ use_zsh_login_shell() {
   elif [ "$(basename "${SHELL:-}")" = "zsh" ]; then
     echo "login shell: already zsh"
   else
-    run chsh -s "$zsh_path" || echo "warning: could not switch the login shell, run: chsh -s $zsh_path" >&2
+    run chsh -s "$zsh_path" || report_warning "could not switch the login shell, run: chsh -s $zsh_path"
   fi
 }
 
@@ -30,7 +30,7 @@ join_docker_group() {
       echo "docker group: $user is already a member"
       ;;
     *)
-      run sudo usermod -aG docker "$user" || echo "warning: could not add $user to the docker group, run: sudo usermod -aG docker $user" >&2
+      run sudo usermod -aG docker "$user" || report_warning "could not add $user to the docker group, run: sudo usermod -aG docker $user"
       ;;
   esac
 }

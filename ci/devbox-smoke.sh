@@ -23,4 +23,5 @@ docker run --rm "${IMAGE_NAME}" /bin/zsh -lc '\
   test -f "$HOME/.config/git/config" && \
   test "$ZDOTDIR" = "$HOME/.config/zsh" && \
   { [ ! -d "$ZSH" ] || test -z "$(/bin/zsh -ic true 2>&1)"; } && \
+  "$HOME/.dotfiles/scripts/install.sh" --dry-run --yes | grep "^==> summary" >/dev/null && \
   echo "smoke ok"'

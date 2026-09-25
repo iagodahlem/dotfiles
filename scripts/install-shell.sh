@@ -8,6 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MINIMAL="${DOTFILES_CONTAINER_MINIMAL:-0}"
 
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 if [ "$MINIMAL" = "1" ]; then
   echo "DOTFILES_CONTAINER_MINIMAL=1: nothing to clone"
@@ -27,7 +28,7 @@ clone_or_pull() {
       echo "$(display_path "$dest"): already cloned, would run git pull --ff-only"
       return 0
     fi
-    git -C "$dest" pull -q --ff-only || echo "warning: could not update ${dest#"$HOME"/}, leaving it as it is (delete it and rerun to clone it afresh)" >&2
+    git -C "$dest" pull -q --ff-only || report_warning "could not update ${dest#"$HOME"/}, leaving it as it is (delete it and rerun to clone it afresh)"
     return 0
   fi
 

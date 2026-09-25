@@ -15,6 +15,7 @@ INSTALL_TOOLS=" node pnpm bun "
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/paths.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 setup_tool_path
 
@@ -110,4 +111,4 @@ if [ "${#tools[@]}" -gt 0 ]; then
 fi
 
 # corepack shims make pnpm resolve even before mise's own pnpm is on PATH
-run mise exec node@lts -- corepack enable || echo "warning: corepack enable failed, pnpm still comes from mise" >&2
+run mise exec node@lts -- corepack enable || report_warning "corepack enable failed, pnpm still comes from mise"

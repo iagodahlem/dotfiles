@@ -8,6 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/linux-defaults.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 use_zsh_login_shell
 join_docker_group

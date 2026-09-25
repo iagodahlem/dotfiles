@@ -9,20 +9,21 @@ MIN_VERSION=0.11.2
 
 source "$ROOT_DIR/scripts/utils/paths.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 # shellcheck source=/dev/null
 source "$ROOT_DIR/config/zsh/.zshenv"
 
 setup_tool_path
 
 if ! command -v nvim >/dev/null 2>&1; then
-  echo "warning: nvim is not installed, skipping the plugin sync" >&2
+  report_warning "nvim is not installed, skipping the plugin sync"
   exit 0
 fi
 
 # NVIM_LOG_FILE keeps even --version from writing a log file into the state directory, which a dry run must not do
 version="$(NVIM_LOG_FILE=/dev/null nvim --version | sed -n '1s/^NVIM v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1.\2.\3/p')"
 if [ -z "$version" ]; then
-  echo "warning: could not read the nvim version, skipping the plugin sync" >&2
+  report_warning "could not read the nvim version, skipping the plugin sync"
   exit 0
 fi
 
@@ -34,12 +35,12 @@ version_number() {
 }
 
 if [ "$(version_number "$version")" -lt "$(version_number "$MIN_VERSION")" ]; then
-  echo "warning: nvim $version is older than $MIN_VERSION, the minimum LazyVim needs, skipping the plugin sync" >&2
+  report_warning "nvim $version is older than $MIN_VERSION, the minimum LazyVim needs, skipping the plugin sync"
   exit 0
 fi
 
 if [ ! -f "$XDG_CONFIG_HOME/nvim/init.lua" ]; then
-  echo "warning: $XDG_CONFIG_HOME/nvim/init.lua not found, run scripts/install-dotfiles.sh first" >&2
+  report_warning "$XDG_CONFIG_HOME/nvim/init.lua not found, run scripts/install-dotfiles.sh first"
   exit 0
 fi
 

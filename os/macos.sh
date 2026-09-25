@@ -6,6 +6,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 
 # Save to disk, not to iCloud, by default
 run defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
@@ -67,7 +68,7 @@ run defaults write com.apple.finder AppleShowAllFiles -bool true
 run defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
 # Restart automatically if the computer freezes. The one line that needs sudo, so a failure here does not stop the rest
-run sudo systemsetup -setrestartfreeze on || echo "warning: sudo systemsetup -setrestartfreeze on failed, run it by hand" >&2
+run sudo systemsetup -setrestartfreeze on || report_warning "sudo systemsetup -setrestartfreeze on failed, run it by hand"
 
 # Restart what shows the settings above, each on its own so one that is not running does not skip the others
 for app in Finder Dock SystemUIServer; do
