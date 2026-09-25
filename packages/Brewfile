@@ -1,16 +1,59 @@
-atuin
-bat
-btop
-ctop
-git-delta
-duf
-eza
-gemini-cli
-gh
-jq
-mise
-mosh
-ncdu
-neovim
-procs
-tmux
+# Core Homebrew bundle, applied by `brew bundle --file packages/Brewfile`.
+# Extras for one machine live in overlays/host/<name>/Brewfile and are applied on top.
+# An app that already exists outside Homebrew is skipped and the bundle keeps going.
+
+# --- CLI core ---
+brew "bat"            # cat with syntax highlighting
+brew "eza"            # ls replacement
+brew "fd"             # find replacement
+brew "fzf"            # fuzzy finder
+brew "jq"
+brew "less"
+brew "mise"           # runtime version manager (node, pnpm)
+brew "mosh"           # roaming SSH
+brew "neovim"
+brew "ripgrep"        # grep replacement
+brew "rtk"            # compresses noisy command output
+brew "tmux"
+
+# --- git and shell ---
+brew "atuin"          # shell history search and sync
+brew "gh"             # GitHub CLI
+brew "git"
+brew "git-delta"      # diff pager
+brew "zsh"
+
+# --- system tools ---
+brew "btop"           # system monitor
+brew "ctop"           # container metrics
+brew "duf"            # disk usage overview
+brew "fastfetch"      # system info
+brew "mole"           # Mac cleanup and disk analyzer
+brew "ncdu"           # disk usage browser
+brew "procs"          # ps replacement
+brew "speedtest-cli"  # internet speed test
+
+# --- apps ---
+cask "1password"
+cask "1password-cli"
+cask "codexbar"       # menu bar usage monitor
+cask "ghostty"        # terminal
+cask "google-chrome"
+cask "karabiner-elements"  # keyboard customizer
+cask "keepingyouawake"     # keeps the Mac from sleeping
+cask "obsidian"
+cask "orbstack"       # container runtime and Linux VMs
+cask "raycast"        # launcher
+cask "rectangle"      # window management
+cask "slack"
+cask "stats"          # menu bar system monitor
+cask "tailscale-app"  # mesh VPN
+cask "telegram"
+cask "the-unarchiver"
+cask "thebrowsercompany-dia"  # browser
+cask "transmission"   # BitTorrent client
+cask "visual-studio-code"
+
+# --- fonts ---
+cask "font-fira-code-nerd-font"
+cask "font-meslo-lg-nerd-font"  # Powerlevel10k and tmux powerline glyphs
