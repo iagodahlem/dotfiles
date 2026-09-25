@@ -1,0 +1,17 @@
+# Link table read by scripts/install-dotfiles.sh, one entry per line: source  target  [os]
+#
+# source  path under config/. A trailing / links the whole directory, without it only that file.
+# target  path under ~, written with a leading ~/. Missing parent directories are created.
+# os      macos or linux. Leave it out to link on both.
+#
+# Link a directory when the tool owns all of it. Link files into a real directory when untracked files
+# have to sit beside them: ~/.config/git also holds host and local, which stay out of the repo.
+
+zsh/.zshenv            ~/.zshenv
+zsh/                   ~/.config/zsh
+tmux/                  ~/.config/tmux
+nvim/                  ~/.config/nvim
+git/config             ~/.config/git/config
+git/ignore             ~/.config/git/ignore
+git/message            ~/.config/git/message
+mise/config.toml       ~/.config/mise/config.toml
