@@ -44,7 +44,7 @@ Options:
   -h, --help     print this help
 
 mise, ai-clis and nvim fetch from the network, so a failure in one of them warns and the run carries on.
-DOTFILES_HOST picks the host Brewfile in overlays/host/<name>/ on macOS, hostname -s by default.
+DOTFILES_HOST names this machine, the short hostname by default. Its overlay is <DOTFILES_PRIVATE>/<name>/dotfiles/ when that exists, else overlays/host/<name>/, and its Brewfile is applied on macOS.
 A dry run reports the machine as it is now: a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.
 EOF
 }

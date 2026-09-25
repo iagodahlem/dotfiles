@@ -1,6 +1,6 @@
 # Read by every zsh, interactive or not, so it only sets environment: no output, nothing that can fail.
 # The one dotfile that stays in $HOME (scripts/install-dotfiles.sh links it): zsh reads ZDOTDIR only after /etc/zshenv, so the file that sets it cannot move.
-# Plain POSIX assignments only, because scripts/install-shell.sh sources this file from bash to resolve the same paths.
+# Plain POSIX only, because scripts/install-shell.sh sources this file from bash to resolve the same paths.
 
 # XDG base directories, keeping any value already exported
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -18,6 +18,21 @@ export DOTFILES_CONFIG="$DOTFILES/config"
 export DOTFILES_ZSH="$DOTFILES_CONFIG/zsh"
 export DOTFILES_GIT="$DOTFILES_CONFIG/git"
 export DOTFILES_OVERLAYS="$DOTFILES/overlays"
+
+# a checkout of the private repo that holds the per-machine overlays, <name>/dotfiles/ in it being the overlay of one machine (overlays/README.md)
+# scripts/install-private.sh clones it when DOTFILES_PRIVATE_REPO is set
+export DOTFILES_PRIVATE="${DOTFILES_PRIVATE:-$HOME/.machines}"
+
+# the machine this runs on, which picks its host overlay: the short hostname in lower case, unless DOTFILES_HOST is already set
+# zsh has $HOST and bash $HOSTNAME, so the usual case forks nothing; uname -n covers a shell with neither (hostname is not installed everywhere)
+if [ -z "${DOTFILES_HOST:-}" ]; then
+  DOTFILES_HOST="${HOST:-${HOSTNAME:-$(uname -n 2>/dev/null)}}"
+  DOTFILES_HOST="${DOTFILES_HOST%%.*}"
+  case "$DOTFILES_HOST" in
+    *[[:upper:]]*) DOTFILES_HOST="$(printf '%s' "$DOTFILES_HOST" | tr '[:upper:]' '[:lower:]')" ;;
+  esac
+fi
+export DOTFILES_HOST
 
 # oh-my-zsh, cloned by scripts/install-shell.sh
 export ZSH="$XDG_DATA_HOME/oh-my-zsh"

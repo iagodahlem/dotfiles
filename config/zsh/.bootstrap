@@ -4,13 +4,14 @@ done
 unset FILE
 
 source "$DOTFILES/scripts/utils/os.sh"
+source "$DOTFILES/scripts/utils/host.sh"
 OS_ID="$(os_id)"
 
 load_overlay() {
   local overlay_root="$1"
   local zsh_dir="$overlay_root/zsh"
-  [ -d "$zsh_dir" ] || return 0
-  for FILE in "$zsh_dir"/.{exports,aliases,functions,bootstrap}; do
+  [ -n "$overlay_root" ] && [ -d "$zsh_dir" ] || return 0
+  for FILE in "$zsh_dir"/.{exports,aliases,functions,zshrc.local,bootstrap}; do
     [ -r "$FILE" ] && source "$FILE"
   done
 }
@@ -18,10 +19,9 @@ load_overlay() {
 # OS overlay
 load_overlay "$DOTFILES/overlays/os/$OS_ID"
 
-# Host overlay (optional)
-if [ -n "${DOTFILES_HOST:-}" ]; then
-  load_overlay "$DOTFILES/overlays/host/$DOTFILES_HOST"
-fi
+# Host overlay (optional): the private overlays repo's <host>/dotfiles/, else overlays/host/<host>/, see host_overlay_dir
+# DOTFILES_HOST comes from .zshenv, the short hostname unless it is already set
+load_overlay "$(host_overlay_dir "$DOTFILES")"
 
 unset OS_ID
 
