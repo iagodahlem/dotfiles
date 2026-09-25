@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Clones oh-my-zsh, Powerlevel10k and the two zsh plugins, each pinned to a commit.
-# Where they go comes from config/zsh/.zshenv ($ZSH and $ZSH_CUSTOM), so nothing here needs an interactive shell.
+# Clones oh-my-zsh, Powerlevel10k, the two zsh plugins and tpm (the tmux plugin manager), each pinned to a commit.
+# Where they go comes from config/zsh/.zshenv ($ZSH, $ZSH_CUSTOM and $TMUX_PLUGIN_MANAGER_PATH), so nothing here needs an interactive shell.
 # To bump a pin: `git ls-remote <repo url> HEAD`, replace the sha below, rerun this script. An existing clone moves to the new pin.
 set -euo pipefail
 
@@ -19,6 +19,7 @@ OMZ_REV="74965c96098134b192f00084f966b4b02438a739"
 P10K_REV="d05a1b00f9a61f9578bf9dc19b8451942dde8734"
 SYNTAX_HIGHLIGHTING_REV="0bfcb582e71d3abe604ce67bc0fe5a21f377507e"
 AUTOSUGGESTIONS_REV="85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5"
+TPM_REV="e261deb1b47614eed3400089ce7197dc68acc4eb"
 
 # Puts a shallow checkout of one commit in dest. A no-op when dest is already there, so a rerun after a bump only moves what changed.
 clone_pinned() {
@@ -44,3 +45,4 @@ clone_pinned https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_REV" "$ZSH"
 clone_pinned https://github.com/romkatv/powerlevel10k.git "$P10K_REV" "$ZSH_CUSTOM/themes/powerlevel10k"
 clone_pinned https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_HIGHLIGHTING_REV" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 clone_pinned https://github.com/zsh-users/zsh-autosuggestions.git "$AUTOSUGGESTIONS_REV" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+clone_pinned https://github.com/tmux-plugins/tpm.git "$TPM_REV" "$TMUX_PLUGIN_MANAGER_PATH/tpm"
