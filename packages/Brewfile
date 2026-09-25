@@ -12,6 +12,7 @@ brew "less"
 brew "mise"           # runtime version manager (node, pnpm)
 brew "mosh"           # roaming SSH
 brew "neovim"
+brew "nmap"           # port scanner
 brew "ripgrep"        # grep replacement
 brew "rtk"            # compresses noisy command output
 brew "tmux"
@@ -36,11 +37,17 @@ brew "speedtest-cli"  # internet speed test
 # --- apps ---
 cask "1password"
 cask "1password-cli"
+cask "bartender"      # menu bar icon organiser
+cask "bettertouchtool"  # trackpad, mouse and keyboard gestures
+cask "cleanshot"      # screenshots and screen recordings
 cask "codexbar"       # menu bar usage monitor
 cask "ghostty"        # terminal
 cask "google-chrome"
+cask "granola"        # meeting notes
 cask "karabiner-elements"  # keyboard customizer
 cask "keepingyouawake"     # keeps the Mac from sleeping
+cask "logi-options+"  # Logitech mouse and keyboard settings
+cask "notion-calendar"  # calendar
 cask "obsidian"
 cask "orbstack"       # container runtime and Linux VMs
 cask "raycast"        # launcher
