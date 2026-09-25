@@ -13,7 +13,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (`source  target  [os]`, paths relative to `config/` and `~`, a trailing `/` on the source for a directory link). `~/.zshenv` is the only link left in `$HOME`.
 - `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory, each pinned to a commit (bump a pin by replacing the sha in the script).
 - `scripts/install-mise.sh` installs mise where no package list does (Debian family, `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), atuin and procs on the Debian family, and runs `corepack enable`.
-- `scripts/install-nvim.sh` syncs the LazyVim plugins headless once `~/.config/nvim` is linked, and skips with a warning when nvim is older than 0.9.
+- `scripts/install-nvim.sh` syncs the LazyVim plugins headless once `~/.config/nvim` is linked, and skips with a warning when nvim is older than 0.11.2, the minimum LazyVim needs.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers (`--update` refreshes installed ones).
 - `scripts/devbox-smoke.sh` builds and validates container images.
 - `scripts/lint-shell.sh` runs shellcheck over shell scripts.

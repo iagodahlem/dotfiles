@@ -497,4 +497,4 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH`, pinned |
 | powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM`, pinned |
 | tpm | `tmux.conf` | installed by `scripts/install-shell.sh` into `$TMUX_PLUGIN_MANAGER_PATH/tpm` |
-| LazyVim plugins | `config/nvim` | synced by `scripts/install-nvim.sh` when nvim is 0.9 or newer |
+| LazyVim plugins | `config/nvim` | synced by `scripts/install-nvim.sh` when nvim is 0.11.2 or newer |
