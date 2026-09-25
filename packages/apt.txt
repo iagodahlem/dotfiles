@@ -2,7 +2,7 @@
 # scripts/install-apt-repos.sh adds the third-party sources first (docker, tailscale, eza, docker-ctop).
 # A package with no candidate on the running release is skipped with a warning.
 # Not listed here: mise (mise.run installer) and atuin and procs (installed through mise),
-# all three handled by scripts/install-mise.sh, and powerlevel10k, which Debian and Ubuntu do not package (scripts/install-shell.sh clones it).
+# all three handled by scripts/install-mise.sh.
 # Trailing comments are stripped by read_list_items in scripts/install-packages.sh.
 
 # --- base ---
@@ -29,8 +29,6 @@ gh              # GitHub CLI
 git
 git-delta       # diff pager
 zsh
-zsh-autosuggestions      # fish-like inline suggestions
-zsh-syntax-highlighting  # command syntax coloring
 
 # --- system tools ---
 bind9-dnsutils  # dig and nslookup (dnsutils is a virtual name for it on Debian 13)

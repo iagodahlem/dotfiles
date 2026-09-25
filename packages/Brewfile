@@ -21,10 +21,7 @@ brew "atuin"          # shell history search and sync
 brew "gh"             # GitHub CLI
 brew "git"
 brew "git-delta"      # diff pager
-brew "powerlevel10k"  # zsh prompt theme
 brew "zsh"
-brew "zsh-autosuggestions"      # fish-like inline suggestions
-brew "zsh-syntax-highlighting"  # command syntax coloring
 
 # --- system tools ---
 brew "btop"           # system monitor

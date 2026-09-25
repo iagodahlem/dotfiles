@@ -29,7 +29,7 @@ Optional installer flags:
 
 - `DOTFILES_SKIP_PACKAGES=1` skip package installation.
 - `DOTFILES_SKIP_DOTFILES=1` skip symlink creation.
-- `DOTFILES_SKIP_SHELL=1` skip the Oh My Zsh and tpm clones, and the Powerlevel10k and zsh plugin clones where the OS has no package for them.
+- `DOTFILES_SKIP_SHELL=1` skip Oh My Zsh, its plugins and tpm.
 - `DOTFILES_SKIP_MISE=1` skip mise, node and pnpm.
 - `DOTFILES_SKIP_AI_CLIS=1` skip the AI CLI installs (claude, codex, gemini).
 - `DOTFILES_SKIP_NVIM=1` skip the LazyVim plugin sync.
@@ -57,9 +57,7 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/ghostty` | `config/ghostty/` | directory |
 | `~/.config/mise` | `config/mise/` | directory |
 
-`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The clones made by `scripts/install-shell.sh` (oh-my-zsh, tpm, and Powerlevel10k and the two zsh plugins where the OS has no package for them) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
-
-Powerlevel10k, zsh-autosuggestions and zsh-syntax-highlighting come from the package manager where one packages them: the `powerlevel10k`, `zsh-autosuggestions` and `zsh-syntax-highlighting` formulae on macOS, `zsh-autosuggestions` and `zsh-syntax-highlighting` on Arch and on the Debian family. Powerlevel10k has no Debian, Ubuntu or Arch repository package (the AUR has one), so `scripts/install-shell.sh` clones it there, and it clones an add-on into `$ZSH_CUSTOM` only when no package path exists. `.zshrc` loads no oh-my-zsh theme or plugin for them: after `oh-my-zsh.sh` it sources whichever file `find_zsh_addon` in `.bootstrap` finds first (the Homebrew path, then the Arch, then the Debian one, then the clone), zsh-syntax-highlighting last, and the shell starts without an add-on that is neither packaged nor cloned, with no error. `TOOLS.md` lists the paths.
+`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (which the host overlays will link in), sit in `config/git/` in the checkout and are gitignored. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
 
 To add a link, add a line to `config/links` and rerun `scripts/install-dotfiles.sh`:
 
@@ -130,7 +128,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install-packages.sh
 │   ├── install-apt-repos.sh # Docker, Tailscale, eza and Azlux apt sources
 │   ├── install-dotfiles.sh # reads config/links
-│   ├── install-shell.sh     # oh-my-zsh, tpm, and p10k and the zsh plugins where unpackaged
+│   ├── install-shell.sh     # oh-my-zsh, Powerlevel10k, zsh plugins, tpm (cloned, pulled on rerun)
 │   ├── install-mise.sh      # mise, node, pnpm
 │   ├── install-ai-clis.sh   # claude, codex, gemini
 │   ├── install-nvim.sh      # LazyVim plugin sync
@@ -183,7 +181,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 - `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch.
 - `scripts/install-apt-repos.sh` adds the third-party apt sources `install_apt` needs before `apt-get update`, and skips any that is already configured.
 - `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (see [Layout](#layout)). A real file or directory in the way is backed up as `*.bak.<timestamp>`.
-- `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh and tpm into the XDG data directory at their default branches, unpinned, and Powerlevel10k and the two zsh plugins only where the OS has no package for them (`brew`, `pacman` or `apt` installs them where it has, see [Layout](#layout)). Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater, and it warns and leaves a clone alone when the pull fails (offline, or a clone left at a commit by an earlier revision of the installer: delete it and rerun). Oh My Zsh's own updater stays off in `.zshrc`, so there is one updater.
+- `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory at their default branches, unpinned. Rerunning it fast-forwards each clone (`git pull --ff-only`), so it is also the updater, and it warns and leaves a clone alone when the pull fails (offline, or a clone left at a commit by an earlier revision of the installer: delete it and rerun). Oh My Zsh's own updater stays off in `.zshrc`, so there is one updater.
 - `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
 - `scripts/install-nvim.sh` runs `nvim --headless "+Lazy! sync" +qa` once `~/.config/nvim` is linked, and skips with a warning when nvim is missing or older than 0.11.2, the minimum LazyVim needs. The sync writes `config/nvim/lazy-lock.json`, so commit it to pin the plugin versions.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed.
@@ -209,7 +207,7 @@ overlays/host/work-laptop/zsh/.exports
 ## CI and Smoke
 
 - `scripts/lint-shell.sh` runs shellcheck on installer/container shell scripts.
-- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, that `ZDOTDIR` is `~/.config/zsh`, that an interactive zsh starts without printing anything, that Powerlevel10k and the two plugins resolve, and that the plugins came from the package manager (no clone in `$ZSH_CUSTOM`).
+- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
 - CI runs shellcheck in a dedicated container image and smoke tests for Ubuntu + Arch Dockerfiles.
 
 ## Notes

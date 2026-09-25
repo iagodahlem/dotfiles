@@ -16,7 +16,7 @@ Use this to compare against your system and spot what's missing.
 | zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
 | zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |
 | oh-my-zsh | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh` | `ZSH` |
-| Powerlevel10k and zsh plugins | none, from the package manager, or cloned by `scripts/install-shell.sh` where the OS has no package | the package path (see [Shell](#shell-zsh--oh-my-zsh)), else `~/.local/share/oh-my-zsh-custom` | `ZSH_CUSTOM` (the clone fallback) |
+| Powerlevel10k and zsh plugins | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh-custom` | `ZSH_CUSTOM` |
 | tmux | `config/tmux/` | `~/.config/tmux` (directory link) | `XDG_CONFIG_HOME` (tmux 3.2 and newer) |
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
@@ -36,9 +36,9 @@ Use this to compare against your system and spot what's missing.
 
 ### macOS (Homebrew)
 
-`packages/Brewfile` (49 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The Brewfile of the host named by `DOTFILES_HOST` (default `hostname -s`) in `overlays/host/<name>/` is applied on top of it.
+`packages/Brewfile` (46 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The Brewfile of the host named by `DOTFILES_HOST` (default `hostname -s`) in `overlays/host/<name>/` is applied on top of it.
 
-**Formulae** (28):
+**Formulae** (25):
 
 | Package | Description |
 |---|---|
@@ -61,15 +61,12 @@ Use this to compare against your system and spot what's missing.
 | mosh | mobile shell (SSH replacement) |
 | ncdu | disk usage analyzer |
 | neovim | text editor |
-| powerlevel10k | zsh prompt theme |
 | procs | modern ps replacement |
 | ripgrep | grep replacement |
 | rtk | compresses noisy command output |
 | speedtest-cli | internet speed test |
 | tmux | terminal multiplexer |
 | zsh | Z shell |
-| zsh-autosuggestions | fish-like inline suggestions |
-| zsh-syntax-highlighting | command syntax coloring |
 
 **Casks** (19):
 
@@ -133,7 +130,7 @@ Use this to compare against your system and spot what's missing.
 
 ### Debian / Raspberry Pi OS / Ubuntu (apt)
 
-`packages/apt.txt` (35) is installed in one `apt-get install --no-install-recommends` after `scripts/install-apt-repos.sh` adds the third-party sources below. A package with no candidate on the running release is skipped with a warning (`fastfetch` needs Debian 13 or newer, for instance).
+`packages/apt.txt` (33) is installed in one `apt-get install --no-install-recommends` after `scripts/install-apt-repos.sh` adds the third-party sources below. A package with no candidate on the running release is skipped with a warning (`fastfetch` needs Debian 13 or newer, for instance).
 
 | Package | Description |
 |---|---|
@@ -170,10 +167,8 @@ Use this to compare against your system and spot what's missing.
 | tzdata | timezone data |
 | xclip | X11 clipboard tool (tmux copy-pipe) |
 | zsh | Z shell |
-| zsh-autosuggestions | fish-like inline suggestions |
-| zsh-syntax-highlighting | command syntax coloring |
 
-`mise` comes from its installer and `atuin` and `procs` through mise, see [Version Managers & Runtimes](#version-managers--runtimes). Debian and Ubuntu have no `powerlevel10k` package, so `scripts/install-shell.sh` clones it.
+`mise` comes from its installer and `atuin` and `procs` through mise, see [Version Managers & Runtimes](#version-managers--runtimes).
 
 **Third-party apt repositories** (added by `scripts/install-apt-repos.sh`, each skipped when its sources file already exists):
 
@@ -186,7 +181,7 @@ Use this to compare against your system and spot what's missing.
 
 ### Arch Linux (pacman)
 
-`packages/pacman.txt` (40) is installed in one `pacman -Syu --needed` transaction.
+`packages/pacman.txt` (38) is installed in one `pacman -Syu --needed` transaction.
 
 | Package | Description |
 |---|---|
@@ -228,10 +223,6 @@ Use this to compare against your system and spot what's missing.
 | ufw | uncomplicated firewall |
 | unzip | archive extractor |
 | zsh | Z shell |
-| zsh-autosuggestions | fish-like inline suggestions |
-| zsh-syntax-highlighting | command syntax coloring |
-
-Powerlevel10k is not in the Arch repositories (the AUR has `zsh-theme-powerlevel10k`, a source build), so `scripts/install-shell.sh` clones it. Once that AUR package is installed the shell picks it up and the clone is skipped.
 
 **AUR** (`packages/aur.txt`, 1), installed through yay when `AUR_USER` is set; yay bootstraps itself in `install_aur`:
 
@@ -283,7 +274,7 @@ Installed by `scripts/install-ai-clis.sh` on every OS from the vendors' own inst
 
 ### Oh My Zsh plugins
 
-Loaded by oh-my-zsh from the `plugins=(...)` array in `.zshrc`:
+Loaded in `.zshrc`:
 
 | Plugin | Purpose |
 |---|---|
@@ -294,19 +285,13 @@ Loaded by oh-my-zsh from the `plugins=(...)` array in `.zshrc`:
 | npm | npm completions |
 | tmux | tmux helpers |
 | z | frecency-based directory jumping |
+| zsh-autosuggestions | fish-like inline suggestions |
+| zsh-syntax-highlighting | command syntax coloring |
 | web-search | `google <query>` from terminal |
 
-### Theme and zsh add-ons
+### Theme
 
-Powerlevel10k, zsh-autosuggestions and zsh-syntax-highlighting are not oh-my-zsh plugins here. `.zshrc` sources them after `oh-my-zsh.sh` (oh-my-zsh loads no theme, `ZSH_THEME=""`), from the file `find_zsh_addon` in `.bootstrap` finds first, in this order. Powerlevel10k keeps its instant prompt block at the top of `.zshrc` and its custom `.p10k.zsh`, sourced after the theme; zsh-syntax-highlighting is sourced last, after everything that binds widgets.
-
-| Add-on | Homebrew (`$HOMEBREW_PREFIX/share/...`) | Arch | Debian, Ubuntu | Clone fallback (`$ZSH_CUSTOM/...`) |
-|---|---|---|---|---|
-| powerlevel10k | `powerlevel10k/powerlevel10k.zsh-theme` | `/usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme` (AUR only) | no package | `themes/powerlevel10k/powerlevel10k.zsh-theme` |
-| zsh-autosuggestions | `zsh-autosuggestions/zsh-autosuggestions.zsh` | `/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh` | `/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh` | `plugins/zsh-autosuggestions/zsh-autosuggestions.zsh` |
-| zsh-syntax-highlighting | `zsh-syntax-highlighting/zsh-syntax-highlighting.zsh` | `/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh` | `/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh` | `plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh` |
-
-`scripts/install-shell.sh` checks the same package paths and clones an add-on into `$ZSH_CUSTOM` only when none exists. With neither a package nor a clone the shell starts without it, no error.
+Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p10k.zsh`.
 
 ### Tool initialization (via `.bootstrap`)
 
@@ -512,6 +497,6 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | node, pnpm | npm-based CLIs | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |
 | oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH` |
-| powerlevel10k | `.zshrc` theme | in `Brewfile` only; Debian, Ubuntu and the Arch repositories have no package, so `scripts/install-shell.sh` clones it into `$ZSH_CUSTOM` there |
+| powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM` |
 | tpm | `tmux.conf` | installed by `scripts/install-shell.sh` into `$TMUX_PLUGIN_MANAGER_PATH/tpm` |
 | LazyVim plugins | `config/nvim` | synced by `scripts/install-nvim.sh` when nvim is 0.11.2 or newer |

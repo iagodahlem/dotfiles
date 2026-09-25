@@ -12,10 +12,9 @@ fi
 HISTFILE="$XDG_STATE_HOME/zsh/history"
 
 # zsh configuration (ZSH and ZSH_CUSTOM come from .zshenv)
-# Powerlevel10k is sourced further down, from wherever find_zsh_addon (.bootstrap) finds it, so oh-my-zsh loads no theme
-ZSH_THEME=""
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# scripts/install-shell.sh updates oh-my-zsh each time it runs, so oh-my-zsh must not update itself too
+# scripts/install-shell.sh updates oh-my-zsh and its plugins each time it runs, so oh-my-zsh must not update itself too
 zstyle ':omz:update' mode disabled
 
 plugins=(
@@ -26,6 +25,8 @@ plugins=(
   npm
   tmux
   z
+  zsh-autosuggestions
+  zsh-syntax-highlighting
   web-search
 )
 
@@ -37,15 +38,8 @@ source $ZSH/oh-my-zsh.sh
 # bootstrap
 source $DOTFILES_ZSH/.bootstrap
 
-# Powerlevel10k and zsh-autosuggestions come from the package manager where the OS has them, from the clones in $ZSH_CUSTOM where it has not
-find_zsh_addon powerlevel10k && source "$REPLY"
-find_zsh_addon zsh-autosuggestions && source "$REPLY"
-
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
 # To customize prompt, run `p10k configure` or edit $ZDOTDIR/.p10k.zsh.
 [[ ! -f "$ZDOTDIR/.p10k.zsh" ]] || source "$ZDOTDIR/.p10k.zsh"
-
-# zsh-syntax-highlighting has to be last: it wraps the widgets that everything above has bound
-find_zsh_addon zsh-syntax-highlighting && source "$REPLY"
