@@ -10,6 +10,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/paths.sh"
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
 
 setup_tool_path
 
@@ -32,7 +33,11 @@ needed() {
 
 install_claude() {
   if needed claude; then
-    curl -fsSL https://claude.ai/install.sh | bash
+    if is_dry_run; then
+      echo "claude: would run: curl -fsSL https://claude.ai/install.sh | bash"
+    else
+      curl -fsSL https://claude.ai/install.sh | bash
+    fi
   else
     echo "claude: already installed"
   fi
@@ -40,13 +45,30 @@ install_claude() {
 
 install_codex() {
   if needed codex; then
-    curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    if is_dry_run; then
+      echo "codex: would run: curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+    else
+      curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    fi
   else
     echo "codex: already installed"
   fi
 }
 
 install_gemini() {
+  if is_dry_run; then
+    # mise exec installs a node that is missing on the spot, so a dry run only looks at PATH
+    if needed gemini; then
+      echo "gemini: would run: mise exec node@lts -- npm install -g @google/gemini-cli"
+      if ! command -v mise >/dev/null 2>&1; then
+        echo "gemini: mise is not installed yet, the mise step comes first"
+      fi
+    else
+      echo "gemini: already installed"
+    fi
+    return 0
+  fi
+
   if ! command -v mise >/dev/null 2>&1; then
     echo "gemini: needs node from mise, run scripts/install-mise.sh first" >&2
     return 1

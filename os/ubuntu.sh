@@ -1,31 +1,13 @@
 #!/usr/bin/env bash
+# Defaults for the Debian family (Debian, Raspberry Pi OS, Ubuntu): the login shell and the docker group.
+# Locale, timezone, services, the firewall and drivers are host-level settings and live in the machines repo, not here.
+# Run by scripts/install.sh, or on its own. With DOTFILES_DRY_RUN=1 it prints what it would do.
 set -euo pipefail
 
-echo "Configuring Ubuntu defaults..."
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Locale
-sudo locale-gen en_US.UTF-8
-sudo update-locale LANG=en_US.UTF-8
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/linux-defaults.sh"
 
-# Timezone
-sudo timedatectl set-timezone America/Sao_Paulo 2>/dev/null || \
-  sudo ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
-
-# Set zsh as default shell
-if [ "$(basename "$SHELL")" != "zsh" ] && command -v zsh >/dev/null 2>&1; then
-  chsh -s "$(which zsh)" || true
-fi
-
-# Docker group
-if getent group docker >/dev/null 2>&1; then
-  sudo usermod -aG docker "$USER"
-fi
-
-# Enable systemd services (idempotent)
-for svc in docker tailscaled; do
-  if systemctl list-unit-files "$svc.service" >/dev/null 2>&1; then
-    sudo systemctl enable --now "$svc.service" 2>/dev/null || true
-  fi
-done
-
-echo "Ubuntu defaults configured."
+use_zsh_login_shell
+join_docker_group

@@ -22,17 +22,25 @@ If this machine signs commits with a different SSH key than the default, uncomme
 
 ## 2. Run the installer
 
+Read what it would do first. A dry run prints every step and changes nothing:
+
+```sh
+DOTFILES_HOST=<name> ./scripts/install.sh --dry-run
+```
+
+Then run it:
+
 ```sh
 DOTFILES_HOST=<name> ./scripts/install.sh
 ```
 
 `DOTFILES_HOST` picks the host Brewfile in `overlays/host/<name>/` that goes on top of the core one: `mac` for the personal Mac, `mini` for a work machine. Without it the installer looks for a folder named after `hostname -s`, and a machine with no Brewfile of its own just gets the core.
 
-This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
+This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults (`TOOLS.md` lists them; key repeat applies after the next login). It prints a reminder at the end if `config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
 
 Ghostty reads `~/.config/ghostty/config`, a directory link to `config/ghostty/`. The tracked file is a scaffold with every key commented out, so Ghostty runs on its defaults until you set some; on macOS a file under `~/Library/Application Support/com.mitchellh.ghostty/` is read after it and wins where both set a key.
 
-Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
+To rerun part of it, name the steps with `--only` (`./scripts/install.sh --only dotfiles --only shell`), or skip some with the variables `DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM` and `DOTFILES_SKIP_OS_DEFAULTS`. `./scripts/install.sh --help` lists the steps. See the README.
 
 ## 3. Restart the shell and verify
 
@@ -67,12 +75,11 @@ Each machine gets its own `config/git/local` with the email for that machine, it
 
 ## What the container tests don't cover
 
-The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
+The install flow is exercised end to end in the Ubuntu and Arch containers (`ci/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
 
 - Homebrew's own bootstrap install, and `brew bundle` actually installing every formula, cask, and font on real macOS (the container tests only exercise apt and pacman).
 - The mise, AI CLI and nvim installs: the container builds skip all three, so `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` and `scripts/install-nvim.sh` are not exercised there.
-- `os/macos.sh` (the `defaults write`, `nvram`, and `pmset` system tweaks).
-- The real Powerlevel10k prompt rendering and Nerd Font glyphs.
+- `os/macos.sh` (the `defaults write` settings and the one `sudo systemsetup` line).- The real Powerlevel10k prompt rendering and Nerd Font glyphs.
 - `gh`, `mosh`, and `mise` working end to end on macOS (their Homebrew formulae install cleanly in principle, but that is not verified in CI).
 
 Expect the first run on a real Mac to be the first test of those items.

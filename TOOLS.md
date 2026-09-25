@@ -209,7 +209,7 @@ Use this to compare against your system and spot what's missing.
 | mosh | mobile shell (SSH replacement) |
 | ncdu | disk usage analyzer |
 | neovim | text editor |
-| pacman-contrib | pacman cache tools; paccache.timer auto-trims the cache weekly (enabled by os/arch.sh) |
+| pacman-contrib | pacman cache tools (`paccache`); the weekly timer is host-level and lives in the machines repo |
 | procs | modern ps replacement |
 | python-pip | Python package manager |
 | ripgrep | grep replacement |
@@ -229,6 +229,48 @@ Use this to compare against your system and spot what's missing.
 | Package | Description |
 |---|---|
 | google-cloud-cli | gcloud CLI |
+
+---
+
+## OS defaults
+
+`scripts/install.sh` runs the OS defaults script as its last step (`--only os-defaults` runs just that, `--dry-run` prints the commands).
+
+### macOS (`os/macos.sh`)
+
+Written with `defaults write`, one line each, with a comment in the script. Key repeat applies after the next login.
+
+| Domain | Key | Value | Effect |
+|---|---|---|---|
+| `NSGlobalDomain` | `NSDocumentSaveNewDocumentsToCloud` | `false` | save to disk, not to iCloud, by default |
+| `NSGlobalDomain` | `AppleKeyboardUIMode` | `3` | full keyboard access, Tab reaches every control in dialogs |
+| `NSGlobalDomain` | `KeyRepeat` | `2` | fast key repeat |
+| `NSGlobalDomain` | `InitialKeyRepeat` | `15` | short wait before key repeat starts |
+| `NSGlobalDomain` | `NSAutomaticQuoteSubstitutionEnabled` | `false` | no smart quotes |
+| `NSGlobalDomain` | `NSAutomaticDashSubstitutionEnabled` | `false` | no smart dashes |
+| `NSGlobalDomain` | `NSAutomaticSpellingCorrectionEnabled` | `false` | no autocorrect |
+| `NSGlobalDomain` | `AppleShowAllExtensions` | `true` | show all filename extensions |
+| `com.google.Chrome` | `AppleEnableSwipeNavigateWithScrolls` | `false` | no back and forward navigation on a horizontal scroll |
+| `com.apple.screencapture` | `location` | `~/Documents/Screenshots` | screenshots go there (the script creates the folder) |
+| `com.apple.screencapture` | `type` | `png` | screenshots as PNG |
+| `com.apple.dock` | `orientation` | `right` | Dock on the right |
+| `com.apple.dock` | `minimize-to-application` | `true` | windows minimize into their application's icon |
+| `com.apple.finder` | `QuitMenuItem` | `true` | Cmd+Q quits Finder |
+| `com.apple.finder` | `ShowExternalHardDrivesOnDesktop`, `ShowHardDrivesOnDesktop`, `ShowMountedServersOnDesktop`, `ShowRemovableMediaOnDesktop` | `false` | no drive, server or removable media icons on the desktop |
+| `com.apple.finder` | `AppleShowAllFiles` | `true` | show hidden files |
+
+Two more lines are not `defaults write`: `sudo systemsetup -setrestartfreeze on` restarts the Mac automatically if it freezes, and is the only line that needs sudo (a failure there only warns); `killall Finder`, `Dock` and `SystemUIServer` at the end make the settings above show up now.
+
+### Linux (`os/arch.sh`, `os/ubuntu.sh`)
+
+Both do the same two things, each guarded so a failure only warns, and `os/ubuntu.sh` also serves Debian and Raspberry Pi OS.
+
+| Action | Condition |
+|---|---|
+| `chsh -s $(command -v zsh)` | zsh is installed and is not the login shell already |
+| `sudo usermod -aG docker $USER` | the `docker` group exists and the user is not in it |
+
+Locale, timezone, service enables, the firewall and drivers are host-level settings and live in the machines repo, not in the dotfiles.
 
 ---
 
