@@ -23,12 +23,14 @@ If this machine signs commits with a different SSH key than the default, uncomme
 ## 2. Run the installer
 
 ```sh
-./scripts/install.sh
+DOTFILES_HOST=<name> ./scripts/install.sh
 ```
 
-This installs packages (Homebrew formulae, casks, and fonts), symlinks config into `$HOME`, sets up Oh My Zsh and plugins, installs global Node packages, and applies macOS defaults. It prints a reminder at the end if `~/.gitconfig.override` is still missing.
+`DOTFILES_HOST` picks the host Brewfile in `overlays/host/<name>/` that goes on top of the core one: `mac` for the personal Mac, `mini` for a work machine. Without it the installer looks for a folder named after `hostname -s`, and a machine with no Brewfile of its own just gets the core.
 
-Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_NODE_GLOBALS`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
+This installs packages (`brew bundle` on the core Brewfile, then on the host one), symlinks config into `$HOME`, sets up Oh My Zsh and plugins, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), and applies macOS defaults. It prints a reminder at the end if `~/.gitconfig.override` is still missing. If the mise or AI CLI step fails, the installer warns and carries on; rerun `scripts/install-mise.sh` or `scripts/install-ai-clis.sh` on their own once the cause is fixed.
+
+Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
 
 ## 3. Restart the shell and verify
 
@@ -38,32 +40,35 @@ Open a new terminal tab (or `exec zsh`) and check:
 git config user.email      # the email for this machine
 gh --version
 mise --version
+node --version
+pnpm --version
 mosh --version
 ```
 
 ## Machine profile
 
-**Installed by the shared package lists** (the same on every machine, nothing machine-specific removed): terminal (Ghostty), shell (zsh, Oh My Zsh, Powerlevel10k), editor (VS Code, neovim), git tooling (git-delta, gh), runtime manager (mise), mosh, and the rest of `packages/Brewfile`, `Caskfile`, and `Fontfile`.
+**Installed by the shared package lists** (the same on every machine, nothing machine-specific removed): terminal (Ghostty), shell (zsh, Oh My Zsh, Powerlevel10k), editor (VS Code, neovim), git tooling (git-delta, gh), runtime manager (mise), mosh, and the rest of `packages/Brewfile`.
 
 **Deliberately not part of the install:**
 
 - No secrets. Nothing in this repo reaches a password manager or any credential store. `packages/` and `config/` are static, non-secret config only.
-- No account data. 1Password, Chrome, Slack, and Workflowy get installed as apps, but nothing signs them in or restores a profile. Log into each one manually with the accounts that belong on this machine.
+- No account data. 1Password, Chrome, and Slack get installed as apps, but nothing signs them in or restores a profile. Log into each one manually with the accounts that belong on this machine.
 - No git identity by default. Step 1 above is what keeps commits on this machine on the right email.
 
-**Your call, not automated:** whether an app in the shared Caskfile belongs on a given machine at all. The installer puts every app there; leaving one signed out costs nothing, and removing it afterwards is fine. A per-host package split is planned (see `PLAN.md`).
+**Your call, not automated:** whether an app in the core Brewfile belongs on a given machine at all. The installer puts every app there; leaving one signed out costs nothing, and removing it afterwards is fine. Apps that only some machines need live in the host Brewfile (`overlays/host/<name>/Brewfile`) instead.
 
 ## One machine, one identity
 
 Each machine gets its own `~/.gitconfig.override` with the email for that machine, its own SSH key, and its own app logins. This file only covers what the dotfiles installer does and doesn't do.
 
-`DOTFILES_HOST` is available if you want host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `~/.gitconfig.override` regardless of hostname.
+`DOTFILES_HOST` also selects host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `~/.gitconfig.override` regardless of hostname.
 
 ## What the container tests don't cover
 
 The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, symlinking, the Oh My Zsh and plugin install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
 
-- Homebrew's own bootstrap install, and every formula, cask, and font actually installing on real macOS (the container tests only exercise apt and pacman).
+- Homebrew's own bootstrap install, and `brew bundle` actually installing every formula, cask, and font on real macOS (the container tests only exercise apt and pacman).
+- The mise and AI CLI installs: the container builds skip both, so `scripts/install-mise.sh` and `scripts/install-ai-clis.sh` are not exercised there.
 - `os/macos.sh` (the `defaults write`, `nvram`, and `pmset` system tweaks).
 - The real Powerlevel10k prompt rendering and Nerd Font glyphs.
 - `gh`, `mosh`, and `mise` working end to end on macOS (their Homebrew formulae install cleanly in principle, but that is not verified in CI).
