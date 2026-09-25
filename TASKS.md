@@ -26,8 +26,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Overlays
 
-- [ ] **Host overlays for each machine**, selected by `DOTFILES_HOST` from `hostname -s`. The host Brewfiles (`mac`, `mini`) already fall back to `hostname -s`; the shell overlay loader in `.bootstrap` still only reads `DOTFILES_HOST`.
-- [ ] **Add overlay lint coverage**: extend `ci/lint-shell.sh` to also check `overlays/` shell files.
+- [ ] **Check the zsh overlay files**: the install hooks kept under `overlays/host/` are under shellcheck, but the zsh files under `overlays/` and `config/zsh/` get no check. Add `zsh -n` over them to `ci/lint-shell.sh` and the CI job.
 
 ### Editor & Terminal
 
@@ -56,7 +55,8 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 - [x] **XDG layout**: `~/.zshenv` sets the XDG variables and `ZDOTDIR`, directory links into `~/.config` from the table in `config/links`, migration of the old `~` links, and the shell plugins and tpm cloned under the XDG data directory.
 - [x] **mise everywhere**: node and pnpm install from `config/mise` on every machine, the go, ruby and rust pins moved into `config/mise/config.toml`, and nvm is gone from the shell.
 - [x] **Tracked LazyVim config** in `config/nvim/`, with a headless plugin sync in `scripts/install-nvim.sh`.
-- [x] **Brewfile core plus host overlays**: `packages/Brewfile` plus `overlays/host/<name>/Brewfile`, applied by `brew bundle`.
+- [x] **Host overlays for each machine**: `DOTFILES_HOST` is detected from the short hostname, and the overlay of the machine is found by one helper (`host_overlay_dir`): the private overlays repo checked out at `~/.machines`, else `overlays/host/`. The shell loader, a `git/config` linked into `~/.config/git/host`, the host Brewfile and an `install.sh` hook that runs as the installer's `host` step all read it, and a `private` step clones the repo when `DOTFILES_PRIVATE_REPO` is set. The real overlays are in the private repo, and `overlays/host/example/` shows the shape.
+- [x] **Brewfile core plus host overlays**: `packages/Brewfile` plus the `Brewfile` of the host overlay, applied by `brew bundle`.
 - [x] **Categorized package lists**: comments per entry in every list, and a Debian path (Raspberry Pi OS) with `install-apt-repos.sh` for the third-party sources.
 - [x] **`install-ai-clis.sh`**: claude, codex and gemini install from their own installers instead of the package lists.
 - [x] **Fonts in the Brewfile**: `font-meslo-lg-nerd-font` and `font-fira-code-nerd-font` are casks in `packages/Brewfile`.

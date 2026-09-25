@@ -19,7 +19,7 @@ jobs:
             -v "$PWD:/work" \
             -w /work \
             koalaman/shellcheck-alpine:stable \
-            sh -c 'shellcheck scripts/*.sh scripts/utils/*.sh ci/*.sh os/*.sh containers/entrypoint.sh'
+            sh -c 'shellcheck scripts/*.sh scripts/utils/*.sh ci/*.sh os/*.sh containers/entrypoint.sh overlays/host/*/install.sh'
 
   dry-run:
     runs-on: ubuntu-latest

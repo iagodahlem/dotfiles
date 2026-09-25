@@ -7,10 +7,12 @@ DOTS="${DOTS:-$HOME/.dotfiles}"
 CONFIG_DIR="${DOTFILES_CONFIG_DIR:-$DOTS/config}"
 LINKS_FILE="$CONFIG_DIR/links"
 GIT_LOCAL="$CONFIG_DIR/git/local"
+GIT_HOST="$CONFIG_DIR/git/host"
 
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/host.sh"
 
 # Dry run only: how many migration actions it has reported, so it can say when there are none, and the directories those actions would
 # remove (one per line), so that the link report after them sees the directory gone instead of in the way.
@@ -319,6 +321,42 @@ apply_links() {
   done < <(read_list_items "$LINKS_FILE")
 }
 
+# config/git/host is the first include in config/git/config: a link to the git/config of this host's overlay when it has one, gitignored like
+# config/git/local. The overlay is the one host_overlay_dir finds, in the private overlays repo or in overlays/host/. A link left by another host,
+# or by an overlay that has lost its git/config since, is removed. A real file, or a link that does not point at an overlay's git/config, was
+# put there by hand and stays.
+# A dry run reports what would change and touches nothing, see scripts/utils/dry-run.sh.
+link_git_host() {
+  local overlay src=""
+
+  overlay="$(host_overlay_dir "$ROOT_DIR")"
+  if [ -n "$overlay" ]; then
+    src="$overlay/git/config"
+  fi
+
+  if [ -f "$src" ]; then
+    if [ -L "$GIT_HOST" ] && [ "$(readlink "$GIT_HOST")" = "$src" ]; then
+      return 0
+    fi
+    # safe_link reports the link itself in a dry run
+    safe_link "$src" "$GIT_HOST"
+    if ! is_dry_run; then
+      echo "host: linked config/git/host to $(display_path "$src")"
+    fi
+  elif [ -L "$GIT_HOST" ]; then
+    case "$(readlink "$GIT_HOST")" in
+      */overlays/host/*/git/config | "$(private_dir)"/*/dotfiles/git/config)
+        if is_dry_run; then
+          echo "host: would remove the stale $(display_path "$GIT_HOST"), the overlay of $(host_id) has no git/config"
+          return 0
+        fi
+        rm -f "$GIT_HOST"
+        echo "host: removed the stale config/git/host, the overlay of $(host_id) has no git/config"
+        ;;
+    esac
+  fi
+}
+
 migrate_legacy
 migrate_git_dir
 migrate_mise_dir
@@ -326,6 +364,7 @@ if is_dry_run && [ "$MIGRATIONS" -eq 0 ]; then
   echo "migrate: nothing from the older layout to clear"
 fi
 apply_links
+link_git_host
 
 if [ ! -e "$GIT_LOCAL" ]; then
   echo "No config/git/local found: commits on this machine use the default identity from config/git/config."

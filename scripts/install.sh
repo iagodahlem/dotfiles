@@ -5,11 +5,13 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/os.sh"
+source "$ROOT_DIR/scripts/utils/host.sh"
 OS_ID="$(os_id)"
 
 # One row per step, in run order: the name, the variable that skips it, its script and what it does.
-# A script of "-" is the OS defaults script for this OS, see os_defaults_script.
+# A script of "-" is the OS defaults script for this OS, see os_defaults_script, and "@host" is the install.sh of this machine's host overlay, see host_script.
 STEPS='
+private      DOTFILES_SKIP_PRIVATE      scripts/install-private.sh   the private overlays repo: cloned to DOTFILES_PRIVATE when DOTFILES_PRIVATE_REPO is set, pulled when already there
 packages     DOTFILES_SKIP_PACKAGES     scripts/install-packages.sh  packages from packages/ (brew bundle, apt, pacman)
 dotfiles     DOTFILES_SKIP_DOTFILES     scripts/install-dotfiles.sh  link config/ into place from config/links, after clearing the older layout
 shell        DOTFILES_SKIP_SHELL        scripts/install-shell.sh     Oh My Zsh, Powerlevel10k, the zsh plugins and tpm
@@ -17,10 +19,11 @@ mise         DOTFILES_SKIP_MISE         scripts/install-mise.sh      mise, node 
 ai-clis      DOTFILES_SKIP_AI_CLIS      scripts/install-ai-clis.sh   claude, codex and gemini
 nvim         DOTFILES_SKIP_NVIM         scripts/install-nvim.sh      the LazyVim plugin sync
 os-defaults  DOTFILES_SKIP_OS_DEFAULTS  -                            the OS defaults (settings on macOS, login shell and docker group on Linux)
+host         DOTFILES_SKIP_HOST         @host                        what this machine needs beyond the shared steps, the install.sh of its host overlay when there is one
 '
 
-# mise, the AI CLIs and the nvim plugins come from remote sources: a failure warns and the rest of the install carries on
-OPTIONAL_STEPS=" mise ai-clis nvim "
+# the private overlays repo, mise, the AI CLIs, the nvim plugins and the host hook come from remote sources: a failure warns and the rest of the install carries on
+OPTIONAL_STEPS=" private mise ai-clis nvim host "
 
 usage() {
   local name var desc
@@ -43,8 +46,10 @@ Options:
   --dry-run      print what each step would do and change nothing (DOTFILES_DRY_RUN=1 does the same)
   -h, --help     print this help
 
-mise, ai-clis and nvim fetch from the network, so a failure in one of them warns and the run carries on.
-DOTFILES_HOST picks the host Brewfile in overlays/host/<name>/ on macOS, hostname -s by default.
+private, mise, ai-clis, nvim and host fetch from the network, so a failure in one of them warns and the run carries on.
+private runs first, so the overlay of this machine is there for the steps after it. It clones DOTFILES_PRIVATE_REPO (ssh form) to DOTFILES_PRIVATE, ~/.machines by default, and does nothing while that is unset.
+DOTFILES_HOST names this machine, the short hostname by default. Its overlay is <DOTFILES_PRIVATE>/<name>/dotfiles/ when that exists, else overlays/host/<name>/:
+its Brewfile on macOS, its git config, and its install.sh for the host step.
 A dry run reports the machine as it is now: a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.
 EOF
 }
@@ -66,6 +71,16 @@ os_defaults_script() {
     ubuntu | debian | raspbian) echo os/ubuntu.sh ;;
     arch) echo os/arch.sh ;;
   esac
+}
+
+# The install.sh in this machine's host overlay, or nothing when it has none: see host_overlay_dir for where the overlay is looked for.
+host_script() {
+  local dir
+  dir="$(host_overlay_dir "$ROOT_DIR")"
+
+  if [ -n "$dir" ] && [ -f "$dir/install.sh" ]; then
+    echo "$dir/install.sh"
+  fi
 }
 
 DRY_RUN="${DOTFILES_DRY_RUN:-0}"
@@ -138,14 +153,26 @@ while read -r -u 3 name var script _; do
       echo "no defaults for $OS_ID"
       continue
     fi
+  elif [ "$script" = "@host" ]; then
+    script="$(host_script)"
+    if [ -z "$script" ]; then
+      echo "no install.sh in the host overlay of $(host_id)"
+      continue
+    fi
+    echo "running ${script#"$ROOT_DIR"/}"
   fi
+
+  case "$script" in
+    /*) script_path="$script" ;;
+    *) script_path="$ROOT_DIR/$script" ;;
+  esac
 
   case "$OPTIONAL_STEPS" in
     *" $name "*)
-      "$ROOT_DIR/$script" || echo "warning: $script failed, rerun it on its own once the cause is fixed" >&2
+      "$script_path" || echo "warning: ${script#"$ROOT_DIR"/} failed, rerun it on its own once the cause is fixed" >&2
       ;;
     *)
-      "$ROOT_DIR/$script"
+      "$script_path"
       ;;
   esac
 done 3<<<"$STEPS"

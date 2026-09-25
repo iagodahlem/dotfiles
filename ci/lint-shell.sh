@@ -6,4 +6,5 @@ shellcheck \
   scripts/utils/*.sh \
   ci/*.sh \
   os/*.sh \
-  containers/entrypoint.sh
+  containers/entrypoint.sh \
+  overlays/host/*/install.sh

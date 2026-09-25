@@ -7,6 +7,7 @@ PACKAGES_DIR="$ROOT_DIR/packages"
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/host.sh"
 
 is_root() {
   [ "${EUID:-$(id -u)}" -eq 0 ]
@@ -114,9 +115,14 @@ install_aur() {
 
 install_brew() {
   local brewfile="$PACKAGES_DIR/Brewfile"
-  local host="${DOTFILES_HOST:-$(hostname -s)}"
-  local host_brewfile="$ROOT_DIR/overlays/host/$host/Brewfile"
+  local host
+  local overlay
+  local host_brewfile
   local failed=0
+
+  host="$(host_id)"
+  overlay="$(host_overlay_dir "$ROOT_DIR")"
+  host_brewfile="${overlay:+$overlay/Brewfile}"
 
   [ -f "$brewfile" ] || { echo "Missing $brewfile" >&2; exit 1; }
 
@@ -145,7 +151,7 @@ install_brew() {
   run brew bundle --file "$brewfile" || failed=1
 
   if [ ! -f "$host_brewfile" ]; then
-    echo "No host Brewfile for '$host' (set DOTFILES_HOST to pick one from overlays/host/)."
+    echo "No host Brewfile for '$host' (overlays/README.md says where a host's overlay is looked for)."
   elif [ -z "$(read_list_items "$host_brewfile")" ]; then
     echo "Host Brewfile for '$host' has no entries."
   else
