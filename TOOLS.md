@@ -23,7 +23,8 @@ Use this to compare against your system and spot what's missing.
 | tmux | `config/tmux/` | `~/.config/tmux` (directory link) | `XDG_CONFIG_HOME` (tmux 3.2 and newer) |
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
-| git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is reserved for the host overlays) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
+| git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is a link to the `git/config` of the host overlay, made by `scripts/install-dotfiles.sh`) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
+| private overlays | none, a checkout of a private repo, cloned by `scripts/install-private.sh` | `~/.machines`, with the overlay of each machine in `<name>/dotfiles/` | `DOTFILES_PRIVATE` |
 | ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
 | karabiner-elements | `config/karabiner/` | `~/.config/karabiner` (directory link, macOS only) | none, `~/.config` is where it looks by default |
 | karabiner backups | none, untracked and gitignored, written by Karabiner-Elements | `config/karabiner/automatic_backups/` in the checkout, reached as `~/.config/karabiner/automatic_backups/` | none |
@@ -45,7 +46,7 @@ Use this to compare against your system and spot what's missing.
 
 ### macOS (Homebrew)
 
-`packages/Brewfile` (46 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The Brewfile of the host named by `DOTFILES_HOST` (default `hostname -s`) in `overlays/host/<name>/` is applied on top of it.
+`packages/Brewfile` (46 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The `Brewfile` in the host overlay of this machine, when it has one (see Host overlay below), is applied on top of it.
 
 **Formulae** (25):
 
@@ -108,34 +109,7 @@ Use this to compare against your system and spot what's missing.
 | font-fira-code-nerd-font | Fira Code Nerd Font |
 | font-meslo-lg-nerd-font | Meslo Nerd Font for Powerlevel10k and tmux powerline glyphs |
 
-**Host overlays** (`overlays/host/<name>/Brewfile`):
-
-`mac`, the personal Mac (20 entries, everything on top of the core):
-
-| Entry | Kind | Description |
-|---|---|---|
-| cmatrix | formula | matrix rain screensaver |
-| nmap | formula | network scanner |
-| putty | formula | SSH and serial client |
-| backdrop | cask | wallpapers |
-| blender | cask | 3D suite |
-| google-drive | cask | cloud storage |
-| granola | cask | meeting notes |
-| jettison | cask | ejects external drives on sleep |
-| notion | cask | notes and docs |
-| notion-calendar | cask | calendar |
-| qmk-toolbox | cask | keyboard firmware flasher |
-| spotify | cask | music |
-| steam | cask | games |
-| workflowy | cask | outliner / note-taking |
-| bartender | cask | menu bar organizer, installed outside Homebrew today |
-| bettertouchtool | cask | input customizer, installed outside Homebrew today |
-| cleanshot | cask | screenshots and screen recording, installed outside Homebrew today |
-| logi-options+ | cask | Logitech mouse and keyboard settings, installed outside Homebrew today |
-| readdle-spark | cask | mail client, installed outside Homebrew today |
-| whatsapp | cask | messaging, installed outside Homebrew today |
-
-`mini`, a work machine (0 entries): empty on purpose, the core Brewfile is all it gets.
+**Host overlay Brewfile**: the overlay of a machine may hold a `Brewfile` of its own, applied after the core one. Those overlays are private, so what they add is not listed here; `overlays/host/example/Brewfile` is the shape.
 
 ### Debian / Raspberry Pi OS / Ubuntu (apt)
 
@@ -243,7 +217,7 @@ Use this to compare against your system and spot what's missing.
 
 ## OS defaults
 
-`scripts/install.sh` runs the OS defaults script as its last step (`--only os-defaults` runs just that, `--dry-run` prints the commands).
+`scripts/install.sh` runs the OS defaults script as its `os-defaults` step (`--only os-defaults` runs just that, `--dry-run` prints the commands).
 
 ### macOS (`os/macos.sh`)
 
@@ -280,6 +254,31 @@ Both do the same two things, each guarded so a failure only warns, and `os/ubunt
 | `sudo usermod -aG docker $USER` | the `docker` group exists and the user is not in it |
 
 Locale, timezone, service enables, the firewall and drivers are host-level settings and live in the machines repo, not in the dotfiles.
+
+---
+
+## Host overlay
+
+The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and the host step all go through it. It takes the first directory that exists:
+
+1. `$DOTFILES_PRIVATE/<name>/dotfiles/`: the private overlays repo, checked out at `~/.machines`, which the `private` step clones from `DOTFILES_PRIVATE_REPO` (ssh form, never written in this repo) and pulls on later runs.
+2. `overlays/host/<name>/`: an overlay kept in this repo.
+
+The real overlays are private, so nothing here says what a machine carries. `overlays/host/example/` has one file of each kind and `overlays/README.md` lists what reads each of them:
+
+| File in the overlay | What it does |
+|---|---|
+| `zsh/.exports`, `.aliases`, `.functions`, `.zshrc.local`, `.bootstrap` | sourced by `config/zsh/.bootstrap` after the OS overlay, in that order |
+| `git/config` | linked as `config/git/host`, which git includes before `config/git/local` |
+| `Brewfile` | applied by `brew bundle` on macOS, after `packages/Brewfile`; skipped while it has no entries |
+| `install.sh` | run by the `host` step, the last one, with `DOTFILES_DRY_RUN=1` on a dry run; a failure only warns |
+
+| Variable | Purpose |
+|---|---|
+| `DOTFILES_HOST` | the name of this machine, the short hostname in lower case unless already set |
+| `DOTFILES_PRIVATE` | where the private overlays repo is checked out, `~/.machines` unless already set |
+| `DOTFILES_PRIVATE_REPO` | the private overlays repo to clone, in the ssh form; empty means private overlays are off |
+| `DOTFILES_SKIP_PRIVATE`, `DOTFILES_SKIP_HOST` | skip the `private` step, or the host hook |
 
 ---
 
@@ -518,6 +517,8 @@ From `config/zsh/.zshenv`, read by every zsh:
 | `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME` | `~/.config`, `~/.local/share`, `~/.local/state`, `~/.cache`; a value already exported wins |
 | `ZDOTDIR` | `$XDG_CONFIG_HOME/zsh` |
 | `DOTFILES` | `~/.dotfiles` unless already exported; `DOTFILES_BIN`, `DOTFILES_CONFIG`, `DOTFILES_ZSH`, `DOTFILES_GIT` and `DOTFILES_OVERLAYS` hang off it |
+| `DOTFILES_HOST` | the short hostname in lower case unless already exported, the name of the host overlay (see Host overlay) |
+| `DOTFILES_PRIVATE` | `~/.machines` unless already exported, the checkout of the private overlays repo |
 | `ZSH`, `ZSH_CUSTOM` | `$XDG_DATA_HOME/oh-my-zsh`, `$XDG_DATA_HOME/oh-my-zsh-custom` |
 | `CARGO_HOME`, `RUSTUP_HOME` | `$XDG_DATA_HOME/cargo`, `$XDG_DATA_HOME/rustup` |
 | `NPM_CONFIG_USERCONFIG`, `NPM_CONFIG_CACHE` | `$XDG_CONFIG_HOME/npm/npmrc`, `$XDG_CACHE_HOME/npm` |
