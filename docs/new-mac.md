@@ -13,12 +13,13 @@ The exact sequence for a fresh Mac, start to working shell in about 10 minutes. 
 ```sh
 git clone git@github.com:iagodahlem/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-cp config/git/.gitconfig.override.example ~/.gitconfig.override
+mkdir -p ~/.config/git
+cp config/git/local.example ~/.config/git/local
 ```
 
-Edit `~/.gitconfig.override` and set `user.email` to the email for this machine. `config/git/.gitconfig` includes this file last, so it overrides the name, email, and signing key baked into the tracked config. Do this before the installer runs, and definitely before the first commit: with no override file, commits on this machine silently use the default identity from the tracked config.
+Edit `~/.config/git/local` and set `user.email` to the email for this machine. `config/git/config` includes this file last, so it overrides the name, email, and signing key baked into the tracked config. Do this before the installer runs, and definitely before the first commit: with no local file, commits on this machine silently use the default identity from the tracked config.
 
-If this machine signs commits with a different SSH key than the default, uncomment `signingkey` in the override and point it at that key.
+If this machine signs commits with a different SSH key than the default, uncomment `signingkey` in the file and point it at that key.
 
 ## 2. Run the installer
 
@@ -28,9 +29,9 @@ DOTFILES_HOST=<name> ./scripts/install.sh
 
 `DOTFILES_HOST` picks the host Brewfile in `overlays/host/<name>/` that goes on top of the core one: `mac` for the personal Mac, `mini` for a work machine. Without it the installer looks for a folder named after `hostname -s`, and a machine with no Brewfile of its own just gets the core.
 
-This installs packages (`brew bundle` on the core Brewfile, then on the host one), symlinks config into `$HOME`, sets up Oh My Zsh and plugins, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), and applies macOS defaults. It prints a reminder at the end if `~/.gitconfig.override` is still missing. If the mise or AI CLI step fails, the installer warns and carries on; rerun `scripts/install-mise.sh` or `scripts/install-ai-clis.sh` on their own once the cause is fixed.
+This installs packages (`brew bundle` on the core Brewfile, then on the host one), links config into `~/.config` (plus `~/.zshenv`, the one file that stays in `$HOME`, see the README), sets up Oh My Zsh, its plugins and tpm, installs node and pnpm through mise, installs the AI CLIs (claude, codex, gemini), syncs the LazyVim plugins, and applies macOS defaults. It prints a reminder at the end if `~/.config/git/local` is still missing. If the mise, AI CLI or nvim step fails, the installer warns and carries on; rerun `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` or `scripts/install-nvim.sh` on their own once the cause is fixed.
 
-Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
+Skip flags exist if you need to rerun part of it (`DOTFILES_SKIP_PACKAGES`, `DOTFILES_SKIP_DOTFILES`, `DOTFILES_SKIP_SHELL`, `DOTFILES_SKIP_MISE`, `DOTFILES_SKIP_AI_CLIS`, `DOTFILES_SKIP_NVIM`, `DOTFILES_SKIP_OS_DEFAULTS`). See the README.
 
 ## 3. Restart the shell and verify
 
@@ -59,16 +60,16 @@ mosh --version
 
 ## One machine, one identity
 
-Each machine gets its own `~/.gitconfig.override` with the email for that machine, its own SSH key, and its own app logins. This file only covers what the dotfiles installer does and doesn't do.
+Each machine gets its own `~/.config/git/local` with the email for that machine, its own SSH key, and its own app logins. This file only covers what the dotfiles installer does and doesn't do.
 
-`DOTFILES_HOST` also selects host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `~/.gitconfig.override` regardless of hostname.
+`DOTFILES_HOST` also selects host-specific shell tweaks (`overlays/host/<name>/`, see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `~/.config/git/local` regardless of hostname.
 
 ## What the container tests don't cover
 
-The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, symlinking, the Oh My Zsh and plugin install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
+The install flow is exercised end to end in the Ubuntu and Arch containers (`scripts/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
 
 - Homebrew's own bootstrap install, and `brew bundle` actually installing every formula, cask, and font on real macOS (the container tests only exercise apt and pacman).
-- The mise and AI CLI installs: the container builds skip both, so `scripts/install-mise.sh` and `scripts/install-ai-clis.sh` are not exercised there.
+- The mise, AI CLI and nvim installs: the container builds skip all three, so `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` and `scripts/install-nvim.sh` are not exercised there.
 - `os/macos.sh` (the `defaults write`, `nvram`, and `pmset` system tweaks).
 - The real Powerlevel10k prompt rendering and Nerd Font glyphs.
 - `gh`, `mosh`, and `mise` working end to end on macOS (their Homebrew formulae install cleanly in principle, but that is not verified in CI).

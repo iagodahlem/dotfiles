@@ -5,6 +5,31 @@ Use this to compare against your system and spot what's missing.
 
 ---
 
+## Where things live
+
+`~/.zshenv` is the only dotfile in `$HOME`. It sets the XDG variables and the redirects below, and zsh then reads the rest from `ZDOTDIR`. The tracked files are linked in by the table in `config/links`, see the README. A row with no tracked source is state the tool writes, kept out of the repo on purpose.
+
+| Tool | Tracked source | Live path | XDG variable |
+|---|---|---|---|
+| zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
+| zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
+| zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
+| zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |
+| oh-my-zsh | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh` | `ZSH` |
+| Powerlevel10k and zsh plugins | none, cloned by `scripts/install-shell.sh` | `~/.local/share/oh-my-zsh-custom` | `ZSH_CUSTOM` |
+| tmux | `config/tmux/` | `~/.config/tmux` (directory link) | `XDG_CONFIG_HOME` (tmux 3.2 and newer) |
+| tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
+| git | `config/git/{config,ignore,message}` | `~/.config/git/` (real directory, file links) | `XDG_CONFIG_HOME` |
+| git identity and host settings | none, untracked (`local.example` is the template; `host` is reserved for the host overlays) | `~/.config/git/local`, `~/.config/git/host` | none, included by path from `config` |
+| neovim config | `config/nvim/` | `~/.config/nvim` (directory link) | `XDG_CONFIG_HOME` |
+| neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
+| mise | `config/mise/config.toml` | `~/.config/mise/config.toml` (file link) | `XDG_CONFIG_HOME` |
+| cargo | none | `~/.local/share/cargo` | `CARGO_HOME` |
+| rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
+| npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
+
+---
+
 ## Packages by OS
 
 ### macOS (Homebrew)
@@ -215,19 +240,15 @@ Activated first on shell start. `mise` itself comes from `packages/Brewfile` on 
 |---|---|---|
 | node | lts | `config/mise/config.toml` |
 | pnpm | latest | `config/mise/config.toml` |
-| golang | 1.23.4 | `config/mise/.tool-versions` (not installed by the installer) |
-| ruby | 3.1.3 | `config/mise/.tool-versions` (not installed by the installer) |
-| rust | 1.68.2 | `config/mise/.tool-versions` (not installed by the installer) |
+| go | 1.23.4 | `config/mise/config.toml` (not installed by the installer) |
+| ruby | 3.1.3 | `config/mise/config.toml` (not installed by the installer) |
+| rust | 1.68.2 | `config/mise/config.toml` (not installed by the installer) |
 | atuin | latest | Debian family only, `~/.config/mise/conf.d/apt-gaps.toml` written by `scripts/install-mise.sh` |
 | github:dalance/procs | latest | Debian family only, same fragment (`procs`) |
 
-### nvm
-
-Also loaded on shell start for `.nvmrc` auto-switching. Overlaps with mise for Node; the shell hook goes in the next pass, see `TASKS.md`.
-
 ### cargo
 
-Rust toolchain sourced from `$HOME/.cargo/env`.
+Rust toolchain sourced from `$CARGO_HOME/env` (`~/.local/share/cargo`).
 
 ### Homebrew (macOS + Linuxbrew)
 
@@ -272,11 +293,13 @@ Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p
 
 ### Tool initialization (via `.bootstrap`)
 
-Loaded in order: mise, atuin, homebrew, cargo, nvm.
+Loaded in order: mise, atuin, homebrew, cargo.
 
 ---
 
 ## tmux Plugins (TPM)
+
+`scripts/install-shell.sh` clones tpm, pinned to a commit, into `$TMUX_PLUGIN_MANAGER_PATH/tpm`, and `config/tmux/tmux.conf` runs it from there. Press `prefix + I` inside tmux to install the plugins below.
 
 | Plugin | Purpose |
 |---|---|
@@ -290,7 +313,7 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 
 ## Git Configuration
 
-### Tools referenced in `.gitconfig`
+### Tools referenced in `config/git/config`
 
 | Tool | Usage |
 |---|---|
@@ -298,7 +321,7 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 | git-delta | core pager — syntax-highlighted diffs |
 | ssh (ed25519) | GPG signing format |
 
-### Git aliases (`config/git/.gitconfig [alias]`)
+### Git aliases (`config/git/config [alias]`)
 
 | Alias | Command |
 |---|---|
@@ -377,7 +400,7 @@ Loaded in order: mise, atuin, homebrew, cargo, nvm.
 | `fd` | `fdfind` | only set where `fd` is missing and `fdfind` is the binary name (Debian) |
 | `ls` | `eza --group-directories-first` | `exa` on older Debian; only set when one of them is installed, plain `ls` otherwise; oh-my-zsh's `ll`, `la` and `l` go through it |
 | `lt` | `eza --tree --level=2 --group-directories-first` | two-level tree |
-| `reload` / `r` | `. $HOME/.zshrc` | reload shell config |
+| `reload` / `r` | `. $ZDOTDIR/.zshrc` | reload shell config |
 | `dc` | `docker` | |
 | `dcc` | `docker compose` | |
 
@@ -435,6 +458,19 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 
 ## Environment & Exports
 
+From `config/zsh/.zshenv`, read by every zsh:
+
+| Variable | Value / Purpose |
+|---|---|
+| `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME` | `~/.config`, `~/.local/share`, `~/.local/state`, `~/.cache`; a value already exported wins |
+| `ZDOTDIR` | `$XDG_CONFIG_HOME/zsh` |
+| `DOTFILES` | `~/.dotfiles` unless already exported; `DOTFILES_BIN`, `DOTFILES_CONFIG`, `DOTFILES_ZSH`, `DOTFILES_GIT` and `DOTFILES_OVERLAYS` hang off it |
+| `ZSH`, `ZSH_CUSTOM` | `$XDG_DATA_HOME/oh-my-zsh`, `$XDG_DATA_HOME/oh-my-zsh-custom` |
+| `CARGO_HOME`, `RUSTUP_HOME` | `$XDG_DATA_HOME/cargo`, `$XDG_DATA_HOME/rustup` |
+| `NPM_CONFIG_USERCONFIG` | `$XDG_CONFIG_HOME/npm/npmrc` |
+| `TMUX_PLUGIN_MANAGER_PATH` | `$XDG_DATA_HOME/tmux/plugins` |
+| `HISTFILE`, `ZSH_COMPDUMP` | `$XDG_STATE_HOME/zsh/history`, `$XDG_CACHE_HOME/zsh/zcompdump-<version>`; set but not exported, `.zshrc` creates the directories |
+
 From `config/zsh/.exports`:
 
 | Variable | Value / Purpose |
@@ -456,9 +492,9 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | mise | `.bootstrap` → `.mise` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
 | atuin | `.bootstrap` → `.atuin` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
-| node, pnpm | `.zshrc`, npm-based CLIs | installed through mise by `scripts/install-mise.sh` (nvm still loads in the shell until the next pass) |
+| node, pnpm | npm-based CLIs | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |
-| oh-my-zsh | `.zshrc` | installed by `scripts/install-shell.sh` |
-| powerlevel10k | `.zshrc` theme | installed by `scripts/install-shell.sh` |
-| tpm | `.tmux.conf` | not installed by any script; clone to `~/.tmux/plugins/tpm` |
-| nvm | `.bootstrap` → `.nvm` | installed manually, not in packages |
+| oh-my-zsh | `.zshrc` | cloned by `scripts/install-shell.sh` into `$ZSH`, pinned |
+| powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting | `.zshrc` theme and plugins | cloned by `scripts/install-shell.sh` into `$ZSH_CUSTOM`, pinned |
+| tpm | `tmux.conf` | installed by `scripts/install-shell.sh` into `$TMUX_PLUGIN_MANAGER_PATH/tpm` |
+| LazyVim plugins | `config/nvim` | synced by `scripts/install-nvim.sh` when nvim is 0.9 or newer |

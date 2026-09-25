@@ -14,13 +14,11 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Shell & Startup
 
-- [~] **mise everywhere**: node and pnpm now install from `config/mise` on every machine (`scripts/install-mise.sh`). Left: drop nvm on every machine. The nvm shell hook (`config/nvm/.nvm`, sourced from `.bootstrap`) stays wired for now and goes in the next pass, the layout one.
-- [ ] **Measure and reduce shell startup time**: add a repeatable benchmark (`zsh -i -c exit` timing) before and after changes, then lazy-load the slow init blocks. Do this after mise replaces nvm.
+- [ ] **Measure and reduce shell startup time**: add a repeatable benchmark (`zsh -i -c exit` timing) before and after changes, then lazy-load the slow init blocks. mise has replaced nvm, so this is unblocked.
 
 ### Layout & Installer
 
-- [ ] **XDG layout**: `~/.zshenv` sets the XDG variables and `ZDOTDIR`, directory links into `~/.config`, a declarative link table, migration of the old `~` links.
-- [ ] **Installer hardening**: `--help` and `--dry-run`, pinned shell plugins. The `NONINTERACTIVE` Homebrew bootstrap and `pacman -Syu --needed` landed with the packages pass.
+- [ ] **Installer hardening**: `--help` and `--dry-run`. The `NONINTERACTIVE` Homebrew bootstrap and `pacman -Syu --needed` landed with the packages pass, and the pinned shell plugins with the layout pass.
 - [ ] **Trim `os/macos.sh`** to the settings that still apply. Keep: keyboard access, smart quotes and dashes and autocorrect off, save to disk, screenshots folder and PNG, Dock minimize-to-app, Finder quit menu, no desktop drive icons, hidden files, extensions, Chrome swipe off, restart on freeze. Add: Dock on the right, `KeyRepeat` 2 and `InitialKeyRepeat` 15, `killall Finder Dock SystemUIServer`. Drop the rest.
 - [ ] **Host-level settings move out**: firewall, timezone, services, and drivers move out of the dotfiles to the host configuration repo; `os/*.sh` keep only `chsh` and the docker group.
 
@@ -35,8 +33,11 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Editor & Terminal
 
-- [ ] **Tracked LazyVim config** with a headless plugin sync.
 - [ ] **Clipboard fixes**: tmux `set-clipboard`, `pngpaste` on macOS.
+- [ ] **Bring the ghostty and karabiner configs into `config/`** from the personal Mac, and add them to `config/links`. Link the `~/.config/karabiner` directory, not `karabiner.json`, which Karabiner stops watching when it is a link.
+- [ ] **Track an atuin config** (`~/.config/atuin/config.toml`) in `config/atuin/` and link it.
+- [ ] **Track a ripgrep config** in `config/ripgrep/` and link it, then set `RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config"` in `config/zsh/.zshenv` (ripgrep reads no file without it).
+- [ ] **Commit `config/nvim/lazy-lock.json`** after the first plugin sync on the personal machine, to pin the plugin versions.
 
 ### Documentation
 
@@ -49,6 +50,9 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ## Done
 
+- [x] **XDG layout**: `~/.zshenv` sets the XDG variables and `ZDOTDIR`, directory links into `~/.config` from the table in `config/links`, migration of the old `~` links, and the shell plugins and tpm pinned under the XDG data directory.
+- [x] **mise everywhere**: node and pnpm install from `config/mise` on every machine, the go, ruby and rust pins moved into `config/mise/config.toml`, and nvm is gone from the shell.
+- [x] **Tracked LazyVim config** in `config/nvim/`, with a headless plugin sync in `scripts/install-nvim.sh`.
 - [x] **Brewfile core plus host overlays**: `packages/Brewfile` plus `overlays/host/<name>/Brewfile`, applied by `brew bundle`.
 - [x] **Categorized package lists**: comments per entry in every list, and a Debian path (Raspberry Pi OS) with `install-apt-repos.sh` for the third-party sources.
 - [x] **`install-ai-clis.sh`**: claude, codex and gemini install from their own installers instead of the package lists.

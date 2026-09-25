@@ -29,9 +29,10 @@ Optional installer flags:
 
 - `DOTFILES_SKIP_PACKAGES=1` skip package installation.
 - `DOTFILES_SKIP_DOTFILES=1` skip symlink creation.
-- `DOTFILES_SKIP_SHELL=1` skip Oh My Zsh and plugin install.
+- `DOTFILES_SKIP_SHELL=1` skip Oh My Zsh, its plugins and tpm.
 - `DOTFILES_SKIP_MISE=1` skip mise, node and pnpm.
 - `DOTFILES_SKIP_AI_CLIS=1` skip the AI CLI installs (claude, codex, gemini).
+- `DOTFILES_SKIP_NVIM=1` skip the LazyVim plugin sync.
 - `DOTFILES_SKIP_OS_DEFAULTS=1` skip OS-specific defaults/tweaks.
 
 On macOS the packages are one core `packages/Brewfile` applied with `brew bundle`, plus the Brewfile of the host named by `DOTFILES_HOST` (default `hostname -s`) in `overlays/host/<name>/`. For example, `DOTFILES_HOST=mac ./scripts/install.sh` also applies `overlays/host/mac/Brewfile`. Debian, Raspberry Pi OS and Ubuntu use `packages/apt.txt`, after `scripts/install-apt-repos.sh` adds the Docker, Tailscale, eza and Azlux repositories. Arch uses `packages/pacman.txt` and `packages/aur.txt`.
@@ -39,6 +40,36 @@ On macOS the packages are one core `packages/Brewfile` applied with `brew bundle
 `scripts/install-mise.sh` sets up mise, node and pnpm from `config/mise/config.toml`, and `scripts/install-ai-clis.sh` installs the AI CLIs from their own installers (`--update` refreshes ones already installed). If either step fails the installer warns and carries on.
 
 Setting up a new machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact sequence, the machine profile, and the per-machine git identity step.
+
+## Layout
+
+`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager). zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
+
+Everything else lives under `~/.config`, linked from `config/` by the table in `config/links`:
+
+| Live path | Tracked source | Link |
+|---|---|---|
+| `~/.zshenv` | `config/zsh/.zshenv` | file |
+| `~/.config/zsh` | `config/zsh/` | directory |
+| `~/.config/tmux` | `config/tmux/` | directory |
+| `~/.config/nvim` | `config/nvim/` | directory |
+| `~/.config/git/{config,ignore,message}` | `config/git/{config,ignore,message}` | files |
+| `~/.config/mise/config.toml` | `config/mise/config.toml` | file |
+
+`~/.config/git` is a real directory with file links, so the untracked `~/.config/git/local` (the identity for this machine, from `config/git/local.example`) sits beside them, and so will `~/.config/git/host`, which the host overlays will write and the config already includes. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
+
+To add a link, add a line to `config/links` and rerun `scripts/install-dotfiles.sh`:
+
+```text
+source  target  [os]
+```
+
+- `source` is a path under `config/`. A trailing `/` links the whole directory (use it when the tool owns the directory), without it only that one file is linked.
+- `target` is a path under `~`, written with a leading `~/`. Missing parent directories are created, and a real file or directory already at the target is moved aside as `<target>.bak.<timestamp>`.
+- `os` is `macos` or `linux`. Leave it out to link on both.
+- Text after `#` is a comment.
+
+The first run on a machine that used the older layout also clears what it left in `$HOME`: a link into this repo is removed, a real file is backed up, and `~/.gitconfig.override` moves to `~/.config/git/local`. It prints one line per action and does nothing on the next run. It does not move state the tools kept elsewhere: an existing `~/.oh-my-zsh`, `~/.custom`, `~/.tmux/plugins`, `~/.nvm`, `~/.cargo` and `~/.rustup` stay where they are (delete them, or move the cargo and rustup directories to `~/.local/share/cargo` and `~/.local/share/rustup` to keep their toolchains), and npm settings in `~/.npmrc` go to `~/.config/npm/npmrc`.
 
 ## Containers
 
@@ -80,7 +111,7 @@ docker compose --profile arch run --rm devbox-arch
 docker compose --profile isolated run --rm devbox-isolated
 ```
 
-Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build. The images also skip the mise and AI CLI steps; run `scripts/install-mise.sh` and `scripts/install-ai-clis.sh` inside a container to add them.
+Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build. The images also skip the mise, AI CLI and nvim steps; run `scripts/install-mise.sh`, `scripts/install-ai-clis.sh` and `scripts/install-nvim.sh` inside a container to add them.
 
 ## Architecture
 
@@ -95,13 +126,14 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── install.sh           # main entrypoint
 │   ├── install-packages.sh
 │   ├── install-apt-repos.sh # Docker, Tailscale, eza and Azlux apt sources
-│   ├── install-dotfiles.sh
-│   ├── install-shell.sh
+│   ├── install-dotfiles.sh # reads config/links
+│   ├── install-shell.sh     # oh-my-zsh, Powerlevel10k, zsh plugins, tpm (pinned)
 │   ├── install-mise.sh      # mise, node, pnpm
 │   ├── install-ai-clis.sh   # claude, codex, gemini
+│   ├── install-nvim.sh      # LazyVim plugin sync
 │   ├── devbox-smoke.sh
 │   ├── lint-shell.sh
-│   └── utils/               # os.sh, paths.sh
+│   └── utils/               # os.sh, paths.sh, lists.sh
 ├── os/
 │   ├── macos.sh
 │   ├── ubuntu.sh            # also used for Debian
@@ -110,12 +142,13 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── atuin/.atuin
 │   ├── brew/.homebrew
 │   ├── cargo/.cargo
-│   ├── git/                 # .gitconfig, .gitconfig.override.example, .gitignore_global, .gitmessage
-│   ├── mise/                # .mise, config.toml, .tool-versions
+│   ├── git/                 # config, ignore, message, local.example
+│   ├── links                # link table read by install-dotfiles.sh
+│   ├── mise/                # .mise, config.toml
 │   ├── npm/.npm
-│   ├── nvm/.nvm
-│   ├── tmux/.tmux.conf
-│   └── zsh/                 # .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh
+│   ├── nvim/                # LazyVim: init.lua, lua/, stylua.toml, .neoconf.json
+│   ├── tmux/tmux.conf
+│   └── zsh/                 # .zshenv, .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
@@ -145,9 +178,10 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 - `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`.
 - `scripts/install-packages.sh` installs from `packages/` per OS: `brew bundle` on the core Brewfile and then the host Brewfile on macOS, one `apt-get install` on the Debian family, one `pacman -Syu --needed` on Arch.
 - `scripts/install-apt-repos.sh` adds the third-party apt sources `install_apt` needs before `apt-get update`, and skips any that is already configured.
-- `scripts/install-dotfiles.sh` creates symlinks in `$HOME` and backs up existing files as `*.bak.<timestamp>`. `config/mise/config.toml` links to `~/.config/mise/config.toml` (node and pnpm) and `config/mise/.tool-versions` to `~/.tool-versions` (go, ruby, rust).
-- `scripts/install-shell.sh` installs Oh My Zsh, Powerlevel10k, and Zsh plugins.
-- `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml`, plus atuin and procs on the Debian family, and runs `corepack enable`.
+- `scripts/install-dotfiles.sh` clears the links and files the older layout kept in `$HOME`, then applies the table in `config/links` (see [Layout](#layout)). A real file or directory in the way is backed up as `*.bak.<timestamp>`.
+- `scripts/install-shell.sh` sources `config/zsh/.zshenv`, then clones Oh My Zsh, Powerlevel10k, the two zsh plugins and tpm into the XDG data directory, each pinned to a commit. To bump a pin, replace the sha in the script and rerun it.
+- `scripts/install-mise.sh` installs mise where the package list does not (Debian family, from `https://mise.run`), then node and pnpm from `config/mise/config.toml` (its go, ruby and rust pins wait for an explicit `mise install`), plus atuin and procs on the Debian family, and runs `corepack enable`.
+- `scripts/install-nvim.sh` runs `nvim --headless "+Lazy! sync" +qa` once `~/.config/nvim` is linked, and skips with a warning when nvim is missing or older than 0.9. The sync writes `config/nvim/lazy-lock.json`, so commit it to pin the plugin versions.
 - `scripts/install-ai-clis.sh` installs claude, codex and gemini from their own installers, skipping any already on `PATH` unless `--update` is passed.
 - `os/macos.sh` applies macOS `defaults`, `nvram`, and `pmset` settings (keyboard, screenshots, Dock, Finder, sleep).
 - `os/ubuntu.sh` sets the locale and timezone, switches the login shell to zsh, adds the user to the docker group, and enables the docker and tailscale services.
@@ -171,7 +205,7 @@ overlays/host/work-laptop/zsh/.exports
 ## CI and Smoke
 
 - `scripts/lint-shell.sh` runs shellcheck on installer/container shell scripts.
-- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login and core symlinks.
+- `scripts/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
 - CI runs shellcheck in a dedicated container image and smoke tests for Ubuntu + Arch Dockerfiles.
 
 ## Notes
