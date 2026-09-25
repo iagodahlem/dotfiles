@@ -25,6 +25,8 @@ Use this to compare against your system and spot what's missing.
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
 | git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is reserved for the host overlays) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
 | ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
+| karabiner-elements | `config/karabiner/` | `~/.config/karabiner` (directory link, macOS only) | none, `~/.config` is where it looks by default |
+| karabiner backups | none, untracked and gitignored, written by Karabiner-Elements | `config/karabiner/automatic_backups/` in the checkout, reached as `~/.config/karabiner/automatic_backups/` | none |
 | neovim config | `config/nvim/` | `~/.config/nvim` (directory link) | `XDG_CONFIG_HOME` |
 | neovim plugins | none, synced by `scripts/install-nvim.sh` | `~/.local/share/nvim` | `XDG_DATA_HOME` |
 | mise | `config/mise/` | `~/.config/mise` (directory link) | `XDG_CONFIG_HOME` |

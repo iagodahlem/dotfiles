@@ -13,3 +13,6 @@ config/git/host
 
 # ~/.config/mise links into this repo, so the fragment scripts/install-mise.sh writes on the Debian family lands in config/mise/conf.d untracked
 config/mise/conf.d/
+
+# ~/.config/karabiner links into this repo, so the dated backups Karabiner-Elements writes before it rewrites karabiner.json land in config/karabiner untracked
+config/karabiner/automatic_backups/
