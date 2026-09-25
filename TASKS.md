@@ -14,7 +14,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Shell & Startup
 
-- [ ] **Measure and reduce shell startup time**: add a repeatable benchmark (`zsh -i -c exit` timing) before and after changes, then lazy-load the slow init blocks. mise has replaced nvm, so this is unblocked.
+- [ ] **Decide the startup options that were measured and not applied**: `ZSH_DISABLE_COMPFIX=true` in `.zshrc` (3.0 ms on Arch, 6.3 ms in the Ubuntu image, and it turns off oh-my-zsh's check for group-writable completion directories), caching the output of `mise activate zsh`, `atuin init zsh` and `brew shellenv zsh` (about 14 ms together, with a cache to invalidate when a binary changes), and dropping the npm and docker-compose plugins (their aliases are unused, 1.2 and 0.3 ms; npm still completes the `npm` command). `ci/shell-startup.sh` stops before the first prompt, which needs about 65 ms more on a terminal (Powerlevel10k drawing it about 25 ms, mise's `precmd` hook about 14 ms): a mode that times it on a pty would cover that.
 
 ### Layout & Installer
 
@@ -48,6 +48,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ## Done
 
+- [x] **Measure shell startup time**: `ci/shell-startup.sh` runs `zsh -i -c exit` N times (min, median, max) or once under zprof (`--profile`), against the real home or a scratch home, and a `shell-startup` CI job runs it in the Ubuntu image. Baseline on Arch in a scratch home with oh-my-zsh, Powerlevel10k, mise, atuin and Linuxbrew: median 89.0 ms (65.3 ms without mise), of which mise is 20.7 ms, the ten oh-my-zsh plugins 20.0 ms, compinit 7.6 ms, atuin 7.5 ms and `brew shellenv` 5.9 ms; the Ubuntu image measured 68.2 ms. Two changes came out of it: `skip_global_compinit=1` in `.zshenv` (Ubuntu's `/etc/zsh/zshrc` ran compinit before oh-my-zsh did, 68.2 to 56.3 ms in the image, nothing on Arch or Debian) and the web-search plugin dropped (unused, inside the noise). The per-block table is in `TOOLS.md`.
 - [x] **Packages round two**: the desk apps (bartender, bettertouchtool, cleanshot, logi-options+, granola, notion-calendar) and nmap in the core `packages/Brewfile`, bun through mise, per-host package lists, and Homebrew on `PATH` for ssh commands. The items below are its parts.
 - [x] **Per-host package lists**: a host overlay may carry `packages/pacman.txt` and `packages/apt.txt`, installed after the shared lists by `scripts/install-packages.sh` (a second `pacman -S --needed --noconfirm` call on Arch, the same candidate check as the shared list on the Debian family), through `host_overlay_dir`. `overlays/host/example/` and `overlays/README.md` show the shape, `ci/dry-run.sh` checks both paths, and TinyTeX is gone as an install path: a host that needs LaTeX lists its texlive packages in its overlay.
 - [x] **bun through mise**: `bun = "latest"` in `config/mise/config.toml`, installed by `scripts/install-mise.sh` with node and pnpm. The README's migration block removes the curl-installed `~/.bun` and the TinyTeX leftovers.

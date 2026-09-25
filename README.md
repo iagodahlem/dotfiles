@@ -280,10 +280,14 @@ overlays/host/example/zsh/.exports
 - `ci/lint-shell.sh` runs shellcheck on installer/container shell scripts.
 - `ci/dry-run.sh` runs `scripts/install.sh --dry-run` on the host, no Docker, with a scratch `$HOME`. It checks that every step prints its header, that `--help` and `--only` work, that a private overlay is found before one in the checkout, and that nothing lands in the home directory. Run it locally the same way.
 - `ci/devbox-smoke.sh` builds a target Dockerfile and verifies non-root login, the `~/.zshenv` and `~/.config` links, and that `ZDOTDIR` is `~/.config/zsh`.
-- `ci/shell-startup.sh` times `zsh -i -c exit` (`-n <runs>`, 10 by default) and prints the min, median and max in milliseconds, or with `--profile` runs one shell under `zprof` and prints the 15 costliest entries. It measures whatever `$HOME` is, so it runs against the real home as it is (`ci/shell-startup.sh`) and against a scratch home laid out like a machine that cloned the checkout to `~/.dotfiles`. It starts every shell from `$HOME`, without the `XDG_*`, `ZDOTDIR` and `DOTFILES` variables of the terminal it runs in, and it does two shells first that it does not count, because the first ones in a home build the completion dump. `mise`, `atuin` and Homebrew are picked up from the `PATH` like in a real shell, so the numbers include whatever is installed on the machine. It prints numbers and gates nothing.
+- `ci/shell-startup.sh` (see [Shell startup](#shell-startup)) times `zsh -i -c exit` (`-n <runs>`, 10 by default) and prints the min, median and max in milliseconds, or with `--profile` runs one shell under `zprof` and prints the 15 costliest entries. It measures whatever `$HOME` is, so it runs against the real home as it is (`ci/shell-startup.sh`) and against a scratch home laid out like a machine that cloned the checkout to `~/.dotfiles`. It starts every shell from `$HOME`, without the `XDG_*`, `ZDOTDIR` and `DOTFILES` variables of the terminal it runs in, and it does two shells first that it does not count, because the first ones in a home build the completion dump. `mise`, `atuin` and Homebrew are picked up from the `PATH` like in a real shell, so the numbers include whatever is installed on the machine. It prints numbers and gates nothing.
 - CI runs shellcheck in a dedicated container image, the installer dry run on the runner, the startup benchmark inside the Ubuntu image, and smoke tests for Ubuntu + Arch Dockerfiles. The container builds keep `DOTFILES_SKIP_MISE=1 DOTFILES_SKIP_AI_CLIS=1`, along with the packages, nvim, OS defaults, host and private skips.
 
-### Measuring shell startup
+## Shell startup
+
+Measure it with `ci/shell-startup.sh`. On Arch, in a scratch home with oh-my-zsh, Powerlevel10k, mise, atuin and Homebrew, `zsh -i -c exit` takes about 88 ms (64 ms without mise), and 56 ms in the Ubuntu image, which has no mise, atuin or Homebrew.
+
+mise (21 ms), the oh-my-zsh plugins (20 ms), and atuin, compinit and `brew shellenv` (6 to 8 ms each) are the blocks that cost anything, and the benchmark stops before the first prompt: a terminal is ready to type into about 150 ms after it starts (`TOOLS.md` has the table and where the difference goes).
 
 On a machine that is already set up, the real home is the one to measure:
 

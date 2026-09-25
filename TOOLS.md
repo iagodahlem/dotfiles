@@ -376,6 +376,26 @@ Times `zsh -i -c exit` and prints numbers, gating nothing. It measures whatever 
 
 Two shells run first and are not counted, since the first ones in a home build and compile the completion dump. Every shell starts from `$HOME` with `XDG_*`, `ZDOTDIR`, `DOTFILES` and `DOTFILES_PRIVATE` removed from the environment, so a terminal that has them set cannot point a scratch home at the real one. The script refuses a home with no `~/.zshenv` link or no oh-my-zsh, whose shell would start much faster than the setup it is meant to measure. CI runs it inside the Ubuntu image (job `shell-startup`), where there is no mise, atuin or Homebrew.
 
+Baseline, measured on Arch in a scratch home (oh-my-zsh, Powerlevel10k, mise with node, pnpm and bun, atuin, Linuxbrew) with 60 interleaved rounds per row, each row switching one block off; the median of the whole startup was 89.3 ms. The blocks overlap a little, so the rows do not add up exactly:
+
+| Block | Cost | Share |
+|---|---|---|
+| mise (`mise activate zsh` and the `hook-env` it runs once) | 20.7 ms | 23% |
+| the ten oh-my-zsh plugins | 20.0 ms | 22% |
+| of which zsh-syntax-highlighting, git, z | 7.0, 3.5 and 3.3 ms | 8%, 4% and 4% |
+| of which the other seven | 1.6 ms or less each | |
+| compinit (oh-my-zsh's, with its two compaudit checks) | 7.6 ms | 9% |
+| of which the checks, which `ZSH_DISABLE_COMPFIX=true` skips | 3.0 ms | 3% |
+| atuin (`atuin init zsh --disable-up-arrow`) | 7.5 ms | 8% |
+| `brew shellenv` | 5.9 ms | 7% |
+| overlay loading in `.bootstrap` (`os_id`, `host_overlay_dir`) | 3.7 ms | 4% |
+| Powerlevel10k theme and `.p10k.zsh` | 3.2 ms | 4% |
+| Powerlevel10k instant prompt | 0.2 ms | 0% |
+| cargo env | 0.0 ms | 0% |
+| the rest: oh-my-zsh's own libraries, `.aliases`, zsh itself | about 19 ms | 21% |
+
+Without mise the median is 65 ms, and the Ubuntu image, with oh-my-zsh and Powerlevel10k only, measured 68 ms before `skip_global_compinit=1` and 56 ms after it. The benchmark ends before the first prompt. On a pty, a shell that has `echo` typed ahead answers about 154 ms after it starts, and switching a block off there saves 34 ms for mise (14 more than at startup: its `precmd` hook runs `hook-env` again before every prompt) and 29 ms for Powerlevel10k (25 more: drawing the first prompt). Powerlevel10k's instant prompt paints the first prompt at 5 ms instead of 94 ms for about 5 ms of readiness, so it stays.
+
 ---
 
 ## tmux Plugins (TPM)
