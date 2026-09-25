@@ -35,7 +35,9 @@ safe_link "$CONFIG_DIR/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 # tmux
 safe_link "$CONFIG_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf"
 
-# mise, nvm, atuin
+# mise
+mkdir -p "$HOME/.config/mise"
+safe_link "$CONFIG_DIR/mise/config.toml" "$HOME/.config/mise/config.toml"
 safe_link "$CONFIG_DIR/mise/.tool-versions" "$HOME/.tool-versions"
 
 if [ ! -e "$HOME/.gitconfig.override" ]; then
