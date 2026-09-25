@@ -38,9 +38,10 @@ printf '%s\n' 'host-apt-pkg' > "$private/packages/apt.txt"
 mkdir -p "$scratch/checkout/.git"
 
 # the XDG variables and DOTFILES would point the steps at the real home, so they are dropped
+# --yes goes with every call, so a run here never waits for an answer
 installer() {
   env -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME -u XDG_CACHE_HOME -u DOTFILES \
-    HOME="$scratch" "$ROOT_DIR/scripts/install.sh" "$@"
+    HOME="$scratch" "$ROOT_DIR/scripts/install.sh" --yes "$@"
 }
 
 before="$(find "$scratch" -mindepth 1 | sort)"
@@ -49,6 +50,8 @@ help="$(installer --help)"
 for step in $STEPS; do
   grep -q "^  $step " <<<"$help" || fail "--help does not list the $step step"
 done
+grep -q -- '--yes' <<<"$help" || fail "--help does not mention --yes"
+grep -q 'NO_COLOR' <<<"$help" || fail "--help does not mention NO_COLOR"
 
 output="$(installer --dry-run 2>&1)" || { echo "$output"; fail "install.sh --dry-run failed"; }
 echo "$output"

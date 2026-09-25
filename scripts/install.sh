@@ -6,6 +6,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$ROOT_DIR/scripts/utils/os.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
 OS_ID="$(os_id)"
 
 # One row per step, in run order: the name, the variable that skips it, its script and what it does.
@@ -29,7 +31,7 @@ usage() {
   local name var desc
 
   cat <<'EOF'
-Usage: install.sh [--only <step>]... [--dry-run]
+Usage: install.sh [--only <step>]... [--dry-run] [--yes]
 
 Steps, in the order they run, with the variable that skips each one:
 
@@ -44,7 +46,12 @@ Options:
 
   --only <step>  run just this step, repeat it for more; the skip variables are not consulted
   --dry-run      print what each step would do and change nothing (DOTFILES_DRY_RUN=1 does the same)
+  --yes          do not ask before a real run (DOTFILES_YES=1 does the same)
   -h, --help     print this help
+
+A real run starts with a banner (the host, the OS, the checkout, the steps that run and the ones that do not) and, from a terminal, asks "Run these steps? [Y/n]", taking yes after 15 seconds without an answer.
+A dry run, and a run with no terminal (CI, a container build), never asks.
+Colour and bold only show on a terminal; NO_COLOR=1 turns them off, and a log or a pipe gets plain text.
 
 private, mise, ai-clis, nvim and host fetch from the network, so a failure in one of them warns and the run carries on.
 private runs first, so the overlay of this machine is there for the steps after it. It clones DOTFILES_PRIVATE_REPO (ssh form) to DOTFILES_PRIVATE, ~/.machines by default, and does nothing while that is unset.
@@ -83,7 +90,71 @@ host_script() {
   fi
 }
 
+# Why a step is not run, nothing when it is: it is not among the --only steps, or its skip variable is set.
+# --only names a step on purpose, so its skip variable does not apply, and with --only the one reason left is "not named".
+step_skip_reason() {
+  local name="$1" var="$2"
+
+  if [ -n "$ONLY" ]; then
+    case " $ONLY" in
+      *" $name "*) ;;
+      *) echo "not named by --only" ;;
+    esac
+  elif [ "${!var:-0}" = "1" ]; then
+    echo "$var=1"
+  fi
+  return 0
+}
+
+# The banner: the machine, the checkout and mode, then the steps that run and the ones that do not, and why.
+print_banner() {
+  local mode="real" overlay overlay_label="" name var reason
+  local steps="" not_named="" first_skip=1
+  local rows=()
+
+  if [ "$DRY_RUN" = "1" ]; then
+    mode="dry run, nothing is installed or changed"
+  fi
+
+  overlay="$(host_overlay_dir "$ROOT_DIR")"
+  if [ -n "$overlay" ]; then
+    case "$overlay" in
+      "$(private_dir)"/*) overlay_label="$(display_path "$overlay") (private)" ;;
+      *) overlay_label="$(display_path "$overlay") (in the checkout)" ;;
+    esac
+  fi
+
+  while read -r -u 3 name var _; do
+    [ -n "$name" ] || continue
+    reason="$(step_skip_reason "$name" "$var")"
+    if [ -z "$reason" ]; then
+      steps="$steps $name"
+    elif [ -n "$ONLY" ]; then
+      not_named="$not_named $name"
+    else
+      if [ "$first_skip" = 1 ]; then
+        rows+=(skipped "$(printf '%-12s %s' "$name" "$reason")")
+        first_skip=0
+      else
+        rows+=("" "$(printf '%-12s %s' "$name" "$reason")")
+      fi
+    fi
+  done 3<<<"$STEPS"
+
+  ui_banner "dotfiles installer" \
+    host "$(host_id)" \
+    os "$OS_ID" \
+    checkout "$(display_path "$ROOT_DIR")" \
+    overlay "$overlay_label" \
+    mode "$mode" \
+    "" "" \
+    steps "${steps# }" \
+    skipped "${not_named:+${not_named# } (not named by --only)}" \
+    ${rows[@]+"${rows[@]}"}
+}
+
 DRY_RUN="${DOTFILES_DRY_RUN:-0}"
+YES="${DOTFILES_YES:-0}"
 ONLY=""
 
 while [ "$#" -gt 0 ]; do
@@ -94,6 +165,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --dry-run)
       DRY_RUN=1
+      ;;
+    --yes)
+      YES=1
       ;;
     --only)
       if [ "$#" -lt 2 ]; then
@@ -119,11 +193,18 @@ done
 # every step reads this, see scripts/utils/dry-run.sh
 export DOTFILES_DRY_RUN="$DRY_RUN"
 
-printed=0
-if [ "$DRY_RUN" = "1" ]; then
-  echo "Dry run on $OS_ID: nothing is installed or changed."
-  printed=1
+print_banner
+
+# a real run asks once, from a terminal: CI and container builds have none, and --yes or DOTFILES_YES=1 is for a person who does not want the question
+if [ "$DRY_RUN" != "1" ] && [ "$YES" != "1" ] && [ -t 0 ]; then
+  echo
+  if ! ui_confirm "Run these steps?" 15; then
+    echo "Stopped before the first step, nothing was changed."
+    exit 1
+  fi
 fi
+
+printed=1
 
 while read -r -u 3 name var script _; do
   [ -n "$name" ] || continue
