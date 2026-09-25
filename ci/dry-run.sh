@@ -4,17 +4,32 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STEPS="packages dotfiles shell mise ai-clis nvim os-defaults"
+STEPS="packages dotfiles shell mise ai-clis nvim os-defaults host"
 
 fail() {
   echo "dry-run: $*" >&2
   exit 1
 }
 
+# the machine this runs on would change which overlay the steps find, and the checks below set what they need
+unset DOTFILES_HOST DOTFILES_PRIVATE
+
 # a scratch home laid out like a machine that cloned the checkout to ~/.dotfiles
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
 ln -s "$ROOT_DIR" "$scratch/.dotfiles"
+
+# a private overlay for the host "example", which also has an overlay in the checkout, so the checks below can tell which one is picked
+private="$scratch/.machines/example/dotfiles"
+mkdir -p "$private/git"
+cat > "$private/install.sh" <<'HOOK'
+#!/usr/bin/env bash
+if [ "${DOTFILES_DRY_RUN:-0}" = 1 ]; then
+  echo "private hook: dry run"
+fi
+HOOK
+chmod +x "$private/install.sh"
+printf '%s\n' '[credential]' '  helper = store' > "$private/git/config"
 
 # the XDG variables and DOTFILES would point the steps at the real home, so they are dropped
 installer() {
@@ -39,6 +54,23 @@ only="$(installer --only dotfiles --dry-run 2>&1)" || { echo "$only"; fail "inst
 if [ "$(grep -c '^== ' <<<"$only")" != 1 ] || ! grep -qxF "== dotfiles ==" <<<"$only"; then
   fail "--only dotfiles did not run just the dotfiles step"
 fi
+
+# the private overlay wins over the one in the checkout, and its hook has to see the dry run
+host="$(DOTFILES_HOST=example installer --only host --dry-run 2>&1)" || { echo "$host"; fail "install.sh --only host --dry-run failed"; }
+grep -qxF "running $private/install.sh" <<<"$host" || { echo "$host"; fail "the host step did not run the private overlay's hook"; }
+grep -qxF "private hook: dry run" <<<"$host" || { echo "$host"; fail "the private overlay's hook did not see the dry run"; }
+
+# without a private overlay it falls back to the one in the checkout
+host="$(DOTFILES_HOST=example DOTFILES_PRIVATE="$scratch/none" installer --only host --dry-run 2>&1)" || { echo "$host"; fail "the host step failed on the overlay in the checkout"; }
+grep -qxF "running overlays/host/example/install.sh" <<<"$host" || { echo "$host"; fail "the host step did not fall back to overlays/host/example"; }
+
+# and a host with no overlay at all is only reported
+host="$(DOTFILES_HOST=nowhere installer --only host --dry-run 2>&1)" || { echo "$host"; fail "the host step failed for a host with no overlay"; }
+grep -q '^no install.sh in the host overlay of nowhere' <<<"$host" || { echo "$host"; fail "the host step did not report a host with no overlay"; }
+
+# the git config of the private overlay is what config/git/host would link to
+links="$(DOTFILES_HOST=example installer --only dotfiles --dry-run 2>&1)" || { echo "$links"; fail "install.sh --only dotfiles --dry-run failed"; }
+grep -q "config/git/host -> .*/.machines/example/dotfiles/git/config" <<<"$links" || { echo "$links"; fail "the dotfiles step would not link the private overlay's git config"; }
 
 after="$(find "$scratch" -mindepth 1 | sort)"
 [ "$before" = "$after" ] || fail "the dry run changed the home directory"
