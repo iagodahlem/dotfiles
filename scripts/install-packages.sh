@@ -51,8 +51,7 @@ install_pacman() {
 
   [ "${#packages[@]}" -gt 0 ] || return 0
 
-  run_as_root pacman -Syy --noconfirm
-  run_as_root pacman -S --needed --noconfirm "${packages[@]}"
+  run_as_root pacman -Syu --needed --noconfirm "${packages[@]}"
 }
 
 install_aur() {

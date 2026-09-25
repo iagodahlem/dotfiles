@@ -1,1 +1,4 @@
-claude-code
+# AUR packages, installed by install_aur through yay when AUR_USER is set.
+# yay bootstraps itself in install_aur, it is not listed here.
+
+google-cloud-cli  # gcloud CLI
