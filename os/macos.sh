@@ -1,113 +1,68 @@
 #!/usr/bin/env bash
+# macOS defaults that still apply on a current Mac, each with the reason for it.
+# Run by scripts/install.sh, or on its own. With DOTFILES_DRY_RUN=1 it prints the commands instead of running them.
+set -euo pipefail
 
-# Ask for the administrator password upfront
-sudo -v
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Keep-alive: update existing `sudo` time stamp until `.osx` has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
 
-# --------------–-------–--------–--------–-------–--–-----
-# System interface and behaviour
-# --------------–-------–--------–--------–-------–--–-----
+# Save to disk, not to iCloud, by default
+run defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 
-# Disable the sound effects on boot
-sudo nvram SystemAudioVolume=" "
+# Full keyboard access, so Tab reaches every control in dialogs
+run defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
-# Disable the “Are you sure you want to open this application?" dialog
-defaults write com.apple.LaunchServices LSQuarantine -bool false
+# Fast key repeat, and a short wait before it starts
+run defaults write NSGlobalDomain KeyRepeat -int 2
+run defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
-# Check for software updates daily, not just once per week
-defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1
+# No smart quotes, they get in the way when typing code
+run defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
 
-# Save to disk (not to iCloud) by default
-defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+# No smart dashes, same reason
+run defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 
-# Disable the crash reporter
-defaults write com.apple.CrashReporter DialogType -string "none"
+# No autocorrect
+run defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
-# Restart automatically if the computer freezes
-sudo systemsetup -setrestartfreeze on
+# Chrome: no back and forward navigation on a horizontal scroll
+run defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
 
-# --------------–-------–--------–--------–-------–--–-----
-# SSD-specific tweaks
-# --------------–-------–--------–--------–-------–--–-----
+# Screenshots go to ~/Documents/Screenshots
+run mkdir -p "$HOME/Documents/Screenshots"
+run defaults write com.apple.screencapture location -string "$HOME/Documents/Screenshots"
 
-# Disable local Time Machine snapshots
-sudo tmutil disablelocal
+# Screenshots as PNG
+run defaults write com.apple.screencapture type -string png
 
-# Disable hibernation (speeds up entering sleep mode)
-sudo pmset -a hibernatemode 0
-
-# Remove the sleep image file to save disk space
-sudo rm /private/var/vm/sleepimage
-# Create a zero-byte file instead…
-sudo touch /private/var/vm/sleepimage
-# …and make sure it can't be rewritten
-sudo chflags uchg /private/var/vm/sleepimage
-
-# Disable the sudden motion sensor as it's not useful for SSDs
-sudo pmset -a sms 0
-
-# --------------–-------–--------–--------–-------–--–-----
-# Trackpad, mouse and keyboard
-# --------------–-------–--------–--------–-------–--–-----
-
-# Enable full keyboard access for all controls
-# (e.g. enable Tab in modal dialogs)
-defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-
-# Disable smart quotes as they're annoying when typing code
-defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-
-# Disable smart dashes as they're annoying when typing code
-defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-
-# Disable auto-correct
-defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
-
-# Disable Chrome's back/forward navigation
-defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool FALSE
-
-# --------------–-------–--------–--------–-------–--–-----
-# Screen
-# --------------–-------–--------–--------–-------–--–-----
-
-# Require password immediately after sleep or screen saver begins
-defaults write com.apple.screensaver askForPassword -int 1
-defaults write com.apple.screensaver askForPasswordDelay -int 0
-
-# Enable subpixel font rendering on non-Apple LCDs
-defaults write NSGlobalDomain AppleFontSmoothing -int 2
-
-# Save screenshots to a folder called Screenshots
-mkdir ~/Documents/Screenshots
-defaults write com.apple.screencapture location ~/Documents/Screenshots
-
-# Save screenshots in PNG format (other options: BMP, GIF, JPG, PDF, TIFF)
-defaults write com.apple.screencapture type -string "png"
-
-# --------------–-------–--------–--------–-------–--–-----
-# Dock, Dashboard and Menu Bar
-# --------------–-------–--------–--------–-------–--–-----
+# Dock on the right
+run defaults write com.apple.dock orientation -string right
 
 # Minimize windows into their application's icon
-defaults write com.apple.dock minimize-to-application -bool true
+run defaults write com.apple.dock minimize-to-application -bool true
 
-# --------------–-------–--------–--------–-------–--–-----
-# Finder
-# --------------–-------–--------–--------–-------–--–-----
+# Allow quitting Finder with Cmd+Q
+run defaults write com.apple.finder QuitMenuItem -bool true
 
-# Allow quitting via ⌘ + Q; doing so will also hide desktop icons
-defaults write com.apple.finder QuitMenuItem -bool true
-
-# Don't show icons for hard drives, servers, and removable media on the desktop
-defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool false
-defaults write com.apple.finder ShowHardDrivesOnDesktop -bool false
-defaults write com.apple.finder ShowMountedServersOnDesktop -bool false
-defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool false
+# No icons for drives, servers and removable media on the desktop
+run defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool false
+run defaults write com.apple.finder ShowHardDrivesOnDesktop -bool false
+run defaults write com.apple.finder ShowMountedServersOnDesktop -bool false
+run defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool false
 
 # Show hidden files
-defaults write com.apple.finder AppleShowAllFiles -bool true
+run defaults write com.apple.finder AppleShowAllFiles -bool true
 
 # Show all filename extensions
-defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+run defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# Restart automatically if the computer freezes. The one line that needs sudo, so a failure here does not stop the rest
+run sudo systemsetup -setrestartfreeze on || echo "warning: sudo systemsetup -setrestartfreeze on failed, run it by hand" >&2
+
+# Restart what shows the settings above, each on its own so one that is not running does not skip the others
+for app in Finder Dock SystemUIServer; do
+  run killall "$app" 2>/dev/null || true
+done
+
+echo "Key repeat applies after the next login."
