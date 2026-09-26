@@ -13,6 +13,7 @@ Use this to compare against your system and spot what's missing.
 |---|---|---|---|
 | zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
 | zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
+| zsh login-shell hook | `config/zsh/.zprofile` | `~/.config/zsh/.zprofile`, reached through the directory link | `ZDOTDIR`, read by login shells only; holds OrbStack's shell init (`source ~/.orbstack/shell/init.zsh 2>/dev/null \|\| :`), which its first launch appends to the login profile |
 | zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `.bootstrap` sources it last |
 | zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
 | zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |

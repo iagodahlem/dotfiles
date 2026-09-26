@@ -256,7 +256,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── npm/.npm
 │   ├── nvim/                # LazyVim: init.lua, lua/, stylua.toml, .neoconf.json
 │   ├── tmux/tmux.conf
-│   └── zsh/                 # .zshenv, .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
+│   └── zsh/                 # .zshenv, .zprofile (login-shell hook, holds OrbStack's shell init), .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
