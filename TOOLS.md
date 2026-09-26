@@ -13,6 +13,7 @@ Use this to compare against your system and spot what's missing.
 |---|---|---|---|
 | zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
 | zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
+| zsh login profile | `config/zsh/.zprofile` | `~/.config/zsh/.zprofile` (through the directory link) | `ZDOTDIR` (kept empty, comments only, so a tool that appends to it shows as a modified file in `git status`) |
 | zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `.bootstrap` sources it last |
 | atuin shell hook | `config/atuin/init.zsh` | none, `.bootstrap` sources it from the checkout | none |
 | Homebrew shell hook | `config/brew/init.zsh` | none, `.bootstrap` sources it from the checkout | none (`.zshenv` puts Homebrew's `bin` on `PATH` for the shells that never read it) |

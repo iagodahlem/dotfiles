@@ -47,6 +47,7 @@ This is a personal dotfiles repo for macOS, Arch, and Debian (Raspberry Pi OS) s
 - Self-guard it. Where its tool is missing the hook does nothing and prints nothing (`command -v <tool>` or a file test), because one checkout runs on macOS, Arch, Debian and the containers, and a hook for a macOS app has to be silent everywhere else.
 - No output, and no hand-written `PATH` edit that repeats what `.zshenv` does (it puts Homebrew's `bin` on `PATH` for every zsh). What the tool prints for the shell (`mise activate zsh`, `brew shellenv`) is fine to `eval`.
 - Config the tool reads goes in the same directory. When the tool honours XDG, link it through `config/links` (the directory when the tool owns all of it, a file when it keeps other things beside it), as `mise` does; a tool with nothing but a hook, like `orbstack`, needs no line there.
+- `config/zsh/.zprofile` stays comments only and is tracked for that: a tool that appends its init there (OrbStack did) shows up as a modified file in `git status`, and the fix is a hook here plus reverting the edit.
 - Check it with `zsh -n config/<tool>/init.zsh`, then a shell in a scratch home (`zsh -il -c 'echo ok'` prints `ok` and nothing else) and `ci/shell-startup.sh` for what it costs.
 
 **Assumptions**
