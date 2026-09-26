@@ -25,10 +25,13 @@ load_overlay "$(host_overlay_dir "$DOTFILES")"
 
 unset OS_ID
 
-source "$DOTFILES_CONFIG"/mise/.mise
-source "$DOTFILES_CONFIG"/atuin/.atuin
-source "$DOTFILES_CONFIG"/brew/.homebrew
-source "$DOTFILES_CONFIG"/cargo/.cargo
+# Tool hooks: every config/<tool>/init.zsh in name order, except that mise goes first, because it puts the tools it installs on PATH (atuin, on the Debian family) and the hooks after it look for them
+# (N) keeps an empty match silent, (u) drops the second copy of mise's own hook, and a hook whose tool is missing does nothing (see "Adding a tool hook" in AGENTS.md)
+hooks=("$DOTFILES_CONFIG"/mise/init.zsh "$DOTFILES_CONFIG"/*/init.zsh(N))
+for FILE in ${(u)hooks}; do
+  [ -r "$FILE" ] && source "$FILE"
+done
+unset FILE hooks
 
 # Machine-private lines (gitignored, see local.zsh.example), last so they win over everything above
 if [ -r "$DOTFILES_ZSH/local.zsh" ]; then
