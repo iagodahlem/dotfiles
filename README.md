@@ -108,7 +108,7 @@ Everything else lives under `~/.config`, linked from `config/` by the table in `
 | `~/.config/mise` | `config/mise/` | directory |
 | `~/.config/karabiner` | `config/karabiner/` | directory, macOS only |
 
-`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (a link to the `git/config` of this machine's host overlay, when it has one), sit in `config/git/` in the checkout and are gitignored. `~/.config/zsh` keeps one untracked file the same way, `local.zsh` (copy `config/zsh/local.zsh.example`), which `.bootstrap` sources last for the lines that belong to one machine only, such as `TMUX_LS_ORDER`. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
+`~/.config/git` is a directory link like the rest, so the two untracked files git includes by path, `local` (the identity for this machine, from `config/git/local.example`) and `host` (a link to the `git/config` of this machine's host overlay, when it has one), sit in `config/git/` in the checkout and are gitignored. `~/.config/zsh` keeps one untracked file the same way, `local.zsh` (copy `config/zsh/local.zsh.example`), which `bootstrap.zsh` sources last for the lines that belong to one machine only, such as `TMUX_LS_ORDER`. `~/.config/mise` is a directory link too, and the `conf.d/apt-gaps.toml` fragment that `scripts/install-mise.sh` writes on the Debian family lands in `config/mise/conf.d/`, gitignored as well (mise keeps its trust records and other state under `$XDG_STATE_HOME/mise`, so nothing else of its own is written next to `config.toml`). `git clean -x` would remove these untracked files. The tools installed by `scripts/install-shell.sh` (oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm) go under `$XDG_DATA_HOME`, and shell history and the completion dump under `$XDG_STATE_HOME` and `$XDG_CACHE_HOME`, so what tools write stays out of this repo (apart from `lazy-lock.json`, which the nvim plugin sync writes next to the config on purpose). `TOOLS.md` has the full tool, path and variable table.
 
 `~/.config/karabiner` is a directory link on macOS only, and it has to be the directory: Karabiner-Elements stops noticing changes to `karabiner.json` when the file itself is a link ([the location of the configuration file](https://karabiner-elements.pqrs.org/docs/manual/misc/configuration-file-path/)). The dated backups it writes to `automatic_backups/` before it rewrites the file land in `config/karabiner/` and are gitignored. On a Mac where Karabiner is already running, restart its config watcher once after the link is made, so it watches the new location: `launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.Karabiner-Console-User-Server`.
 
@@ -245,7 +245,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── ubuntu.sh            # also used for Debian
 │   └── arch.sh
 ├── config/
-│   ├── atuin/init.zsh       # a tool hook: config/<tool>/init.zsh, sourced by .bootstrap (brew, cargo, mise and orbstack have one too)
+│   ├── atuin/init.zsh       # a tool hook: config/<tool>/init.zsh, sourced by bootstrap.zsh (brew, cargo, mise and orbstack have one too)
 │   ├── brew/init.zsh
 │   ├── cargo/init.zsh
 │   ├── ghostty/config       # scaffold, every key commented out
@@ -257,14 +257,14 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── nvim/                # LazyVim: init.lua, lua/, stylua.toml, .neoconf.json
 │   ├── orbstack/init.zsh    # OrbStack's shell init, macOS only
 │   ├── tmux/tmux.conf
-│   └── zsh/                 # .zshenv, .zshrc, .zprofile (kept empty, comments only, so a tool appending to it shows in git status), .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
+│   └── zsh/                 # .zshenv, .zshrc, .zprofile (kept empty, comments only, so a tool appending to it shows in git status) and .p10k.zsh, which zsh and p10k look up by name, so they stay hidden; bootstrap.zsh, exports.zsh, aliases.zsh, functions.zsh, which .zshrc sources, so they are plain .zsh files; local.zsh.example (local.zsh stays untracked)
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
 │   └── entrypoint.sh
 ├── overlays/
 │   ├── README.md
-│   ├── os/                  # arch, debian, macos, ubuntu (zsh/.aliases)
+│   ├── os/                  # arch, debian, macos, ubuntu (zsh/aliases.zsh)
 │   └── host/                # example, the shape of a host overlay (real ones live in a private repo)
 ├── docs/
 │   └── new-mac.md
@@ -285,7 +285,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 
 - `scripts/install.sh` runs the install steps in the order of its `STEPS` table, one `==> <step>` header each, and passes `--dry-run` on to them as `DOTFILES_DRY_RUN=1`. A step that fetches from the network (`private`, `mise`, `ai-clis`, `nvim`, `host`) warns on failure and lets the rest carry on. It opens with a banner (and the question, see above) and ends with a summary of the steps, their seconds and the warnings.
 - `scripts/utils/os.sh` resolves `os_id` (`macos`, `arch`, `debian`, `raspbian`, `ubuntu`, or `unknown`). `debian`, `raspbian` and `ubuntu` share the apt list and `os/ubuntu.sh`. `DOTFILES_OS_ID` overrides the detection for tests, for example `DOTFILES_OS_ID=macos scripts/install-dotfiles.sh` in a scratch `$HOME` on Linux to apply the `macos` entries of `config/links`.
-- `scripts/utils/host.sh` names this machine (`host_id`, `DOTFILES_HOST` or the short hostname) and finds its overlay (`host_overlay_dir`), for the installer scripts and for `config/zsh/.bootstrap` alike.
+- `scripts/utils/host.sh` names this machine (`host_id`, `DOTFILES_HOST` or the short hostname) and finds its overlay (`host_overlay_dir`), for the installer scripts and for `config/zsh/bootstrap.zsh` alike.
 - `scripts/utils/ui.sh` is the installer's output: `ui_banner`, `ui_step`, the lines that close a step (`ui_ok`, `ui_skip`, `ui_warn`, `ui_fail`), `ui_note`, `ui_confirm` and `ui_summary`, with the colour switched off unless stdout is a terminal and `NO_COLOR` is unset. It also has `report_warning`, which a step calls instead of printing `warning: ...` itself: the line reaches stderr as before, and when the step runs under `install.sh` the summary lists it too. It sticks to what bash 3.2 has (no associative arrays, no `${var,,}`), since that is the bash macOS ships.
 - `scripts/utils/dry-run.sh` is what every step shares for the dry run: `is_dry_run`, and `run`, which runs a command or prints it. `scripts/utils/linux-defaults.sh` holds the login shell and docker group actions that `os/arch.sh` and `os/ubuntu.sh` share.
 - `scripts/install-private.sh` runs first: it clones `DOTFILES_PRIVATE_REPO` to `DOTFILES_PRIVATE` (`~/.machines`) with `git clone --depth 1`, or runs `git pull --ff-only` when that is already a checkout, so the overlay of this machine is there for the steps after it. It only prints a line when `DOTFILES_PRIVATE_REPO` is not set, and a failure only warns.
@@ -306,13 +306,13 @@ Overlays provide optional OS- and host-specific customizations without separate 
 
 - OS overlay: `overlays/os/<id>/` where `<id>` matches `os_id`, shell files only.
 - Host overlay: one folder per machine, named after its short hostname in lower case (`DOTFILES_HOST` picks another). It is `<name>/dotfiles/` in the private overlays repo, checked out at `~/.machines`, and `overlays/host/<name>/` in this repo is only the fallback and the documented shape. The real overlays are private, so they are not in this repo.
-- An overlay may hold `zsh/.exports`, `zsh/.aliases`, `zsh/.functions`, `zsh/.zshrc.local` and `zsh/.bootstrap` (read by `config/zsh/.bootstrap`), a `git/config` (linked as `config/git/host`), a `Brewfile` (applied on macOS), `packages/pacman.txt` and `packages/apt.txt` (applied on Arch and on the Debian family, after the shared lists) and an `install.sh` (the `host` step). Every file is optional.
+- An overlay may hold `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh`, `zsh/extra.zsh` and `zsh/bootstrap.zsh` (read by `config/zsh/bootstrap.zsh` in that order, and the private overlays repo uses the same names), a `git/config` (linked as `config/git/host`), a `Brewfile` (applied on macOS), `packages/pacman.txt` and `packages/apt.txt` (applied on Arch and on the Debian family, after the shared lists) and an `install.sh` (the `host` step). Every file is optional.
 
 Example:
 
 ```text
-overlays/os/ubuntu/zsh/.aliases
-overlays/host/example/zsh/.exports
+overlays/os/ubuntu/zsh/aliases.zsh
+overlays/host/example/zsh/exports.zsh
 ```
 
 ## CI and Smoke

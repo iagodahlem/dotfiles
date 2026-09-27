@@ -7,19 +7,19 @@ Use this to compare against your system and spot what's missing.
 
 ## Where things live
 
-`~/.zshenv` is the only dotfile in `$HOME`. It sets the XDG variables and the redirects below, and zsh then reads the rest from `ZDOTDIR`. The tracked files are linked in by the table in `config/links`, see the README. A row with no tracked source is state the tool writes, kept out of the repo on purpose. The shell hooks are `config/<tool>/init.zsh` files that `.bootstrap` sources from the checkout, so they have no live path ("Adding a Tool Hook" in `AGENTS.md`).
+`~/.zshenv` is the only dotfile in `$HOME`. It sets the XDG variables and the redirects below, and zsh then reads the rest from `ZDOTDIR`. The tracked files are linked in by the table in `config/links`, see the README. A row with no tracked source is state the tool writes, kept out of the repo on purpose. The shell hooks are `config/<tool>/init.zsh` files that `bootstrap.zsh` sources from the checkout, so they have no live path ("Adding a Tool Hook" in `AGENTS.md`).
 
 | Tool | Tracked source | Live path | XDG variable |
 |---|---|---|---|
 | zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
 | zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
 | zsh login profile | `config/zsh/.zprofile` | `~/.config/zsh/.zprofile` (through the directory link) | `ZDOTDIR` (kept empty, comments only, so a tool that appends to it shows as a modified file in `git status`) |
-| zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `.bootstrap` sources it last |
-| atuin shell hook | `config/atuin/init.zsh` | none, `.bootstrap` sources it from the checkout | none |
-| Homebrew shell hook | `config/brew/init.zsh` | none, `.bootstrap` sources it from the checkout | none (`.zshenv` puts Homebrew's `bin` on `PATH` for the shells that never read it) |
-| cargo shell hook | `config/cargo/init.zsh` | none, `.bootstrap` sources it from the checkout | `CARGO_HOME` (it sources `$CARGO_HOME/env`) |
-| mise shell hook | `config/mise/init.zsh` | none, `.bootstrap` sources it from the checkout (it also shows in `~/.config/mise`, which mise ignores) | none |
-| OrbStack shell hook | `config/orbstack/init.zsh` | none, `.bootstrap` sources it from the checkout; it sources `~/.orbstack/shell/init.zsh`, which exists once OrbStack has run (macOS only) | none |
+| zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `bootstrap.zsh` sources it last |
+| atuin shell hook | `config/atuin/init.zsh` | none, `bootstrap.zsh` sources it from the checkout | none |
+| Homebrew shell hook | `config/brew/init.zsh` | none, `bootstrap.zsh` sources it from the checkout | none (`.zshenv` puts Homebrew's `bin` on `PATH` for the shells that never read it) |
+| cargo shell hook | `config/cargo/init.zsh` | none, `bootstrap.zsh` sources it from the checkout | `CARGO_HOME` (it sources `$CARGO_HOME/env`) |
+| mise shell hook | `config/mise/init.zsh` | none, `bootstrap.zsh` sources it from the checkout (it also shows in `~/.config/mise`, which mise ignores) | none |
+| OrbStack shell hook | `config/orbstack/init.zsh` | none, `bootstrap.zsh` sources it from the checkout; it sources `~/.orbstack/shell/init.zsh`, which exists once OrbStack has run (macOS only) | none |
 | zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
 | zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |
 | macOS Terminal session files | none | not written, `SHELL_SESSIONS_DISABLE=1` switches off the save and restore that would put them in `ZDOTDIR` | `SHELL_SESSIONS_DISABLE` |
@@ -285,7 +285,7 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 
 | File in the overlay | What it does |
 |---|---|
-| `zsh/.exports`, `.aliases`, `.functions`, `.zshrc.local`, `.bootstrap` | sourced by `config/zsh/.bootstrap` after the OS overlay, in that order |
+| `zsh/exports.zsh`, `aliases.zsh`, `functions.zsh`, `extra.zsh`, `bootstrap.zsh` | sourced by `config/zsh/bootstrap.zsh` after the OS overlay, in that order; the private overlays repo uses the same names |
 | `git/config` | linked as `config/git/host`, which git includes before `config/git/local` |
 | `Brewfile` | applied by `brew bundle` on macOS, after `packages/Brewfile`; skipped while it has no entries |
 | `packages/pacman.txt` | installed on Arch after `packages/pacman.txt`, in a second `pacman -S --needed --noconfirm` call; skipped while it has no entries |
@@ -362,9 +362,9 @@ Loaded in `.zshrc`:
 
 Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p10k.zsh`.
 
-### Tool initialization (via `.bootstrap`)
+### Tool initialization (via `bootstrap.zsh`)
 
-`.bootstrap` sources every `config/<tool>/init.zsh` after the overlays, in name order with mise first (it puts the tools it installs on `PATH`, atuin on the Debian family among them), then `config/zsh/local.zsh`. Today that is mise, atuin, brew, cargo, orbstack. Each hook does nothing, and prints nothing, where its tool is missing.
+`bootstrap.zsh` sources every `config/<tool>/init.zsh` after the overlays, in name order with mise first (it puts the tools it installs on `PATH`, atuin on the Debian family among them), then `config/zsh/local.zsh`. Today that is mise, atuin, brew, cargo, orbstack. Each hook does nothing, and prints nothing, where its tool is missing.
 
 ### Startup benchmark (`ci/shell-startup.sh`)
 
@@ -394,11 +394,11 @@ Baseline, measured on Arch in a scratch home (oh-my-zsh, Powerlevel10k, mise wit
 | of which the checks, which `ZSH_DISABLE_COMPFIX=true` skips | 3.0 ms | 3% |
 | atuin (`atuin init zsh --disable-up-arrow`) | 7.5 ms | 8% |
 | `brew shellenv` | 5.9 ms | 7% |
-| overlay loading in `.bootstrap` (`os_id`, `host_overlay_dir`) | 3.7 ms | 4% |
+| overlay loading in `bootstrap.zsh` (`os_id`, `host_overlay_dir`) | 3.7 ms | 4% |
 | Powerlevel10k theme and `.p10k.zsh` | 3.2 ms | 4% |
 | Powerlevel10k instant prompt | 0.2 ms | 0% |
 | cargo env | 0.0 ms | 0% |
-| the rest: oh-my-zsh's own libraries, `.aliases`, zsh itself | about 19 ms | 21% |
+| the rest: oh-my-zsh's own libraries, `aliases.zsh`, zsh itself | about 19 ms | 21% |
 
 Without mise the median is 65 ms, and the Ubuntu image, with oh-my-zsh and Powerlevel10k only, measured 68 ms before `skip_global_compinit=1` and 56 ms after it. The benchmark ends before the first prompt. On a pty, a shell that has `echo` typed ahead answers about 154 ms after it starts, and switching a block off there saves 34 ms for mise (14 more than at startup: its `precmd` hook runs `hook-env` again before every prompt) and 29 ms for Powerlevel10k (25 more: drawing the first prompt). Powerlevel10k's instant prompt paints the first prompt at 5 ms instead of 94 ms for about 5 ms of readiness, so it stays.
 
@@ -492,7 +492,7 @@ Without mise the median is 65 ms, and the Ubuntu image, with oh-my-zsh and Power
 
 ## Shell Aliases
 
-### Shared (all OS) — `config/zsh/.aliases`
+### Shared (all OS) — `config/zsh/aliases.zsh`
 
 | Alias | Command | Notes |
 |---|---|---|
@@ -513,7 +513,7 @@ Without mise the median is 65 ms, and the Ubuntu image, with oh-my-zsh and Power
 
 The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) live in the per-OS overlays below.
 
-### macOS overlay — `overlays/os/macos/zsh/.aliases`
+### macOS overlay — `overlays/os/macos/zsh/aliases.zsh`
 
 | Alias | Command |
 |---|---|
@@ -525,7 +525,7 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 | `up` | `update && upgrade` |
 | `cleanup` | `brew cleanup` |
 
-### Ubuntu and Debian overlays — `overlays/os/ubuntu/zsh/.aliases`, `overlays/os/debian/zsh/.aliases` (same content)
+### Ubuntu and Debian overlays — `overlays/os/ubuntu/zsh/aliases.zsh`, `overlays/os/debian/zsh/aliases.zsh` (same content)
 
 | Alias | Command |
 |---|---|
@@ -538,7 +538,7 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 | `up` | `update && upgrade` |
 | `cleanup` | `autoclean && autoremove` |
 
-### Arch overlay — `overlays/os/arch/zsh/.aliases`
+### Arch overlay — `overlays/os/arch/zsh/aliases.zsh`
 
 | Alias | Command |
 |---|---|
@@ -553,7 +553,7 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 
 ## Shell Functions
 
-### Shared — `config/zsh/.functions`
+### Shared — `config/zsh/functions.zsh`
 
 | Function | Purpose |
 |---|---|
@@ -584,7 +584,7 @@ From `config/zsh/.zshenv`, read by every zsh:
 | `SHELL_SESSIONS_DISABLE` | `1`, so macOS Terminal does not write `.zsh_sessions` into `ZDOTDIR` |
 | `HISTFILE`, `ZSH_COMPDUMP` | `$XDG_STATE_HOME/zsh/history`, `$XDG_CACHE_HOME/zsh/zcompdump-<version>`; set but not exported, `.zshrc` creates the directories |
 
-From `config/zsh/.exports`:
+From `config/zsh/exports.zsh`:
 
 | Variable | Value / Purpose |
 |---|---|
@@ -593,7 +593,7 @@ From `config/zsh/.exports`:
 | `EDITOR` | `nvim` |
 | `PATH` | `/usr/local/bin`, `/usr/local/sbin`, `~/.local/bin`, and `$DOTFILES_BIN` prepended; `/snap/bin` appended when present |
 
-From `config/zsh/local.zsh`, sourced last by `.bootstrap` when the file exists (untracked, from `config/zsh/local.zsh.example`):
+From `config/zsh/local.zsh`, sourced last by `bootstrap.zsh` when the file exists (untracked, from `config/zsh/local.zsh.example`):
 
 | Variable | Value / Purpose |
 |---|---|
@@ -608,8 +608,8 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | Tool | Where referenced | How it's expected |
 |---|---|---|
 | xclip | tmux copy-pipe | in `apt.txt` only; the clipboard rework is an open item in `TASKS.md` |
-| mise | `.bootstrap` → `config/mise/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
-| atuin | `.bootstrap` → `config/atuin/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
+| mise | `bootstrap.zsh` → `config/mise/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
+| atuin | `bootstrap.zsh` → `config/atuin/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | node, pnpm, bun | npm-based CLIs, and bun for its own scripts | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |

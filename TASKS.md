@@ -1,6 +1,6 @@
 # TASKS
 
-Tracked tasks for dotfiles repo. Updated 2026-09-25.
+Tracked tasks for dotfiles repo. Updated 2026-09-26.
 
 ## Legend
 
@@ -15,7 +15,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 ### Shell & Startup
 
 - [ ] **Decide the startup options that were measured and not applied**: `ZSH_DISABLE_COMPFIX=true` in `.zshrc` (3.0 ms on Arch, 6.3 ms in the Ubuntu image, and it turns off oh-my-zsh's check for group-writable completion directories), caching the output of `mise activate zsh`, `atuin init zsh` and `brew shellenv zsh` (about 14 ms together, with a cache to invalidate when a binary changes), and dropping the npm and docker-compose plugins (their aliases are unused, 1.2 and 0.3 ms; npm still completes the `npm` command). `ci/shell-startup.sh` stops before the first prompt, which needs about 65 ms more on a terminal (Powerlevel10k drawing it about 25 ms, mise's `precmd` hook about 14 ms): a mode that times it on a pty would cover that.
-- [ ] **Delete or wire `config/npm/.npm`**: nothing sources it (it adds `~/.npm-packages/bin` to `PATH` when that directory exists), so it is dead config beside the tool hooks. Delete it, or if the `PATH` line is still wanted rename it `config/npm/init.zsh` and guard it like the others ("Adding a Tool Hook" in `AGENTS.md`), which `.bootstrap` then sources by itself.
+- [ ] **Delete or wire `config/npm/.npm`**: nothing sources it (it adds `~/.npm-packages/bin` to `PATH` when that directory exists), so it is dead config beside the tool hooks. Delete it, or if the `PATH` line is still wanted rename it `config/npm/init.zsh` and guard it like the others ("Adding a Tool Hook" in `AGENTS.md`), which `bootstrap.zsh` then sources by itself.
 
 ### Layout & Installer
 
@@ -40,7 +40,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ### Documentation
 
-- [~] **Keep README, AGENTS, TOOLS and PLAN in sync**: standing rule, update them in the same change as any install or layout edit. Synced to the current state on 2026-09-25.
+- [~] **Keep README, AGENTS, TOOLS and PLAN in sync**: standing rule, update them in the same change as any install or layout edit. Synced to the current state on 2026-09-26.
 
 ## Parked
 
@@ -49,6 +49,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-25.
 
 ## Done
 
+- [x] **Unhide our own zsh files**: the files zsh and `p10k configure` look up by name keep their dots (`.zshenv`, `.zprofile`, `.zshrc`, `.p10k.zsh`), and the ones we source are plain `.zsh` files like `init.zsh` and `local.zsh`. Renamed on 2026-09-26 in `config/zsh/` and in every overlay: `.bootstrap`, `.exports`, `.aliases` and `.functions` became `bootstrap.zsh`, `exports.zsh`, `aliases.zsh` and `functions.zsh`, and an overlay's `.zshrc.local` became `extra.zsh`. `load_overlay` reads only the new names, in the order `exports.zsh aliases.zsh functions.zsh extra.zsh bootstrap.zsh`, so the overlays in the private repo rename their files too.
 - [x] **Installer output**: a banner (host, OS, checkout, mode, the private overlay found, the steps that run and the ones skipped), one question before a real run from a terminal (`--yes` or `DOTFILES_YES=1` skips it, a dry run never asks), a `==> <step>` header and an `ok`, `skip`, `warn` or `fail` line per step, and a summary at the end with each step's seconds, the warnings word for word and the follow-ups that apply. The helpers are in `scripts/utils/ui.sh` (colour only on a terminal, `NO_COLOR` turns it off, bash 3.2 safe), the steps report warnings through `report_warning`, and `ci/dry-run.sh` checks the output, its plain form and the exit codes.
 - [x] **Measure shell startup time**: `ci/shell-startup.sh` runs `zsh -i -c exit` N times (min, median, max) or once under zprof (`--profile`), against the real home or a scratch home, and a `shell-startup` CI job runs it in the Ubuntu image. Baseline on Arch in a scratch home with oh-my-zsh, Powerlevel10k, mise, atuin and Linuxbrew: median 89.0 ms (65.3 ms without mise), of which mise is 20.7 ms, the ten oh-my-zsh plugins 20.0 ms, compinit 7.6 ms, atuin 7.5 ms and `brew shellenv` 5.9 ms; the Ubuntu image measured 68.2 ms. Two changes came out of it: `skip_global_compinit=1` in `.zshenv` (Ubuntu's `/etc/zsh/zshrc` ran compinit before oh-my-zsh did, 68.2 to 56.3 ms in the image, nothing on Arch or Debian) and the web-search plugin dropped (unused, inside the noise). The per-block table is in `TOOLS.md`.
 - [x] **Packages round two**: the desk apps (bartender, bettertouchtool, cleanshot, logi-options+, granola, notion-calendar) and nmap in the core `packages/Brewfile`, bun through mise, per-host package lists, and Homebrew on `PATH` for ssh commands. The items below are its parts.

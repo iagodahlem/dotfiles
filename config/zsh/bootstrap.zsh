@@ -1,4 +1,4 @@
-for FILE in $DOTFILES_ZSH/.{exports,aliases,functions}; do
+for FILE in $DOTFILES_ZSH/{exports,aliases,functions}.zsh; do
   [ -r "$FILE" ] && source "$FILE"
 done
 unset FILE
@@ -11,7 +11,7 @@ load_overlay() {
   local overlay_root="$1"
   local zsh_dir="$overlay_root/zsh"
   [ -n "$overlay_root" ] && [ -d "$zsh_dir" ] || return 0
-  for FILE in "$zsh_dir"/.{exports,aliases,functions,zshrc.local,bootstrap}; do
+  for FILE in "$zsh_dir"/{exports,aliases,functions,extra,bootstrap}.zsh; do
     [ -r "$FILE" ] && source "$FILE"
   done
 }
