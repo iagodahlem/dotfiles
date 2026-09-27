@@ -62,6 +62,8 @@ export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export TMUX_PLUGIN_MANAGER_PATH="$XDG_DATA_HOME/tmux/plugins"
 # the oh-my-zsh z plugin, which creates the directory (and its lock file) on first use
 export ZSHZ_DATA="$XDG_DATA_HOME/z/data"
+# the Docker CLI's config.json and its credential store setting; OrbStack's docker reads and writes it there too
+export DOCKER_CONFIG="${DOCKER_CONFIG:-$XDG_CONFIG_HOME/docker}"
 
 # the AI CLIs, each with a home of its own
 # claude keeps settings, history and .claude.json here

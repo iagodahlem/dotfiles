@@ -127,13 +127,14 @@ The first run on a machine that used the older layout also clears what it left i
 
 ### The home directory after an install
 
-`~` holds `~/.zshenv`, the checkout (`~/.dotfiles`) and what other software owns: `~/.ssh`, which ssh and the git signing key read from there and which has no XDG variable, and on macOS `~/Library`, `~/.Trash` and `~/.CFUserTextEncoding`. What a tool would otherwise leave there as a dotfile is sent to the XDG directories by a variable in `config/zsh/.zshenv`:
+`~` holds `~/.zshenv`, the checkout (`~/.dotfiles`) and what other software owns: `~/.ssh`, which ssh and the git signing key read from there and which has no XDG variable, and on macOS `~/Library`, `~/.Trash`, `~/.CFUserTextEncoding` and `~/.orbstack`, OrbStack's own home (its VM, its `bin` and its shell init, with no documented override). What a tool would otherwise leave there as a dotfile is sent to the XDG directories by a variable in `config/zsh/.zshenv`:
 
 - `ZSHZ_DATA` moves the z plugin's database (`~/.z`, with its `.z.lock`) to `~/.local/share/z/data`.
 - `NPM_CONFIG_CACHE` moves the npm cache (`~/.npm`) to `~/.cache/npm`.
 - `CLAUDE_CONFIG_DIR` moves `~/.claude` and `~/.claude.json` to `~/.config/claude`.
 - `CODEX_HOME` moves `~/.codex` to `~/.local/share/codex`. codex keeps `config.toml` there next to its state, so the config sits in the data directory, and `.zshrc` creates the directory because codex exits when it is missing.
 - `GEMINI_CLI_HOME` moves `~/.gemini` to `~/.local/share/gemini/.gemini`.
+- `DOCKER_CONFIG` moves the Docker CLI's `~/.docker` to `~/.config/docker`. `config.json` and its credential store setting live there, and OrbStack's docker uses it too.
 - `SHELL_SESSIONS_DISABLE=1` stops macOS Terminal from saving a session file per tab, which it would write to `.zsh_sessions` under `ZDOTDIR`, the checkout. History goes to `~/.local/state/zsh/history` through `HISTFILE`.
 
 `scripts/install-ai-clis.sh` sources `.zshenv` before it runs the vendors' installers, so the first install already writes to these directories.
@@ -156,6 +157,9 @@ mv ~/.claude "$CLAUDE_CONFIG_DIR" && mv ~/.claude.json "$CLAUDE_CONFIG_DIR/.clau
 
 # gemini
 mkdir -p "$GEMINI_CLI_HOME" && mv ~/.gemini "$GEMINI_CLI_HOME/.gemini"
+
+# docker: only config.json moves, so look at what else ~/.docker holds first (`ls -A ~/.docker`; a fresh machine may have nothing)
+mkdir -p "$DOCKER_CONFIG" && mv ~/.docker/config.json "$DOCKER_CONFIG/"
 
 # codex: a new shell made $CODEX_HOME empty, and ~/.local/bin/codex links into the old ~/.codex, so relink it after the move
 rmdir "$CODEX_HOME" && mv ~/.codex "$CODEX_HOME" && "$DOTFILES/scripts/install-ai-clis.sh"
