@@ -1,9 +1,0 @@
-# Set PATH, MANPATH, etc., for Homebrew.
-[ -d "/opt/homebrew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
-
-if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-fi
-
-# .zshenv already put the bin directory on PATH for shells that never get here, and shellenv puts it there again: keep the first of each entry
-typeset -U path

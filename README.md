@@ -93,7 +93,7 @@ Setting up a new machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact
 
 ## Layout
 
-`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). It also puts Homebrew's `bin` directory on `PATH` when it exists (`/opt/homebrew/bin`, `/home/linuxbrew/.linuxbrew/bin`), because ssh runs a command such as `mosh-server`, `scp` or git over ssh in a non-interactive shell that reads only this file, and `config/brew/.homebrew` (the full `brew shellenv`) is for interactive shells only. zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
+`~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). It also puts Homebrew's `bin` directory on `PATH` when it exists (`/opt/homebrew/bin`, `/home/linuxbrew/.linuxbrew/bin`), because ssh runs a command such as `mosh-server`, `scp` or git over ssh in a non-interactive shell that reads only this file, and `config/brew/init.zsh` (the full `brew shellenv`) is for interactive shells only. zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
 
 Everything else lives under `~/.config`, linked from `config/` by the table in `config/links`:
 
@@ -245,18 +245,19 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   ├── ubuntu.sh            # also used for Debian
 │   └── arch.sh
 ├── config/
-│   ├── atuin/.atuin
-│   ├── brew/.homebrew
-│   ├── cargo/.cargo
+│   ├── atuin/init.zsh       # a tool hook: config/<tool>/init.zsh, sourced by .bootstrap (brew, cargo, mise and orbstack have one too)
+│   ├── brew/init.zsh
+│   ├── cargo/init.zsh
 │   ├── ghostty/config       # scaffold, every key commented out
 │   ├── git/                 # config, ignore, message, local.example (local and host stay untracked)
 │   ├── karabiner/           # karabiner.json (automatic_backups stays untracked), macOS only
 │   ├── links                # link table read by install-dotfiles.sh
-│   ├── mise/                # .mise, config.toml (conf.d stays untracked)
+│   ├── mise/                # init.zsh, config.toml (conf.d stays untracked)
 │   ├── npm/.npm
 │   ├── nvim/                # LazyVim: init.lua, lua/, stylua.toml, .neoconf.json
+│   ├── orbstack/init.zsh    # OrbStack's shell init, macOS only
 │   ├── tmux/tmux.conf
-│   └── zsh/                 # .zshenv, .zshrc, .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
+│   └── zsh/                 # .zshenv, .zshrc, .zprofile (kept empty, comments only, so a tool appending to it shows in git status), .bootstrap, .exports, .aliases, .functions, .p10k.zsh, local.zsh.example (local.zsh stays untracked)
 ├── containers/
 │   ├── Dockerfile
 │   ├── Dockerfile.arch
@@ -347,7 +348,7 @@ env -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME -u XDG_CACHE_HOME -u Z
 HOME="$scratch" ci/shell-startup.sh
 ```
 
-`zprof` only lists shell functions, so what `mise activate`, `atuin init` and `brew shellenv` spend in the commands they run does not show up in `--profile`. Time those by switching the line off in `config/zsh/.bootstrap` and measuring again.
+`zprof` only lists shell functions, so what `mise activate`, `atuin init` and `brew shellenv` spend in the commands they run does not show up in `--profile`. Time those by moving the tool's `config/<tool>/init.zsh` aside and measuring again.
 
 ## Notes
 

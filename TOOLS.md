@@ -7,13 +7,19 @@ Use this to compare against your system and spot what's missing.
 
 ## Where things live
 
-`~/.zshenv` is the only dotfile in `$HOME`. It sets the XDG variables and the redirects below, and zsh then reads the rest from `ZDOTDIR`. The tracked files are linked in by the table in `config/links`, see the README. A row with no tracked source is state the tool writes, kept out of the repo on purpose.
+`~/.zshenv` is the only dotfile in `$HOME`. It sets the XDG variables and the redirects below, and zsh then reads the rest from `ZDOTDIR`. The tracked files are linked in by the table in `config/links`, see the README. A row with no tracked source is state the tool writes, kept out of the repo on purpose. The shell hooks are `config/<tool>/init.zsh` files that `.bootstrap` sources from the checkout, so they have no live path ("Adding a Tool Hook" in `AGENTS.md`).
 
 | Tool | Tracked source | Live path | XDG variable |
 |---|---|---|---|
 | zsh environment | `config/zsh/.zshenv` | `~/.zshenv` (file link) | sets `XDG_*` and `ZDOTDIR` |
 | zsh config | `config/zsh/` | `~/.config/zsh` (directory link) | `ZDOTDIR` |
+| zsh login profile | `config/zsh/.zprofile` | `~/.config/zsh/.zprofile` (through the directory link) | `ZDOTDIR` (kept empty, comments only, so a tool that appends to it shows as a modified file in `git status`) |
 | zsh machine-private lines | none, untracked and gitignored (`local.zsh.example` is the template) | `config/zsh/local.zsh` in the checkout, reached as `~/.config/zsh/local.zsh` | none, `.bootstrap` sources it last |
+| atuin shell hook | `config/atuin/init.zsh` | none, `.bootstrap` sources it from the checkout | none |
+| Homebrew shell hook | `config/brew/init.zsh` | none, `.bootstrap` sources it from the checkout | none (`.zshenv` puts Homebrew's `bin` on `PATH` for the shells that never read it) |
+| cargo shell hook | `config/cargo/init.zsh` | none, `.bootstrap` sources it from the checkout | `CARGO_HOME` (it sources `$CARGO_HOME/env`) |
+| mise shell hook | `config/mise/init.zsh` | none, `.bootstrap` sources it from the checkout (it also shows in `~/.config/mise`, which mise ignores) | none |
+| OrbStack shell hook | `config/orbstack/init.zsh` | none, `.bootstrap` sources it from the checkout; it sources `~/.orbstack/shell/init.zsh`, which exists once OrbStack has run (macOS only) | none |
 | zsh history | none | `~/.local/state/zsh/history` | `HISTFILE`, `XDG_STATE_HOME` |
 | zsh completion dump | none | `~/.cache/zsh/zcompdump-<version>` | `ZSH_COMPDUMP`, `XDG_CACHE_HOME` |
 | macOS Terminal session files | none | not written, `SHELL_SESSIONS_DISABLE=1` switches off the save and restore that would put them in `ZDOTDIR` | `SHELL_SESSIONS_DISABLE` |
@@ -318,7 +324,7 @@ Rust toolchain sourced from `$CARGO_HOME/env` (`~/.local/share/cargo`).
 
 ### Homebrew (macOS + Linuxbrew)
 
-Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbrew`) when present. `config/brew/.homebrew` runs the full `brew shellenv` for interactive shells and ends with `typeset -U path`. `config/zsh/.zshenv` also prepends the `bin` directory to `PATH` for every zsh, so an ssh command (`mosh-server`, `scp`, git over ssh), which runs a non-interactive shell that reads only `.zshenv`, finds what Homebrew installed.
+Initialized on both macOS (`/opt/homebrew`) and Linux (`/home/linuxbrew/.linuxbrew`) when present. `config/brew/init.zsh` runs the full `brew shellenv` for interactive shells and ends with `typeset -U path`. `config/zsh/.zshenv` also prepends the `bin` directory to `PATH` for every zsh, so an ssh command (`mosh-server`, `scp`, git over ssh), which runs a non-interactive shell that reads only `.zshenv`, finds what Homebrew installed.
 
 ---
 
@@ -358,7 +364,7 @@ Powerlevel10k (`powerlevel10k/powerlevel10k`) with instant prompt and custom `.p
 
 ### Tool initialization (via `.bootstrap`)
 
-Loaded in order: mise, atuin, homebrew, cargo.
+`.bootstrap` sources every `config/<tool>/init.zsh` after the overlays, in name order with mise first (it puts the tools it installs on `PATH`, atuin on the Debian family among them), then `config/zsh/local.zsh`. Today that is mise, atuin, brew, cargo, orbstack. Each hook does nothing, and prints nothing, where its tool is missing.
 
 ### Startup benchmark (`ci/shell-startup.sh`)
 
@@ -602,8 +608,8 @@ These tools appear in aliases, configs, or init scripts but are not listed in ev
 | Tool | Where referenced | How it's expected |
 |---|---|---|
 | xclip | tmux copy-pipe | in `apt.txt` only; the clipboard rework is an open item in `TASKS.md` |
-| mise | `.bootstrap` → `.mise` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
-| atuin | `.bootstrap` → `.atuin` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
+| mise | `.bootstrap` → `config/mise/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family `scripts/install-mise.sh` installs it from `https://mise.run` |
+| atuin | `.bootstrap` → `config/atuin/init.zsh` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | procs | alias `ps` | in `Brewfile` and `pacman.txt`; on the Debian family through mise (`scripts/install-mise.sh`) |
 | node, pnpm, bun | npm-based CLIs, and bun for its own scripts | installed through mise by `scripts/install-mise.sh` |
 | claude, codex, gemini | run as `claude`, `codex`, `gemini` | `scripts/install-ai-clis.sh`, not in any package list |

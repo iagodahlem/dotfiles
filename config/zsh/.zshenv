@@ -16,7 +16,7 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 skip_global_compinit=1
 
 # Homebrew on PATH for the shells that never read .zshrc: ssh runs a command (mosh-server, scp, git over ssh) in a non-interactive shell, which reads only this file
-# and would find nothing brew installed. The full `brew shellenv` (MANPATH, fpath, HOMEBREW_*) stays in config/brew/.homebrew for interactive shells, which dedupes the PATH.
+# and would find nothing brew installed. The full `brew shellenv` (MANPATH, fpath, HOMEBREW_*) stays in config/brew/init.zsh for interactive shells, which dedupes the PATH.
 for brew_bin in /opt/homebrew/bin /home/linuxbrew/.linuxbrew/bin; do
   if [ -d "$brew_bin" ]; then
     case ":$PATH:" in
