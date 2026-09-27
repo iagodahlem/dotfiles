@@ -17,7 +17,7 @@ To use another overlay, export `DOTFILES_HOST=<name>` before the installer or th
 
 ## Where the overlay is looked for
 
-`host_overlay_dir` in `scripts/utils/host.sh` finds the overlay directory of this machine, and everything that reads one goes through it: the zsh loader in `config/zsh/.bootstrap`, the git link made by `scripts/install-dotfiles.sh`, the host Brewfile and package lists in `scripts/install-packages.sh` and the `host` step of `scripts/install.sh`. It takes the first of these that exists:
+`host_overlay_dir` in `scripts/utils/host.sh` finds the overlay directory of this machine, and everything that reads one goes through it: the zsh loader in `config/zsh/bootstrap.zsh`, the git link made by `scripts/install-dotfiles.sh`, the host Brewfile and package lists in `scripts/install-packages.sh` and the `host` step of `scripts/install.sh`. It takes the first of these that exists:
 
 | Order | Directory | When it exists |
 |---|---|---|
@@ -50,9 +50,9 @@ Every file is optional.
 
 | File | Read by | Use |
 |---|---|---|
-| `zsh/.exports`, `zsh/.aliases`, `zsh/.functions` | `load_overlay` in `config/zsh/.bootstrap`, after the shared files, in that order | exports, aliases and functions for this OS or host |
-| `zsh/.zshrc.local` | the same loader, after those | shell lines that are none of the three, such as a completion source or a `setopt` |
-| `zsh/.bootstrap` | the same loader, last | anything that has to run after all of the above |
+| `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh` | `load_overlay` in `config/zsh/bootstrap.zsh`, after the shared files, in that order | exports, aliases and functions for this OS or host |
+| `zsh/extra.zsh` | the same loader, after those | shell lines that are none of the three, such as a completion source or a `setopt` |
+| `zsh/bootstrap.zsh` | the same loader, last | anything that has to run after all of the above |
 | `git/config` | `scripts/install-dotfiles.sh`, host overlays only | git settings for this host, linked as `config/git/host` and included by `config/git/config`; the identity stays in `config/git/local` |
 | `Brewfile` | `scripts/install-packages.sh` on macOS, host overlays only | extra formulae and casks in `brew bundle` syntax, applied after `packages/Brewfile`; a Brewfile with no entries is skipped |
 | `packages/pacman.txt` | `scripts/install-packages.sh` on Arch, host overlays only | extra pacman packages, one per line with `#` comments like `packages/pacman.txt`, installed after the shared list in a second `pacman -S --needed --noconfirm` call; a list with no entries is skipped, and a call that fails (a name pacman does not know) warns and lets the rest of the step carry on |
@@ -61,7 +61,7 @@ Every file is optional.
 
 TinyTeX is not an install path: a machine that needs LaTeX lists its texlive packages in `packages/pacman.txt` or `packages/apt.txt`.
 
-The shell loader reads only the `zsh/` files and ignores everything else under an overlay. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
+The shell loader reads only the `zsh/` files above and ignores everything else under an overlay, so a `zsh/` file kept under any other name, with a leading dot for one, is not sourced. The private overlays repo uses the same names, since `<name>/dotfiles/` has the shape of `overlays/host/example/`. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
 
 ## Example
 
@@ -73,11 +73,11 @@ git/config
 install.sh
 packages/apt.txt
 packages/pacman.txt
-zsh/.aliases
-zsh/.bootstrap
-zsh/.exports
-zsh/.functions
-zsh/.zshrc.local
+zsh/aliases.zsh
+zsh/bootstrap.zsh
+zsh/exports.zsh
+zsh/extra.zsh
+zsh/functions.zsh
 ```
 
 To add a machine, create `<name>/dotfiles/` in the private repo with only the files it needs. Nothing has to be registered anywhere. To keep an overlay in this repo instead, create `overlays/host/<name>/` the same way, where it is used only when the private repo has no folder for the host.

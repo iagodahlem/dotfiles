@@ -31,13 +31,13 @@ plugins=(
   zsh-syntax-highlighting
 )
 
-# overlays are loaded from .bootstrap
+# overlays are loaded from bootstrap.zsh
 
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 
 # bootstrap
-source $DOTFILES_ZSH/.bootstrap
+source $DOTFILES_ZSH/bootstrap.zsh
 
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes

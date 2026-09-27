@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Sourced by the installer scripts and by config/zsh/.bootstrap, so the installer and the shell find the same overlay for a machine.
+# Sourced by the installer scripts and by config/zsh/bootstrap.zsh, so the installer and the shell find the same overlay for a machine.
 
 # Where the private overlays repo is checked out: one folder per machine, <name>/dotfiles/ being that machine's overlay.
 # config/zsh/.zshenv exports the same default, so a script that has not read it still agrees with the shell.
