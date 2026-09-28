@@ -158,8 +158,10 @@ mv ~/.claude "$CLAUDE_CONFIG_DIR" && mv ~/.claude.json "$CLAUDE_CONFIG_DIR/.clau
 # gemini
 mkdir -p "$GEMINI_CLI_HOME" && mv ~/.gemini "$GEMINI_CLI_HOME/.gemini"
 
-# docker: only config.json moves, so look at what else ~/.docker holds first (`ls -A ~/.docker`; a fresh machine may have nothing)
-mkdir -p "$DOCKER_CONFIG" && mv ~/.docker/config.json "$DOCKER_CONFIG/"
+# docker: ~/.docker holds config.json, contexts/ and cli-plugins/, and the CLI reads all three from DOCKER_CONFIG, so the whole directory moves (with only config.json moved, `docker ps` fails on a context that is not found)
+[ -e "$DOCKER_CONFIG" ] || mv ~/.docker "$DOCKER_CONFIG"
+# where the new directory exists already (the CLI ran once in the new shell), move what is in the old one across without overwriting and drop it; rmdir refuses if a name clashed and was left behind
+[ -d ~/.docker ] && find ~/.docker -mindepth 1 -maxdepth 1 -exec mv -n {} "$DOCKER_CONFIG"/ \; && rmdir ~/.docker
 
 # codex: a new shell made $CODEX_HOME empty, and ~/.local/bin/codex links into the old ~/.codex, so relink it after the move
 rmdir "$CODEX_HOME" && mv ~/.codex "$CODEX_HOME" && "$DOTFILES/scripts/install-ai-clis.sh"
