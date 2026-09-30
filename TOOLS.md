@@ -277,7 +277,7 @@ Locale, timezone, service enables, the firewall and drivers are host-level setti
 
 ## Host overlay
 
-The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and package lists and the host step all go through it. It takes the first directory that exists:
+The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and package lists, the `keep-home` check in `migrate_legacy` and the host step all go through it. `config/zsh/.zshenv` works out the same first-directory-wins path inline for `zsh/env.zsh` instead, since it runs in every shell and stays fork-free on purpose. It takes the first directory that exists:
 
 1. `$DOTFILES_PRIVATE/<name>/dotfiles/`: the private overlays repo, checked out at `~/.machines`, which the `private` step clones from `DOTFILES_PRIVATE_REPO` (ssh form, never written in this repo) and pulls on later runs.
 2. `overlays/host/<name>/`: an overlay kept in this repo.
@@ -286,7 +286,9 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 
 | File in the overlay | What it does |
 |---|---|
+| `keep-home` | home-relative names, one per line, that `migrate_legacy` leaves in place instead of backing up |
 | `zsh/exports.zsh`, `aliases.zsh`, `functions.zsh`, `extra.zsh`, `bootstrap.zsh` | sourced by `config/zsh/bootstrap.zsh` after the OS overlay, in that order; the private overlays repo uses the same names |
+| `zsh/env.zsh` | sourced by `config/zsh/.zshenv` directly, after the shared exports, for every zsh; not read by the shell loader above |
 | `git/config` | linked as `config/git/host`, which git includes before `config/git/local` |
 | `Brewfile` | applied by `brew bundle` on macOS, after `packages/Brewfile`; skipped while it has no entries |
 | `packages/pacman.txt` | installed on Arch after `packages/pacman.txt`, in a second `pacman -S --needed --noconfirm` call; skipped while it has no entries |

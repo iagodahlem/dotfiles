@@ -1,6 +1,6 @@
 # TASKS
 
-Tracked tasks for dotfiles repo. Updated 2026-09-26.
+Tracked tasks for dotfiles repo. Updated 2026-09-30.
 
 ## Legend
 
@@ -49,6 +49,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-26.
 
 ## Done
 
+- [x] **Keep and load home files a tool outside this repo manages**: a host overlay's `keep-home` (one home-relative name per line) tells `migrate_legacy` in `scripts/install-dotfiles.sh` to leave that name in place instead of backing it up, and `zsh/env.zsh` is sourced by `config/zsh/.zshenv` directly, after the shared exports, for every zsh (interactive or not, login or not), so it can load such a file back in (`[ -r "$HOME/.zshrc" ] && . "$HOME/.zshrc"`, say) or override an export of its own. Landed 2026-09-30 for a machine where a device-management agent writes CA bundle exports straight into `~/.zshrc`, `~/.zprofile`, `~/.zlogin` and `~/.gitconfig`. `overlays/host/example/` and `overlays/README.md` show the shape ("A machine where another tool manages files in your home").
 - [x] **Unhide our own zsh files**: the files zsh and `p10k configure` look up by name keep their dots (`.zshenv`, `.zprofile`, `.zshrc`, `.p10k.zsh`), and the ones we source are plain `.zsh` files like `init.zsh` and `local.zsh`. Renamed on 2026-09-26 in `config/zsh/` and in every overlay: `.bootstrap`, `.exports`, `.aliases` and `.functions` became `bootstrap.zsh`, `exports.zsh`, `aliases.zsh` and `functions.zsh`, and an overlay's `.zshrc.local` became `extra.zsh`. `load_overlay` reads only the new names, in the order `exports.zsh aliases.zsh functions.zsh extra.zsh bootstrap.zsh`, so the overlays in the private repo rename their files too.
 - [x] **Installer output**: a banner (host, OS, checkout, mode, the private overlay found, the steps that run and the ones skipped), one question before a real run from a terminal (`--yes` or `DOTFILES_YES=1` skips it, a dry run never asks), a `==> <step>` header and an `ok`, `skip`, `warn` or `fail` line per step, and a summary at the end with each step's seconds, the warnings word for word and the follow-ups that apply. The helpers are in `scripts/utils/ui.sh` (colour only on a terminal, `NO_COLOR` turns it off, bash 3.2 safe), the steps report warnings through `report_warning`, and `ci/dry-run.sh` checks the output, its plain form and the exit codes.
 - [x] **Measure shell startup time**: `ci/shell-startup.sh` runs `zsh -i -c exit` N times (min, median, max) or once under zprof (`--profile`), against the real home or a scratch home, and a `shell-startup` CI job runs it in the Ubuntu image. Baseline on Arch in a scratch home with oh-my-zsh, Powerlevel10k, mise, atuin and Linuxbrew: median 89.0 ms (65.3 ms without mise), of which mise is 20.7 ms, the ten oh-my-zsh plugins 20.0 ms, compinit 7.6 ms, atuin 7.5 ms and `brew shellenv` 5.9 ms; the Ubuntu image measured 68.2 ms. Two changes came out of it: `skip_global_compinit=1` in `.zshenv` (Ubuntu's `/etc/zsh/zshrc` ran compinit before oh-my-zsh did, 68.2 to 56.3 ms in the image, nothing on Arch or Debian) and the web-search plugin dropped (unused, inside the noise). The per-block table is in `TOOLS.md`.

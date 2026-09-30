@@ -50,9 +50,11 @@ Every file is optional.
 
 | File | Read by | Use |
 |---|---|---|
+| `keep-home` | `migrate_legacy` in `scripts/install-dotfiles.sh`, host overlays only | home-relative names to leave alone, one per line, `#` comments and blank lines ignored; a name listed here is never backed up or removed by the installer, only reported |
 | `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh` | `load_overlay` in `config/zsh/bootstrap.zsh`, after the shared files, in that order | exports, aliases and functions for this OS or host |
 | `zsh/extra.zsh` | the same loader, after those | shell lines that are none of the three, such as a completion source or a `setopt` |
 | `zsh/bootstrap.zsh` | the same loader, last | anything that has to run after all of the above |
+| `zsh/env.zsh` | `config/zsh/.zshenv` directly, not the shell loader, after the shared exports, host overlays only | exports for every zsh, interactive or not, login or not, loaded after the shared ones so it can also override them (`CARGO_HOME`, say) |
 | `git/config` | `scripts/install-dotfiles.sh`, host overlays only | git settings for this host, linked as `config/git/host` and included by `config/git/config`; the identity stays in `config/git/local` |
 | `Brewfile` | `scripts/install-packages.sh` on macOS, host overlays only | extra formulae and casks in `brew bundle` syntax, applied after `packages/Brewfile`; a Brewfile with no entries is skipped |
 | `packages/pacman.txt` | `scripts/install-packages.sh` on Arch, host overlays only | extra pacman packages, one per line with `#` comments like `packages/pacman.txt`, installed after the shared list in a second `pacman -S --needed --noconfirm` call; a list with no entries is skipped, and a call that fails (a name pacman does not know) warns and lets the rest of the step carry on |
@@ -61,7 +63,13 @@ Every file is optional.
 
 TinyTeX is not an install path: a machine that needs LaTeX lists its texlive packages in `packages/pacman.txt` or `packages/apt.txt`.
 
-The shell loader reads only the `zsh/` files above and ignores everything else under an overlay, so a `zsh/` file kept under any other name, with a leading dot for one, is not sourced. The private overlays repo uses the same names, since `<name>/dotfiles/` has the shape of `overlays/host/example/`. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
+The shell loader (`load_overlay`) reads only `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh`, `zsh/extra.zsh` and `zsh/bootstrap.zsh`, and ignores everything else under an overlay, `zsh/env.zsh` included: `config/zsh/.zshenv` reads that one directly, before the loader even runs, so a `zsh/` file kept under any other name, with a leading dot for one, is not sourced at all. The private overlays repo uses the same names, since `<name>/dotfiles/` has the shape of `overlays/host/example/`. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
+
+## A machine where another tool manages files in your home
+
+Some machines run a tool outside this repo that writes its own files straight into `$HOME`: a device-management agent's security tool, say, dropping a block of CA bundle exports into `~/.zshrc`, `~/.zprofile` and `~/.zlogin`, and `http.sslcainfo` into `~/.gitconfig`, each time it runs. Left alone, two things go wrong: `migrate_legacy` would move a name like `~/.zshrc` or `~/.gitconfig` aside as a `.bak` file the first time the installer runs on that machine, and `zsh` never reads `~/.zshrc` or `~/.zprofile` at all once `ZDOTDIR` points at `~/.config/zsh`, so the shell loses what the tool wrote either way.
+
+`keep-home` and `zsh/env.zsh` are the two knobs for that, used together: list the name in `keep-home` so the installer leaves it where it is, and load it from `zsh/env.zsh` so a zsh started anywhere still sees it, for instance `[ -r "$HOME/.zshrc" ] && . "$HOME/.zshrc"`. The rule behind both is the same: leave a file a tool outside this repo writes exactly where that tool put it, and load it from there. Never copy its content into this repo, tracked or not; the tool owns the file and rewrites it on its own schedule, and a copy here would drift out of date the moment it does.
 
 ## Example
 
@@ -71,10 +79,12 @@ The shell loader reads only the `zsh/` files above and ignores everything else u
 Brewfile
 git/config
 install.sh
+keep-home
 packages/apt.txt
 packages/pacman.txt
 zsh/aliases.zsh
 zsh/bootstrap.zsh
+zsh/env.zsh
 zsh/exports.zsh
 zsh/extra.zsh
 zsh/functions.zsh
