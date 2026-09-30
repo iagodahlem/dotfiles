@@ -89,12 +89,27 @@ safe_link() {
 
 # The files the layout before ~/.config kept in $HOME: a link into the repo is removed, a real file is set aside.
 # ~/.gitconfig.override was the untracked identity file, which now lives at config/git/local in the checkout.
+# A host overlay's keep-home file (overlays/README.md) lists home-relative names, one per line, that a tool outside this
+# repo writes directly (a device-management agent's CA bundle, say): those names are left alone instead of backed up.
 migrate_legacy() {
-  local name path ts
+  local name path ts overlay keep_items
   ts="$(date +%Y%m%d%H%M%S)"
+
+  overlay="$(host_overlay_dir "$ROOT_DIR")"
+  keep_items=""
+  if [ -n "$overlay" ] && [ -f "$overlay/keep-home" ]; then
+    keep_items="$(read_list_items "$overlay/keep-home")"
+  fi
 
   for name in .zshrc .p10k.zsh .tmux.conf .gitconfig .gitignore_global .gitmessage .tool-versions .gitconfig.override; do
     path="$HOME/$name"
+
+    if [ -n "$keep_items" ] && grep -qxF "$name" <<<"$keep_items"; then
+      if [ -L "$path" ] || [ -e "$path" ]; then
+        echo "migrate: left ~/$name in place, kept by this host's overlay"
+      fi
+      continue
+    fi
 
     if [ -L "$path" ]; then
       case "$(readlink "$path")" in
