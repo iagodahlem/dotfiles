@@ -87,29 +87,29 @@ safe_link() {
   ln -s "$src" "$dst"
 }
 
-# The files the layout before ~/.config kept in $HOME: a link into the repo is removed, a real file is set aside.
-# ~/.gitconfig.override was the untracked identity file, which now lives at config/git/local in the checkout.
-# A host overlay's keep-home file (overlays/README.md) lists home-relative names, one per line, that a tool outside this
-# repo writes directly (a device-management agent's CA bundle, say): those names are left alone instead of backed up.
-migrate_legacy() {
-  local name path ts overlay keep_items
-  ts="$(date +%Y%m%d%H%M%S)"
+# Why migrate_legacy leaves a real file of that name alone: what still reads it, or what reads its replacement instead.
+legacy_leave_reason() {
+  case "$1" in
+    .zshrc | .p10k.zsh) echo "zsh does not read it once ZDOTDIR is set" ;;
+    .tmux.conf) echo "tmux reads ~/.config/tmux/tmux.conf first" ;;
+    .gitconfig) echo "git reads it next to ~/.config/git/config" ;;
+    .gitignore_global) echo "git's excludesfile points at ~/.config/git/ignore instead" ;;
+    .gitmessage) echo "git's commit template points at ~/.config/git/message instead" ;;
+    .tool-versions) echo "mise merges it with ~/.config/mise/config.toml" ;;
+    .gitconfig.override) echo "git already uses ~/.config/git/local instead" ;;
+  esac
+}
 
-  overlay="$(host_overlay_dir "$ROOT_DIR")"
-  keep_items=""
-  if [ -n "$overlay" ] && [ -f "$overlay/keep-home" ]; then
-    keep_items="$(read_list_items "$overlay/keep-home")"
-  fi
+# The files the layout before ~/.config kept in $HOME: a link into the repo is removed, a real file is left exactly where it is,
+# since none of the shared config reads it from $HOME any more (legacy_leave_reason says why, one per name) - this is what keeps a
+# real file a tool outside this repo writes to directly, a security tool's CA bundle lines into ~/.gitconfig say, working: this
+# installer never touches it. ~/.gitconfig.override is the one exception, since it was this repo's own untracked identity file in
+# that old layout rather than something outside it: a real one still moves into config/git/local the first time.
+migrate_legacy() {
+  local name path reason
 
   for name in .zshrc .p10k.zsh .tmux.conf .gitconfig .gitignore_global .gitmessage .tool-versions .gitconfig.override; do
     path="$HOME/$name"
-
-    if [ -n "$keep_items" ] && grep -qxF "$name" <<<"$keep_items"; then
-      if [ -L "$path" ] || [ -e "$path" ]; then
-        echo "migrate: left ~/$name in place, kept by this host's overlay"
-      fi
-      continue
-    fi
 
     if [ -L "$path" ]; then
       case "$(readlink "$path")" in
@@ -132,12 +132,12 @@ migrate_legacy() {
         mv "$path" "$GIT_LOCAL"
         echo "migrate: moved ~/$name to ${GIT_LOCAL/#"$HOME"/\~}"
       else
+        reason="$(legacy_leave_reason "$name")"
         if is_dry_run; then
-          would_migrate "$name" "real file to back up"
+          would_migrate "$name" "left in place, a real file this repo did not create ($reason)"
           continue
         fi
-        mv "$path" "$path.bak.$ts"
-        echo "migrate: backed up ~/$name to ~/$name.bak.$ts"
+        echo "migrate: left ~/$name in place, a real file this repo did not create ($reason)"
       fi
     fi
   done
