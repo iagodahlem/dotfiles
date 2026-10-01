@@ -1,6 +1,6 @@
 # Overlays
 
-Overlays provide optional, OS- or host-specific tweaks without separate repositories.
+Overlays provide optional, OS- or host-specific tweaks without separate repositories. See [`docs/shell-startup.md`](../docs/shell-startup.md) for where overlay loading sits in the full shell startup chain.
 
 ## Structure
 
