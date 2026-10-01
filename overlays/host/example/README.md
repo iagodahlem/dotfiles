@@ -7,8 +7,6 @@ The real overlays live in a private repo, one folder per machine, and the overla
 - `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh`: exports, aliases and functions for this host
 - `zsh/extra.zsh`: shell lines that are none of those three
 - `zsh/bootstrap.zsh`: whatever has to run after the rest of the overlay
-- `zsh/env.zsh`: read by `config/zsh/.zshenv` directly, not the shell loader above, after the shared exports, for every zsh (interactive or not, login or not), so it can also override them
 - `git/config`: git settings for this host, linked as `config/git/host`
 - `Brewfile`: extra formulae and casks for this host on macOS, in `brew bundle` syntax
-- `keep-home`: home-relative names, one per line, that the installer leaves alone instead of backing up
 - `install.sh`: setup only this host needs, run as the installer's `host` step, the last one
