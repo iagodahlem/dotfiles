@@ -7,7 +7,7 @@ The exact sequence for a fresh Mac, start to working shell in about 10 minutes. 
 - Sign in to the Mac with the account that belongs on this machine.
 - Install pending macOS updates (`sudo softwareupdate -i -r`).
 - Generate an SSH key on this machine if you don't already have one here (`ssh-keygen -t ed25519`) and add the public key to GitHub. Reusing a key copied from another machine defeats the point of a per-machine identity below.
-- Make sure that key can also reach the private repo of host overlays, if you keep one (step 2). The installer clones it over ssh, so a key that GitHub accepts for this machine but not for that repo fails the clone with a warning, and the machine gets the shared config only.
+- Make sure that key can also reach the private repo of host overlays, if you keep one and point it at the ssh form in step 2. A key that GitHub accepts for this machine but not for that repo fails the clone with a warning, and the machine gets the shared config only; see step 2 for the https form when ssh is not an option.
 
 ## 1. Clone and set the identity first
 
@@ -25,12 +25,14 @@ Shell lines that belong to this machine only (`TMUX_LS_ORDER`, for example) go i
 
 ## 2. Pull in the private overlays, then run the installer
 
-The settings that belong to one machine are not in this repo. They live in a private repo of overlays with one folder per machine, and the overlay of this machine is the `<name>/dotfiles/` folder in it, where `<name>` is the short hostname in lower case (`hostname -s`; set `DOTFILES_HOST` to use another). Point the installer at that repo, in the ssh form, and let its first step, `private`, clone it to `~/.machines`:
+The settings that belong to one machine are not in this repo. They live in a private repo of overlays with one folder per machine, and the overlay of this machine is the `<name>/dotfiles/` folder in it, where `<name>` is the short hostname in lower case (`hostname -s`; set `DOTFILES_HOST` to use another). Point the installer at that repo, any URL `git clone` accepts, and let its first step, `private`, clone it to `~/.machines`:
 
 ```sh
 export DOTFILES_PRIVATE_REPO=git@github.com:<user>/<repo>.git
 ./scripts/install.sh --only private
 ```
+
+Use the ssh form above when this machine's key can reach the repo. On a machine that cannot reach GitHub over ssh (a work machine whose policy blocks it, for example), use the https form instead, `https://<user>@github.com/<user>/<repo>.git`: the username in the URL lets the macOS keychain or another credential helper keep a credential for that account, and the password there is a personal access token.
 
 It pulls the repo instead on a machine that already has it, and does nothing but say private overlays are off while `DOTFILES_PRIVATE_REPO` is empty. `DOTFILES_PRIVATE` moves the checkout elsewhere. A dry run does not clone, so do this before the dry run to have the overlay of this machine in the report.
 

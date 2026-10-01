@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Checks out the private overlays repo at $DOTFILES_PRIVATE (~/.machines by default), or fast-forwards it when it is already there.
 # The repo holds one folder per machine, <name>/dotfiles/ being that machine's overlay (see overlays/README.md). Its address is never in this
-# repo: set DOTFILES_PRIVATE_REPO to it, in the ssh form, and make sure the key of this machine can reach it. Without one, nothing is cloned.
+# repo: set DOTFILES_PRIVATE_REPO to it, any URL git clone accepts (ssh or https), and make sure this machine can authenticate to it. Without one, nothing is cloned.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -31,7 +31,7 @@ if [ -d "$DEST" ] && [ -n "$(ls -A "$DEST")" ]; then
 fi
 
 if [ -z "$REPO" ]; then
-  echo "private overlays are off: set DOTFILES_PRIVATE_REPO to the repo of your overlays, ssh form, to clone it to $(display_path "$DEST")"
+  echo "private overlays are off: set DOTFILES_PRIVATE_REPO to the repo of your overlays, any git URL (ssh or https), to clone it to $(display_path "$DEST")"
   exit 0
 fi
 

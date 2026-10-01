@@ -35,7 +35,7 @@ It is any git repo with one folder per machine, and the overlay of a machine in 
 <name>/dotfiles/    the overlay of <name>, the same shape as overlays/host/example/
 ```
 
-The `private` step of `scripts/install.sh`, the first one, puts it in place. Set `DOTFILES_PRIVATE_REPO` to the repo in the ssh form and make sure the key of the machine can reach it:
+The `private` step of `scripts/install.sh`, the first one, puts it in place. Set `DOTFILES_PRIVATE_REPO` to the repo, any URL `git clone` accepts (ssh, which needs a key that can reach it, or https, which needs a credential helper or token), and make sure the machine can authenticate to it:
 
 - not a git checkout at `$DOTFILES_PRIVATE` (`~/.machines` by default): `git clone --depth 1 "$DOTFILES_PRIVATE_REPO" "$DOTFILES_PRIVATE"`
 - already a checkout: `git -C "$DOTFILES_PRIVATE" pull --ff-only`, which only warns when it cannot update

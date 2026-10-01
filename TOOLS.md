@@ -280,7 +280,7 @@ Locale, timezone, service enables, the firewall and drivers are host-level setti
 
 The overlay of one machine holds what that machine needs beyond the shared config. `host_overlay_dir` in `scripts/utils/host.sh` finds it for the host named by `DOTFILES_HOST` (the short hostname in lower case, detected in `config/zsh/.zshenv`), and the shell loader, the git link, the host Brewfile and package lists and the host step all go through it. It takes the first directory that exists:
 
-1. `$DOTFILES_PRIVATE/<name>/dotfiles/`: the private overlays repo, checked out at `~/.machines`, which the `private` step clones from `DOTFILES_PRIVATE_REPO` (ssh form, never written in this repo) and pulls on later runs.
+1. `$DOTFILES_PRIVATE/<name>/dotfiles/`: the private overlays repo, checked out at `~/.machines`, which the `private` step clones from `DOTFILES_PRIVATE_REPO` (any git URL, never written in this repo) and pulls on later runs.
 2. `overlays/host/<name>/`: an overlay kept in this repo.
 
 The real overlays are private, so nothing here says what a machine carries. `overlays/host/example/` has one file of each kind and `overlays/README.md` lists what reads each of them:
@@ -298,7 +298,7 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 |---|---|
 | `DOTFILES_HOST` | the name of this machine, the short hostname in lower case unless already set |
 | `DOTFILES_PRIVATE` | where the private overlays repo is checked out, `~/.machines` unless already set |
-| `DOTFILES_PRIVATE_REPO` | the private overlays repo to clone, in the ssh form; empty means private overlays are off |
+| `DOTFILES_PRIVATE_REPO` | the private overlays repo to clone, any URL `git clone` accepts (ssh or https); empty means private overlays are off |
 | `DOTFILES_SKIP_PRIVATE`, `DOTFILES_SKIP_HOST` | skip the `private` step, or the host hook |
 
 ---

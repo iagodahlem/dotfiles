@@ -54,7 +54,7 @@ A dry run, and a run with no terminal (CI, a container build), never asks. Each 
 Colour and bold only show on a terminal; NO_COLOR=1 turns them off, and a log or a pipe gets plain text.
 
 private, mise, ai-clis, nvim and host fetch from the network, so a failure in one of them warns and the run carries on.
-private runs first, so the overlay of this machine is there for the steps after it. It clones DOTFILES_PRIVATE_REPO (ssh form) to DOTFILES_PRIVATE, ~/.machines by default, and does nothing while that is unset.
+private runs first, so the overlay of this machine is there for the steps after it. It clones DOTFILES_PRIVATE_REPO, any URL git clone accepts (ssh or https), to DOTFILES_PRIVATE, ~/.machines by default, and does nothing while that is unset.
 DOTFILES_HOST names this machine, the short hostname by default. Its overlay is <DOTFILES_PRIVATE>/<name>/dotfiles/ when that exists, else overlays/host/<name>/:
 its Brewfile on macOS, its git config, and its install.sh for the host step.
 A dry run reports the machine as it is now: a step that depends on an earlier one (mise on the packages, nvim on the dotfiles links) reports what it finds today.
