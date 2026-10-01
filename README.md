@@ -93,6 +93,8 @@ Setting up a new machine? See [`docs/new-mac.md`](docs/new-mac.md) for the exact
 
 ## Layout
 
+See [`docs/shell-startup.md`](docs/shell-startup.md) for the full chain from zsh start to the prompt, a diagram, overlay resolution, precedence and the installer, all in one place.
+
 `~/.zshenv` is the only dotfile in `$HOME`. It is a link to `config/zsh/.zshenv`, which sets the XDG base directories (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, keeping any value already exported), points `ZDOTDIR` at `~/.config/zsh`, and redirects the tools that ignore XDG on their own (oh-my-zsh, cargo, rustup, npm, the tmux plugin manager, the z plugin, claude, codex and gemini). It also puts Homebrew's `bin` directory on `PATH` when it exists (`/opt/homebrew/bin`, `/home/linuxbrew/.linuxbrew/bin`), because ssh runs a command such as `mosh-server`, `scp` or git over ssh in a non-interactive shell that reads only this file, and `config/brew/init.zsh` (the full `brew shellenv`) is for interactive shells only. zsh reads `ZDOTDIR` only after `/etc/zshenv`, which is why that one file cannot move.
 
 Everything else lives under `~/.config`, linked from `config/` by the table in `config/links`:
