@@ -61,7 +61,13 @@ Every file is optional.
 
 TinyTeX is not an install path: a machine that needs LaTeX lists its texlive packages in `packages/pacman.txt` or `packages/apt.txt`.
 
-The shell loader reads only the `zsh/` files above and ignores everything else under an overlay, so a `zsh/` file kept under any other name, with a leading dot for one, is not sourced. The private overlays repo uses the same names, since `<name>/dotfiles/` has the shape of `overlays/host/example/`. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
+The shell loader (`load_overlay`) reads only `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh`, `zsh/extra.zsh` and `zsh/bootstrap.zsh`, and ignores everything else under an overlay. The private overlays repo uses the same names, since `<name>/dotfiles/` has the shape of `overlays/host/example/`. `DOTFILES_SKIP_HOST=1` skips the `host` step, `--only host` runs just it, and `--dry-run` reaches the hook as `DOTFILES_DRY_RUN=1`. A hook that fails only warns, like the other steps that fetch from the network. The hooks under `overlays/host/` are linted with the other shell scripts, the ones in a private repo are not.
+
+## A machine where another tool manages files in your home
+
+Some machines run a tool outside this repo that writes its own files straight into `$HOME`: a security tool, say, dropping a block of CA bundle exports into `~/.zshrc`, `~/.zprofile` and `~/.zlogin`, and `http.sslcainfo` into `~/.gitconfig`, each time it runs. Leave those files exactly where the tool writes them; `migrate_legacy` in `scripts/install-dotfiles.sh` only ever removes a link this repo created in an older layout, never a real file, so a real `~/.zshrc` or `~/.gitconfig` just sits there untouched (it prints the line explaining why leaving it is harmless; see the comment above `migrate_legacy`).
+
+That still leaves the exports with nowhere to go once `ZDOTDIR` points at `~/.config/zsh`, since `zsh` stops reading `~/.zshrc` and `~/.zprofile` at that point. Copy the exports the tool needs into a gitignored, machine-local `config/zsh/local.zshenv` (from `local.zshenv.example`), which `config/zsh/.zshenv` sources last, for every zsh, interactive or not, login or not. Never copy the tool's own file content there verbatim; write the handful of exports that shell needs, pointed at wherever the tool writes its bundle. The tool rewrites its file on its own schedule, and `local.zshenv` only has to agree on the path, not the contents.
 
 ## Example
 

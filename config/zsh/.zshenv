@@ -80,3 +80,10 @@ export SHELL_SESSIONS_DISABLE=1
 # .zshrc creates the directories
 HISTFILE="$XDG_STATE_HOME/zsh/history"
 ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION:-}"
+
+# Machine-local lines (gitignored, see local.zshenv.example), last so they win over everything above, for every zsh,
+# interactive or not, login or not: only under zsh itself, since scripts/install-shell.sh also sources this file from
+# bash, just to resolve the paths above, and local.zshenv is not meant for that shell.
+if [ -n "${ZSH_VERSION:-}" ] && [ -r "$DOTFILES_ZSH/local.zshenv" ]; then
+  . "$DOTFILES_ZSH/local.zshenv"
+fi
