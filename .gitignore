@@ -4,8 +4,10 @@ config/zsh/.zsh_history
 config/zsh/.zsh_sessions/
 config/zsh/*.zwc
 
-# ~/.config/zsh links into this repo too, so the machine-private zsh lines sit in config/zsh/local.zsh untracked
+# ~/.config/zsh links into this repo too, so the machine-private zsh lines sit in config/zsh/local.zsh untracked,
+# and the every-shell twin of it in config/zsh/local.zshenv
 config/zsh/local.zsh
+config/zsh/local.zshenv
 
 # ~/.config/git links into this repo, so the machine-local files sit in config/git untracked: the identity, and the host settings the overlays link in
 config/git/local

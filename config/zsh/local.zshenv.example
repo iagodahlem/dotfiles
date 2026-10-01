@@ -1,0 +1,18 @@
+# Copy this file to config/zsh/local.zshenv, inside the checkout, for the exports that belong to THIS machine only,
+# for every zsh, interactive or not, login or not (local.zsh, its twin, only runs for interactive shells).
+#
+# config/zsh/.zshenv sources config/zsh/local.zshenv last, after everything else it exports,
+# so anything set here wins over the defaults from the tracked files.
+#
+# ~/.config/zsh links to config/zsh, so ~/.config/zsh/local.zshenv is this same file.
+# config/zsh/local.zshenv is gitignored and never committed, so it is safe to put machine-specific values here.
+# It exists only in this checkout: back it up before deleting the checkout, and note that `git clean -x` removes it.
+
+# A work machine's security tool needs its CA bundle on every shell, not just interactive ones, so it goes here
+# rather than in local.zsh. Point these at wherever that tool actually writes the bundle.
+# export NODE_EXTRA_CA_CERTS="$HOME/.security-tool/ca-bundle.pem"
+# export SSL_CERT_FILE="$HOME/.security-tool/ca-bundle.pem"
+# export CURL_CA_BUNDLE="$HOME/.security-tool/ca-bundle.pem"
+
+# Re-pointing a redirect .zshenv already exports, same as local.zsh would for an interactive-only value
+# export CARGO_HOME="$XDG_DATA_HOME/cargo-custom"

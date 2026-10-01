@@ -81,17 +81,9 @@ export SHELL_SESSIONS_DISABLE=1
 HISTFILE="$XDG_STATE_HOME/zsh/history"
 ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION:-}"
 
-# A host overlay's zsh/env.zsh (overlays/README.md), sourced last so it can override any of the exports above, for
-# every zsh, interactive or not, login or not: only under zsh itself, since scripts/install-shell.sh also sources this
-# file from bash, just to resolve the paths above, and an overlay of its own is not meant for that shell.
-# The private overlay directory wins over the checked-out one, host_overlay_dir's rule: an overlay with no zsh/env.zsh
-# does not fall back to the public one's, so this checks the directory, not just the file.
-if [ -n "${ZSH_VERSION:-}" ]; then
-  if [ -d "$DOTFILES_PRIVATE/$DOTFILES_HOST/dotfiles" ]; then
-    overlay_env="$DOTFILES_PRIVATE/$DOTFILES_HOST/dotfiles/zsh/env.zsh"
-  else
-    overlay_env="$DOTFILES_OVERLAYS/host/$DOTFILES_HOST/zsh/env.zsh"
-  fi
-  [ -r "$overlay_env" ] && . "$overlay_env"
-  unset overlay_env
+# Machine-local lines (gitignored, see local.zshenv.example), last so they win over everything above, for every zsh,
+# interactive or not, login or not: only under zsh itself, since scripts/install-shell.sh also sources this file from
+# bash, just to resolve the paths above, and local.zshenv is not meant for that shell.
+if [ -n "${ZSH_VERSION:-}" ] && [ -r "$DOTFILES_ZSH/local.zshenv" ]; then
+  . "$DOTFILES_ZSH/local.zshenv"
 fi
