@@ -18,14 +18,15 @@ Which of the other files run depends on whether the shell is a login shell and w
 
 This repo keeps `.zprofile` deliberately empty, comments only (`config/zsh/.zprofile`), so for every row above the real work happens in `.zshenv` (always) and `.zshrc` (interactive only).
 
-A tool that does not know about `$ZDOTDIR` writes its init lines straight into `~/.zprofile`, `~/.zshrc` or `~/.zlogin` in `$HOME`. Once `ZDOTDIR` points at `~/.config/zsh`, zsh never reads those `$HOME` copies again, so the tool's lines are silently lost, and separately `scripts/install-dotfiles.sh`'s `migrate_legacy` would back up a `~/.zshrc` or similar it finds in `$HOME` as a stray file (`scripts/install-dotfiles.sh` lines 94-144). `keep-home` and a host overlay's `zsh/env.zsh` are the two knobs that fix both problems together: `keep-home` tells the installer to leave the file where the tool put it, and `zsh/env.zsh` sources it from there for every zsh (`overlays/README.md` lines 68-72, section 3 below).
+A tool that does not know about `$ZDOTDIR` writes its init lines straight into `~/.zprofile`, `~/.zshrc` or `~/.zlogin` in `$HOME`. Once `ZDOTDIR` points at `~/.config/zsh`, zsh never reads those `$HOME` copies again, so the tool's lines go nowhere. `scripts/install-dotfiles.sh`'s `migrate_legacy` leaves a real file like that exactly where it is rather than backing it up, since nothing here reads it from `$HOME` any more either way (`scripts/install-dotfiles.sh` lines 91-144, `legacy_leave_reason` says why for each name). A gitignored, machine-local `config/zsh/local.zshenv` is where the lines such a tool needs go instead: `config/zsh/.zshenv` sources it last, for every zsh (`config/zsh/.zshenv` lines 84-89, `overlays/README.md` lines 66-70, section 3 below).
 
 ## 2. The full chain
 
 ```mermaid
 flowchart TD
     A["zsh starts"] --> B[".zshenv (every zsh, always)"]
-    B --> C{"login shell?"}
+    B --> B2["local.zshenv, zsh only, last line of .zshenv"]
+    B2 --> C{"login shell?"}
     C -->|"yes"| D[".zprofile (comments only)"]
     C -->|"no"| E{"interactive?"}
     D --> E
@@ -58,8 +59,7 @@ The same chain, as a tree, with the blocks inside each file in the order the cod
   CLAUDE_CONFIG_DIR, CODEX_HOME, GEMINI_CLI_HOME                      (lines 68-74)
   SHELL_SESSIONS_DISABLE=1                                            (lines 76-77)
   HISTFILE, ZSH_COMPDUMP (not exported)                               (lines 79-82)
-  host overlay's zsh/env.zsh, zsh only, last line of this file        (lines 84-97)
-    (private overlay dir first, else overlays/host/<host>/)
+  local.zshenv, zsh only, gitignored, last line of this file          (lines 84-89)
 .zprofile                              (login shells only)
   kept empty, comments only                                           (whole file)
 .zshrc                                 (interactive shells only)
@@ -85,7 +85,7 @@ The same chain, as a tree, with the blocks inside each file in the order the cod
 
 ## 3. Overlay resolution
 
-An overlay is a directory of optional files for one OS or one host. `host_overlay_dir` (`scripts/utils/host.sh` lines 24-43) is the single place that decides which directory is "the overlay of this machine", and everything that reads a host overlay goes through it or `host_id`/`host_script`, which call it: the zsh loader (`config/zsh/bootstrap.zsh` line 24), `.zshenv`'s own `zsh/env.zsh` read (`config/zsh/.zshenv` lines 90-93), `scripts/install-dotfiles.sh`'s `link_git_host` and `migrate_legacy` (lines 345-374 and 94-112), `scripts/install-packages.sh`'s `find_host_list` (lines 27-43), and `scripts/install.sh`'s `host_script` (lines 84-91).
+An overlay is a directory of optional files for one OS or one host. `host_overlay_dir` (`scripts/utils/host.sh` lines 24-43) is the single place that decides which directory is "the overlay of this machine", and everything that reads a host overlay goes through it or `host_id`/`host_script`, which call it: the zsh loader (`config/zsh/bootstrap.zsh` line 24), `scripts/install-dotfiles.sh`'s `link_git_host` (lines 345-374), `scripts/install-packages.sh`'s `find_host_list` (lines 27-43), and `scripts/install.sh`'s `host_script` (lines 84-91). `migrate_legacy` (lines 108-144) and `config/zsh/.zshenv`'s `local.zshenv` read (lines 84-89) no longer go through a host overlay at all: the first only ever removes a link, and the second reads a plain machine-local file.
 
 It takes the first of these two directories that exists, and does not merge the two: a private overlay missing a file does not fall back to the public one's copy of that file (`overlays/README.md` lines 20-28).
 
@@ -101,21 +101,19 @@ Which files inside an overlay get read, by what, and when:
 | File | Read by | When |
 |---|---|---|
 | `zsh/exports.zsh`, `zsh/aliases.zsh`, `zsh/functions.zsh`, `zsh/extra.zsh`, `zsh/bootstrap.zsh` | `load_overlay` in `config/zsh/bootstrap.zsh` (lines 10-17) | interactive shells, after the shared files of the same names |
-| `zsh/env.zsh` | `config/zsh/.zshenv` directly (lines 89-97), host overlays only | every zsh, after the shared exports in `.zshenv`, before `.zshrc` even starts |
 | `git/config` | `link_git_host` in `scripts/install-dotfiles.sh` (lines 345-374), host overlays only | the `dotfiles` install step, linked to `config/git/host` |
 | `Brewfile`, `packages/pacman.txt`, `packages/apt.txt` | `find_host_list` plus `install_brew`/`install_pacman`/`install_apt` in `scripts/install-packages.sh` (lines 27-43, 78-213), host overlays only | the `packages` install step, after the shared list |
-| `keep-home` | `migrate_legacy` in `scripts/install-dotfiles.sh` (lines 94-112), host overlays only | the `dotfiles` install step, before any link is made |
 | `install.sh` | `host_script` in `scripts/install.sh` (lines 84-91) | the `host` install step, last |
 
-`overlays/host/example/` has one line of each kind, commented out, as the documented shape; the real host overlays live only in the private repo (`overlays/README.md` lines 74-93).
+`overlays/host/example/` has one line of each kind, commented out, as the documented shape; the real host overlays live only in the private repo (`overlays/README.md` lines 74-89).
 
 ## 4. What wins
 
-Reading further down the chain in section 2 means overriding what came before, for everything except git settings, which have their own chain (section 5). Earliest to latest, in general: a shared file, then an OS overlay, then a host overlay, then a tool hook, then `local.zsh`. Variables have one more, earlier override point: a host overlay's `zsh/env.zsh` can already change a value `.zshenv` just set, before `.zshrc` or `bootstrap.zsh` run at all.
+Reading further down the chain in section 2 means overriding what came before, for everything except git settings, which have their own chain (section 5). Earliest to latest, in general: a shared file, then an OS overlay, then a host overlay, then a tool hook, then `local.zsh`. Variables have two more override points around that chain: `local.zshenv`, the last line of `.zshenv` itself, can already change a value `.zshenv` just set, before `.zprofile`, `.zshrc` or `bootstrap.zsh` run at all; for an interactive shell, `local.zsh` at the very end still wins over everything, `local.zshenv` included.
 
 | What | Earliest to latest | Concrete example |
 |---|---|---|
-| A variable | shared `.zshenv` → host `zsh/env.zsh` (still inside `.zshenv`) → shared `exports.zsh` (via `bootstrap.zsh`) → OS overlay `exports.zsh` → host overlay `exports.zsh` → tool hook → `local.zsh` | `CARGO_HOME` defaults to `$XDG_DATA_HOME/cargo` at `config/zsh/.zshenv` line 58; a host overlay's `zsh/env.zsh`, read at `.zshenv` lines 89-97, can set it again before any other file even runs (`overlays/host/example/zsh/env.zsh` line 2 shows the shape, commented out) |
+| A variable | shared `.zshenv` → `local.zshenv` (still inside `.zshenv`) → shared `exports.zsh` (via `bootstrap.zsh`) → OS overlay `exports.zsh` → host overlay `exports.zsh` → tool hook → `local.zsh` | `CARGO_HOME` defaults to `$XDG_DATA_HOME/cargo` at `config/zsh/.zshenv` line 58; `config/zsh/local.zshenv`, sourced at `.zshenv` lines 84-89, can set it again before any other file even runs (`config/zsh/local.zshenv.example` line 18 shows the shape, commented out), and `config/zsh/local.zsh` can still override that for an interactive shell, last of all |
 | An alias | shared `aliases.zsh` → OS overlay `aliases.zsh` → host overlay `aliases.zsh` → `local.zsh` | the shared `config/zsh/aliases.zsh` defines no `install`, `up` or `cleanup`; each OS overlay's `zsh/aliases.zsh` adds its own, loaded after the shared file by `bootstrap.zsh` line 20 (`overlays/os/macos/zsh/aliases.zsh` lines 2-8 vs. `overlays/os/debian/zsh/aliases.zsh` lines 2-9) |
 | A function | shared `functions.zsh` → OS overlay `functions.zsh` → host overlay `functions.zsh` → `local.zsh` | `e` and `mkd` are defined in the shared `config/zsh/functions.zsh` (lines 2-15); a host overlay's `zsh/functions.zsh`, loaded after the shared one by `bootstrap.zsh` line 24, could redefine either (`overlays/host/example/zsh/functions.zsh` line 1 shows the shape; real host overlays are private, so this repo has no live example) |
 | A git setting | `config/git/config` → `config/git/host` include → `config/git/local` include | the default identity (`user.name`, `user.email`, `user.signingkey`) is set at `config/git/config` lines 1-4; `config/git/local`, included last at `config/git/config` lines 156-158, overrides it, which `config/git/local.example` lines 3-5 states directly |
@@ -141,7 +139,7 @@ Both includes are at the end of `config/git/config` (lines 152-154 and 156-158),
 |---|---|---|---|---|
 | `private` | `DOTFILES_SKIP_PRIVATE` | `DOTFILES_PRIVATE_REPO`, clones or pulls to `DOTFILES_PRIVATE` (`scripts/install-private.sh`) | yes | warns |
 | `packages` | `DOTFILES_SKIP_PACKAGES` | `packages/{Brewfile,apt.txt,pacman.txt,aur.txt}`, plus the host overlay's `Brewfile`/`packages/apt.txt`/`packages/pacman.txt` (`scripts/install-packages.sh` lines 27-213) | yes | stops the run |
-| `dotfiles` | `DOTFILES_SKIP_DOTFILES` | `config/links`, the host overlay's `keep-home` and `git/config` (`scripts/install-dotfiles.sh`) | no | stops the run |
+| `dotfiles` | `DOTFILES_SKIP_DOTFILES` | `config/links` and the host overlay's `git/config` (`scripts/install-dotfiles.sh`) | no | stops the run |
 | `shell` | `DOTFILES_SKIP_SHELL` | `config/zsh/.zshenv` (sourced to resolve paths), clones oh-my-zsh, Powerlevel10k, the two zsh plugins, tpm (`scripts/install-shell.sh` lines 19-48) | yes | stops the run |
 | `mise` | `DOTFILES_SKIP_MISE` | `config/mise/config.toml` (`scripts/install-mise.sh`) | yes | warns |
 | `ai-clis` | `DOTFILES_SKIP_AI_CLIS` | `config/zsh/.zshenv` (sourced), the vendor installers of claude, codex, gemini (`scripts/install-ai-clis.sh`) | yes | warns |
@@ -153,9 +151,10 @@ Both includes are at the end of `config/git/config` (lines 152-154 and 156-158),
 
 ## 7. Where do I put a new line?
 
-- Needed by every shell, including a script or an ssh command, and it is only an environment setting (no output): `config/zsh/.zshenv`, shared, or a host overlay's `zsh/env.zsh` if only one machine needs it.
+- Needed by every shell, including a script or an ssh command, for all machines, and it is only an environment setting (no output): `config/zsh/.zshenv`, shared.
+- Every shell, this machine only: `config/zsh/local.zshenv` (copy `config/zsh/local.zshenv.example`; gitignored, sourced last by `.zshenv` itself, wins over everything else `.zshenv` sets, including the shared file).
 - Needed only by interactive shells, for all machines (an alias, a function, a `setopt`, a completion tweak): `config/zsh/{exports,aliases,functions}.zsh`.
 - Needed by all machines running one OS: `overlays/os/<id>/zsh/{exports,aliases,functions,extra,bootstrap}.zsh`.
 - Needed by one host, and worth sharing or scripting: the private overlays repo's `<host>/dotfiles/`, or `overlays/host/<host>/` in this repo if it is fine to be public.
-- Needed by this machine only, and never meant to be committed: `config/zsh/local.zsh` (copy `config/zsh/local.zsh.example`; gitignored, sourced last, wins over everything else). A per-machine git identity is `config/git/local` the same way.
-- A secret (a token, a private hostname, an address of a private repo): never in this repo, tracked or not. It belongs in `local.zsh`, in `config/git/local`, or in the private overlays repo, whichever already applies above.
+- Needed by this machine only, interactive shells, and never meant to be committed: `config/zsh/local.zsh` (copy `config/zsh/local.zsh.example`; gitignored, sourced last, wins over everything else, `local.zshenv` included). A per-machine git identity is `config/git/local` the same way.
+- A secret (a token, a private hostname, an address of a private repo): never in this repo, tracked or not. It belongs in `local.zsh`, `local.zshenv`, `config/git/local`, or the private overlays repo, whichever already applies above.
