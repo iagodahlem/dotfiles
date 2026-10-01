@@ -22,7 +22,6 @@ brew "atuin"          # shell history search and sync
 brew "gh"             # GitHub CLI
 brew "git"
 brew "git-delta"      # diff pager
-brew "zsh"
 
 # --- system tools ---
 brew "btop"           # system monitor
