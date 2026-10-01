@@ -1,6 +1,6 @@
 # TASKS
 
-Tracked tasks for dotfiles repo. Updated 2026-09-30.
+Tracked tasks for dotfiles repo. Updated 2026-10-01.
 
 ## Legend
 
@@ -70,6 +70,7 @@ Tracked tasks for dotfiles repo. Updated 2026-09-30.
 - [x] **Categorized package lists**: comments per entry in every list, and a Debian path (Raspberry Pi OS) with `install-apt-repos.sh` for the third-party sources.
 - [x] **`install-ai-clis.sh`**: claude, codex and gemini install from their own installers instead of the package lists.
 - [x] **Fonts in the Brewfile**: `font-meslo-lg-nerd-font` and `font-fira-code-nerd-font` are casks in `packages/Brewfile`.
+- [x] **Drop zsh from the core Brewfile**: nothing on macOS switches the login shell the way `os/arch.sh` and `os/ubuntu.sh` do on Linux, so `brew "zsh"` only shadowed Apple's `/bin/zsh` (5.9) on `PATH` for a shell invoked by hand; Terminal, tmux and ssh kept using the system copy regardless. Removed from `packages/Brewfile`; zsh stays in `packages/apt.txt` and `packages/pacman.txt`, where the installer does switch the login shell.
 - [x] **`packages/aur.txt`**: holds `google-cloud-cli` only, the AI CLIs left it for their own installers.
 - [x] **Commit pending working-tree changes**
 - [x] **Verify Arch container smoke parity**
