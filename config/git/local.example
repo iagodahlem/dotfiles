@@ -14,6 +14,20 @@
 
 [user]
   email = you@this-machine.example
+  # Uncomment only if this machine uses a different name than the default:
+  # name = Your Name
   # Uncomment only if this machine signs with a different key than the
   # default (~/.ssh/id_ed25519.pub):
   # signingkey = ~/.ssh/id_ed25519_machine.pub
+
+# A machine with no signing key (a work machine where SSH keys aren't
+# allowed, for example) can't satisfy config/git/config's `commit.gpgsign =
+# true`, and leaving `signingkey` empty above doesn't help: every commit
+# still fails. Uncomment this block to turn signing off on this machine:
+# [commit]
+#   gpgsign = false
+#
+# A repo that requires signed commits then needs a key used only for
+# signing, registered on the hosting account (GitHub, for example) as a
+# signing key. Signing is local, so that key works even on a machine
+# where ssh to the host itself is blocked.
