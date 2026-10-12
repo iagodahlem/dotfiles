@@ -76,7 +76,7 @@ mosh --version
 
 ## Machine profile
 
-**Installed by the shared package lists** (the same on every machine, nothing machine-specific removed): terminal (Ghostty), shell (zsh, Oh My Zsh, Powerlevel10k), editor (VS Code, neovim), git tooling (git-delta, gh), runtime manager (mise), mosh, and the rest of `packages/Brewfile`.
+**Installed by the shared package lists** (the same on every machine, nothing machine-specific removed): terminal (Ghostty), shell additions (Oh My Zsh, Powerlevel10k; zsh itself ships with macOS already), editor (VS Code, neovim), git tooling (git-delta, gh), runtime manager (mise), mosh, and the rest of `packages/Brewfile`.
 
 **Deliberately not part of the install:**
 

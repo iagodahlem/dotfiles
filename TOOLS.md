@@ -55,9 +55,9 @@ Use this to compare against your system and spot what's missing.
 
 ### macOS (Homebrew)
 
-`packages/Brewfile` (53 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The `Brewfile` in the host overlay of this machine, when it has one (see Host overlay below), is applied on top of it.
+`packages/Brewfile` (52 entries) is applied with `brew bundle` on every Mac. `brew bundle` skips an app that already exists outside Homebrew and keeps going. The `Brewfile` in the host overlay of this machine, when it has one (see Host overlay below), is applied on top of it.
 
-**Formulae** (26):
+**Formulae** (25):
 
 | Package | Description |
 |---|---|
@@ -86,7 +86,6 @@ Use this to compare against your system and spot what's missing.
 | rtk | compresses noisy command output |
 | speedtest-cli | internet speed test |
 | tmux | terminal multiplexer |
-| zsh | Z shell |
 
 **Casks** (25):
 
