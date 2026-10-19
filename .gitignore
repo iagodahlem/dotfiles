@@ -9,9 +9,13 @@ config/zsh/*.zwc
 config/zsh/local.zsh
 config/zsh/local.zshenv
 
-# ~/.config/git links into this repo, so the machine-local files sit in config/git untracked: the identity, and the host settings the overlays link in
+# ~/.config/git links into this repo, so the machine-local files sit in config/git untracked: the identity, the
+# host settings the overlays link in, and one identity file per folder mapped in config/git/local
+# (identity-work.example is the tracked template, never a real identity file, so it stays unignored)
 config/git/local
 config/git/host
+config/git/identity-*
+!config/git/identity-*.example
 
 # ~/.config/mise links into this repo, so the fragment scripts/install-mise.sh writes on the Debian family lands in config/mise/conf.d untracked
 config/mise/conf.d/

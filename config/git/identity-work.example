@@ -1,0 +1,28 @@
+# Copy this file to config/git/identity-work (or another name) to give one folder on this machine
+# its own git identity, separate from the machine-wide default in config/git/local.
+#
+# config/git/local.example shows the [includeIf] block that points a folder at a file like this one:
+#
+# [includeIf "gitdir:~/Developer/work/"]
+#   path = ~/.config/git/identity-work
+#
+# Git applies an includeIf block where config/git/local's own content places it, the same as a
+# plain include, so putting that block after the [user] section in config/git/local (as the example
+# there does) makes this file win over it for anything both set.
+#
+# ~/.config/git links to config/git, so ~/.config/git/identity-work is this same file. It is
+# gitignored like config/git/local and config/git/host, and never committed, so it is safe to put
+# that folder's email here. It exists only in this checkout: back it up before deleting the
+# checkout, and note that `git clean -x` removes it.
+
+[user]
+  email = you@work-folder.example
+  # Uncomment only if this folder uses a different name than the default:
+  # name = Your Name
+  # Uncomment only if this folder signs with a different key than the rest of this machine:
+  # signingkey = ~/.ssh/id_ed25519_work.pub
+
+# A folder whose commits must not be signed (a work policy that blocks SSH keys, for example) turns
+# signing off here, the same way config/git/local.example does for a whole machine:
+# [commit]
+#   gpgsign = false

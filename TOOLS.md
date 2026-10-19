@@ -31,6 +31,7 @@ Use this to compare against your system and spot what's missing.
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
 | git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is a link to the `git/config` of the host overlay, made by `scripts/install-dotfiles.sh`) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
+| per-folder git identity | none, untracked and gitignored (`identity-work.example` is the template; `config/git/local.example` shows the `includeIf` block that maps a folder to one of these) | `config/git/identity-<name>` in the checkout, one per mapped folder, reached as `~/.config/git/identity-<name>` | none, included by path from `config/git/local` |
 | private overlays | none, a checkout of a private repo, cloned by `scripts/install-private.sh` | `~/.machines`, with the overlay of each machine in `<name>/dotfiles/` | `DOTFILES_PRIVATE` |
 | ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
 | karabiner-elements | `config/karabiner/` | `~/.config/karabiner` (directory link, macOS only) | none, `~/.config` is where it looks by default |
@@ -292,6 +293,8 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 | `packages/pacman.txt` | installed on Arch after `packages/pacman.txt`, in a second `pacman -S --needed --noconfirm` call; skipped while it has no entries |
 | `packages/apt.txt` | installed on the Debian family after `packages/apt.txt`, skipping a package with no candidate on the release; skipped while it has no entries |
 | `install.sh` | run by the `host` step, the last one, with `DOTFILES_DRY_RUN=1` on a dry run; a failure only warns |
+
+A headless, always-on host's `install.sh` can call `pmset_never_sleep` from `scripts/utils/pmset.sh` to turn system sleep off (see "A machine that should never sleep" in `overlays/README.md`); it is not applied by `os/macos.sh`, which runs the same way for every macOS machine, laptop included.
 
 | Variable | Purpose |
 |---|---|

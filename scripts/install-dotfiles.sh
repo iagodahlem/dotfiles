@@ -382,7 +382,10 @@ fi
 apply_links
 link_git_host
 
-if [ ! -e "$GIT_LOCAL" ]; then
-  echo "No config/git/local found: commits on this machine use the default identity from config/git/config."
-  echo "On a new machine, copy config/git/local.example to config/git/local and fill in the email for this machine first."
+if [ ! -s "$GIT_LOCAL" ]; then
+  if ! is_dry_run; then
+    : > "$GIT_LOCAL"
+  fi
+  echo "config/git/local has no identity yet: commits on this machine use the default identity from config/git/config."
+  echo "Copy config/git/local.example over it (or edit it directly) and fill in the email for this machine first."
 fi

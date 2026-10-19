@@ -69,6 +69,22 @@ Some machines run a tool outside this repo that writes its own files straight in
 
 That still leaves the exports with nowhere to go once `ZDOTDIR` points at `~/.config/zsh`, since `zsh` stops reading `~/.zshrc` and `~/.zprofile` at that point. Copy the exports the tool needs into a gitignored, machine-local `config/zsh/local.zshenv` (from `local.zshenv.example`), which `config/zsh/.zshenv` sources last, for every zsh, interactive or not, login or not. Never copy the tool's own file content there verbatim; write the handful of exports that shell needs, pointed at wherever the tool writes its bundle. The tool rewrites its file on its own schedule, and `local.zshenv` only has to agree on the path, not the contents.
 
+## A machine that should never sleep
+
+A headless, always-on box (not a laptop, which should keep sleeping normally) can turn system sleep off from its `install.sh`. `scripts/utils/pmset.sh`'s `pmset_never_sleep` turns off system and disk sleep, and turns on the automatic restart after a power failure and wake on network access, one `sudo pmset -a` call per setting through `run` (see `scripts/utils/dry-run.sh`), so `DOTFILES_DRY_RUN=1` prints the commands and changes nothing; a failed call only warns, the same as the `systemsetup` line in `os/macos.sh`. Source `scripts/utils/dry-run.sh` and `scripts/utils/ui.sh` first, the same way `os/arch.sh` and `os/ubuntu.sh` do for `scripts/utils/linux-defaults.sh`, from an overlay kept in this repo:
+
+```sh
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+source "$ROOT_DIR/scripts/utils/dry-run.sh"
+source "$ROOT_DIR/scripts/utils/ui.sh"
+source "$ROOT_DIR/scripts/utils/pmset.sh"
+pmset_never_sleep
+```
+
+A private overlay's `install.sh` lives outside this checkout, so it has no `$ROOT_DIR` of its own to resolve: point it at `$DOTFILES` when a machine already exports it (`config/zsh/.zshenv`), or `~/.dotfiles` otherwise.
+
+This is deliberately not in `os/macos.sh`: that script runs for every macOS machine the same way, so a setting only one of them should have belongs in that one host's overlay instead.
+
 ## Example
 
 `overlays/host/example/` has one file of each kind, each with a single commented line, and `DOTFILES_HOST=example` loads it anywhere:

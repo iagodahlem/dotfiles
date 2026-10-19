@@ -31,3 +31,17 @@
 # signing, registered on the hosting account (GitHub, for example) as a
 # signing key. Signing is local, so that key works even on a machine
 # where ssh to the host itself is blocked.
+
+# One folder on this machine that needs a different identity from the rest (a work checkout living
+# beside personal projects, for example) gets an includeIf block below, after the [user] section
+# above so it wins only inside that folder. Uncomment it and change the path to match:
+#
+# [includeIf "gitdir:~/Developer/work/"]
+#   path = ~/.config/git/identity-work
+#
+# The path after "gitdir:" needs a trailing slash to match every repository under that folder, and
+# "~" only expands at the very start of it. config/git/identity-work.example shows the shape of the
+# file at the other end: copy it to config/git/identity-work (or another name) and fill in that
+# folder's email the same way as the [user] section above. Map another folder the same way, with
+# its own [includeIf] block and its own identity file; none of this is committed, since the whole
+# mapping lives only in this file.

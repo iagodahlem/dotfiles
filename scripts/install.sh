@@ -160,8 +160,8 @@ finish() {
   set --
   case "$(ui_outcome dotfiles)" in
     ok | warn)
-      if [ ! -e "$git_local" ]; then
-        set -- "$@" "config/git/local is missing, so commits here use the default identity: copy config/git/local.example to it and set the email for this machine (docs/new-mac.md)"
+      if [ ! -s "$git_local" ]; then
+        set -- "$@" "config/git/local is empty, so commits here use the default identity: copy config/git/local.example over it and set the email for this machine (docs/new-mac.md)"
       fi
       ;;
   esac
