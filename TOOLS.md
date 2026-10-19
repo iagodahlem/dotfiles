@@ -529,7 +529,7 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 | `up` | `update && upgrade` |
 | `cleanup` | `brew cleanup` |
 
-### Ubuntu and Debian overlays — `overlays/os/ubuntu/zsh/aliases.zsh`, `overlays/os/debian/zsh/aliases.zsh` (same content)
+### Debian overlay — `overlays/os/debian/zsh/aliases.zsh` (`overlays/os/ubuntu` is a symlink to `debian`, same aliases)
 
 | Alias | Command |
 |---|---|

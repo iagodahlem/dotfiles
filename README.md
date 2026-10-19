@@ -275,7 +275,7 @@ Use `DOTFILES_CONTAINER_MINIMAL=1` to skip Oh My Zsh/plugins during image build.
 │   └── entrypoint.sh
 ├── overlays/
 │   ├── README.md
-│   ├── os/                  # arch, debian, macos, ubuntu (zsh/aliases.zsh)
+│   ├── os/                  # arch, debian, macos (zsh/aliases.zsh); ubuntu is a symlink to debian
 │   └── host/                # example, the shape of a host overlay (real ones live in a private repo)
 ├── docs/
 │   └── new-mac.md
