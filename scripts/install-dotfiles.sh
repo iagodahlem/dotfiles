@@ -14,6 +14,12 @@ source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
+source "$ROOT_DIR/scripts/utils/zshenv.sh"
+
+# warn_codex_split_state's bash fallback when zsh is missing (see resolved_codex_home below): the one place that
+# computes CODEX_HOME, instead of a second copy of it here
+# shellcheck source=/dev/null
+source "$ROOT_DIR/config/zsh/.zshenv"
 
 # Dry run only: how many migration actions it has reported, so it can say when there are none, and the directories those actions would
 # remove (one per line), so that the link report after them sees the directory gone instead of in the way.
@@ -441,6 +447,122 @@ link_git_host() {
   fi
 }
 
+# The LaunchAgent that keeps CODEX_HOME and CLAUDE_CONFIG_DIR, the two vars above with a macOS desktop app of their
+# own, in launchd's environment too: scripts/gui-env-launchagent.sh sources ~/.zshenv itself, so this plist never
+# carries a second copy of either value, only the absolute path to that script in this checkout.
+GUI_ENV_LABEL="local.dotfiles.gui-env"
+
+gui_env_plist() {
+  cat <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>$GUI_ENV_LABEL</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$ROOT_DIR/scripts/gui-env-launchagent.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+}
+
+# Installs or updates the LaunchAgent above, macOS only: a GUI app launchd spawns does not run a login shell, so
+# CODEX_HOME and CLAUDE_CONFIG_DIR only reach it once this has run, which RunAtLoad covers from the next login on.
+# Idempotent: a plist already in place and already loaded is left alone, a changed one is replaced with bootout
+# before bootstrap, and a missing one is only bootstrapped, never both at once. launchctl needs the GUI session of
+# this user to exist, so a failure to bootstrap or bootout only warns, the same as the sudo line in os/macos.sh.
+# A dry run reports what it would do and changes nothing, same as safe_link above.
+install_gui_env_launchagent() {
+  local dst="$HOME/Library/LaunchAgents/$GUI_ENV_LABEL.plist"
+  local domain desired current=""
+
+  if [ "$(os_id)" != "macos" ]; then
+    return 0
+  fi
+
+  domain="gui/$(id -u)"
+  desired="$(gui_env_plist)"
+  if [ -f "$dst" ]; then
+    current="$(cat "$dst")"
+  fi
+
+  if is_dry_run; then
+    if [ "$current" = "$desired" ]; then
+      if launchctl print "$domain/$GUI_ENV_LABEL" >/dev/null 2>&1; then
+        echo "launchagent $(display_path "$dst"): installed and loaded"
+      else
+        echo "launchagent $(display_path "$dst"): in place, would bootstrap it"
+      fi
+    elif [ -n "$current" ]; then
+      echo "launchagent $(display_path "$dst"): would rewrite it (changed) and bootout then bootstrap it"
+    else
+      echo "launchagent $(display_path "$dst"): missing, would write it and bootstrap it"
+    fi
+    return 0
+  fi
+
+  if [ "$current" != "$desired" ]; then
+    if launchctl print "$domain/$GUI_ENV_LABEL" >/dev/null 2>&1; then
+      launchctl bootout "$domain/$GUI_ENV_LABEL" || report_warning "launchctl bootout $GUI_ENV_LABEL failed, run it by hand before the next install"
+    fi
+    mkdir -p "$(dirname "$dst")"
+    printf '%s\n' "$desired" > "$dst"
+    echo "launchagent: wrote $(display_path "$dst")"
+  fi
+
+  if ! launchctl print "$domain/$GUI_ENV_LABEL" >/dev/null 2>&1; then
+    if launchctl bootstrap "$domain" "$dst"; then
+      echo "launchagent: bootstrapped $GUI_ENV_LABEL, CODEX_HOME and CLAUDE_CONFIG_DIR reach a GUI app from the next login on"
+    else
+      report_warning "launchctl bootstrap $GUI_ENV_LABEL failed (no GUI session for $(id -un)?), log in at the console and rerun scripts/install-dotfiles.sh"
+    fi
+  fi
+}
+
+# CODEX_HOME the way a zsh login shell would see it, local.zshenv included (the top-level source of
+# config/zsh/.zshenv above is plain bash and never reaches local.zshenv, which only loads under zsh itself: see
+# "How Config Loads" in AGENTS.md). Falls back to that plain bash value, already in $CODEX_HOME, when zsh itself
+# is missing, same as scripts/gui-env-launchagent.sh.
+resolved_codex_home() {
+  local line
+
+  if command -v zsh >/dev/null 2>&1; then
+    line="$(resolve_zshenv_vars CODEX_HOME)"
+    echo "${line#CODEX_HOME=}"
+  else
+    echo "${CODEX_HOME:-}"
+  fi
+}
+
+# ~/.codex is the Codex desktop app's own default, independent of CODEX_HOME until install_gui_env_launchagent's
+# plist has run once: if the app already wrote there before CODEX_HOME existed too, the two now hold separate
+# state (sessions, queue, auth) that only a person can merge safely. This never moves or deletes either directory,
+# only says so, every run, until ~/.codex is empty or gone. Skipped, same as the LaunchAgent itself, on a machine
+# whose local.zshenv leaves CODEX_HOME unset.
+warn_codex_split_state() {
+  local legacy="$HOME/.codex"
+  local codex_home
+
+  if [ "$(os_id)" != "macos" ] || [ ! -d "$legacy" ]; then
+    return 0
+  fi
+
+  codex_home="$(resolved_codex_home)"
+  if [ "$codex_home" = "$ZSHENV_UNSET_MARK" ] || [ ! -e "$codex_home" ]; then
+    return 0
+  fi
+  if [ -z "$(find "$legacy" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
+    return 0
+  fi
+
+  report_warning "$(display_path "$legacy") already holds data and \$CODEX_HOME ($(display_path "$codex_home")) exists too: quit the Codex desktop app and merge them by hand, this installer never moves or deletes either one"
+}
+
 main() {
   migrate_legacy
   migrate_git_dir
@@ -451,6 +573,8 @@ main() {
   fi
   apply_links
   link_git_host
+  install_gui_env_launchagent
+  warn_codex_split_state
 
   if [ ! -s "$GIT_LOCAL" ]; then
     if ! is_dry_run; then
