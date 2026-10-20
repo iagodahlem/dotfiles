@@ -33,6 +33,9 @@ jobs:
       - name: Source guard
         run: ci/source-guard.sh
 
+      - name: Install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
       - name: GUI env LaunchAgent
         run: ci/gui-env-launchagent-test.sh
 
