@@ -13,6 +13,8 @@ fail() {
   exit 1
 }
 
+command -v zsh >/dev/null 2>&1 || fail "zsh required for this test"
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
