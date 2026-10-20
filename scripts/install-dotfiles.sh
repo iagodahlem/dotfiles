@@ -14,9 +14,10 @@ source "$ROOT_DIR/scripts/utils/lists.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
+source "$ROOT_DIR/scripts/utils/zshenv.sh"
 
-# so install_gui_env_launchagent and warn_codex_split_state read CODEX_HOME and CLAUDE_CONFIG_DIR from the one
-# place that computes them, instead of a second copy of either value
+# warn_codex_split_state's bash fallback when zsh is missing (see resolved_codex_home below): the one place that
+# computes CODEX_HOME, instead of a second copy of it here
 # shellcheck source=/dev/null
 source "$ROOT_DIR/config/zsh/.zshenv"
 
@@ -523,21 +524,43 @@ install_gui_env_launchagent() {
   fi
 }
 
+# CODEX_HOME the way a zsh login shell would see it, local.zshenv included (the top-level source of
+# config/zsh/.zshenv above is plain bash and never reaches local.zshenv, which only loads under zsh itself: see
+# "How Config Loads" in AGENTS.md). Falls back to that plain bash value, already in $CODEX_HOME, when zsh itself
+# is missing, same as scripts/gui-env-launchagent.sh.
+resolved_codex_home() {
+  local line
+
+  if command -v zsh >/dev/null 2>&1; then
+    line="$(resolve_zshenv_vars CODEX_HOME)"
+    echo "${line#CODEX_HOME=}"
+  else
+    echo "${CODEX_HOME:-}"
+  fi
+}
+
 # ~/.codex is the Codex desktop app's own default, independent of CODEX_HOME until install_gui_env_launchagent's
 # plist has run once: if the app already wrote there before CODEX_HOME existed too, the two now hold separate
 # state (sessions, queue, auth) that only a person can merge safely. This never moves or deletes either directory,
-# only says so, every run, until ~/.codex is empty or gone.
+# only says so, every run, until ~/.codex is empty or gone. Skipped, same as the LaunchAgent itself, on a machine
+# whose local.zshenv leaves CODEX_HOME unset.
 warn_codex_split_state() {
   local legacy="$HOME/.codex"
+  local codex_home
 
-  if [ "$(os_id)" != "macos" ] || [ ! -d "$legacy" ] || [ ! -e "${CODEX_HOME:-}" ]; then
+  if [ "$(os_id)" != "macos" ] || [ ! -d "$legacy" ]; then
+    return 0
+  fi
+
+  codex_home="$(resolved_codex_home)"
+  if [ "$codex_home" = "$ZSHENV_UNSET_MARK" ] || [ ! -e "$codex_home" ]; then
     return 0
   fi
   if [ -z "$(find "$legacy" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
     return 0
   fi
 
-  report_warning "$(display_path "$legacy") already holds data and \$CODEX_HOME ($(display_path "$CODEX_HOME")) exists too: quit the Codex desktop app and merge them by hand, this installer never moves or deletes either one"
+  report_warning "$(display_path "$legacy") already holds data and \$CODEX_HOME ($(display_path "$codex_home")) exists too: quit the Codex desktop app and merge them by hand, this installer never moves or deletes either one"
 }
 
 main() {

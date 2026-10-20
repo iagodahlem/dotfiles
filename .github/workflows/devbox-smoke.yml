@@ -33,6 +33,9 @@ jobs:
       - name: Source guard
         run: ci/source-guard.sh
 
+      - name: GUI env LaunchAgent
+        run: ci/gui-env-launchagent-test.sh
+
   shell-startup:
     runs-on: ubuntu-latest
     steps:
