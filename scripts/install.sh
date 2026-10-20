@@ -179,122 +179,128 @@ finish() {
   ui_summary "$@"
 }
 
-DRY_RUN="${DOTFILES_DRY_RUN:-0}"
-YES="${DOTFILES_YES:-0}"
-ONLY=""
+main() {
+  DRY_RUN="${DOTFILES_DRY_RUN:-0}"
+  YES="${DOTFILES_YES:-0}"
+  ONLY=""
 
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -h | --help)
-      usage
-      exit 0
-      ;;
-    --dry-run)
-      DRY_RUN=1
-      ;;
-    --yes)
-      YES=1
-      ;;
-    --only)
-      if [ "$#" -lt 2 ]; then
-        echo "install.sh: --only needs a step name" >&2
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      --dry-run)
+        DRY_RUN=1
+        ;;
+      --yes)
+        YES=1
+        ;;
+      --only)
+        if [ "$#" -lt 2 ]; then
+          echo "install.sh: --only needs a step name" >&2
+          exit 2
+        fi
+        if ! is_step "$2"; then
+          echo "install.sh: unknown step '$2', run install.sh --help for the list" >&2
+          exit 2
+        fi
+        ONLY="$ONLY$2 "
+        shift
+        ;;
+      *)
+        echo "install.sh: unknown argument '$1'" >&2
+        usage >&2
         exit 2
-      fi
-      if ! is_step "$2"; then
-        echo "install.sh: unknown step '$2', run install.sh --help for the list" >&2
-        exit 2
-      fi
-      ONLY="$ONLY$2 "
-      shift
-      ;;
-    *)
-      echo "install.sh: unknown argument '$1'" >&2
-      usage >&2
-      exit 2
-      ;;
-  esac
-  shift
-done
+        ;;
+    esac
+    shift
+  done
 
-# every step reads this, see scripts/utils/dry-run.sh
-export DOTFILES_DRY_RUN="$DRY_RUN"
+  # every step reads this, see scripts/utils/dry-run.sh
+  export DOTFILES_DRY_RUN="$DRY_RUN"
 
-# Karabiner-Elements asks for its permissions on its first launch, so only a run that installs it has that to say
-KARABINER_APP="/Applications/Karabiner-Elements.app"
-KARABINER_BEFORE=""
-if [ -d "$KARABINER_APP" ]; then
-  KARABINER_BEFORE=1
-fi
-
-ui_begin || { echo "install.sh: could not make a temporary directory" >&2; exit 1; }
-trap ui_cleanup EXIT
-
-print_banner
-
-# a real run asks once, from a terminal: CI and container builds have none, and --yes or DOTFILES_YES=1 is for a person who does not want the question
-if [ "$DRY_RUN" != "1" ] && [ "$YES" != "1" ] && [ -t 0 ]; then
-  echo
-  if ! ui_confirm "Run these steps?" 15; then
-    echo "Stopped before the first step, nothing was changed."
-    exit 1
-  fi
-fi
-
-while read -r -u 3 name var script desc; do
-  [ -n "$name" ] || continue
-
-  reason="$(step_skip_reason "$name" "$var")"
-  # a step that --only leaves out gets no header
-  if [ -n "$ONLY" ] && [ -n "$reason" ]; then
-    continue
+  # Karabiner-Elements asks for its permissions on its first launch, so only a run that installs it has that to say
+  KARABINER_APP="/Applications/Karabiner-Elements.app"
+  KARABINER_BEFORE=""
+  if [ -d "$KARABINER_APP" ]; then
+    KARABINER_BEFORE=1
   fi
 
-  ui_step "$name" "$desc"
+  ui_begin || { echo "install.sh: could not make a temporary directory" >&2; exit 1; }
+  trap ui_cleanup EXIT
 
-  if [ -n "$reason" ]; then
-    ui_skip "$reason"
-    continue
+  print_banner
+
+  # a real run asks once, from a terminal: CI and container builds have none, and --yes or DOTFILES_YES=1 is for a person who does not want the question
+  if [ "$DRY_RUN" != "1" ] && [ "$YES" != "1" ] && [ -t 0 ]; then
+    echo
+    if ! ui_confirm "Run these steps?" 15; then
+      echo "Stopped before the first step, nothing was changed."
+      exit 1
+    fi
   fi
 
-  if [ "$script" = "-" ]; then
-    script="$(os_defaults_script)"
-    if [ -z "$script" ]; then
-      ui_skip "no defaults for $OS_ID"
+  while read -r -u 3 name var script desc; do
+    [ -n "$name" ] || continue
+
+    reason="$(step_skip_reason "$name" "$var")"
+    # a step that --only leaves out gets no header
+    if [ -n "$ONLY" ] && [ -n "$reason" ]; then
       continue
     fi
-  elif [ "$script" = "@host" ]; then
-    script="$(host_script)"
-    if [ -z "$script" ]; then
-      ui_skip "no install.sh in the host overlay of $(host_id)"
+
+    ui_step "$name" "$desc"
+
+    if [ -n "$reason" ]; then
+      ui_skip "$reason"
       continue
     fi
-    echo "running ${script#"$ROOT_DIR"/}"
-  fi
 
-  case "$script" in
-    /*) script_path="$script" ;;
-    *) script_path="$ROOT_DIR/$script" ;;
-  esac
+    if [ "$script" = "-" ]; then
+      script="$(os_defaults_script)"
+      if [ -z "$script" ]; then
+        ui_skip "no defaults for $OS_ID"
+        continue
+      fi
+    elif [ "$script" = "@host" ]; then
+      script="$(host_script)"
+      if [ -z "$script" ]; then
+        ui_skip "no install.sh in the host overlay of $(host_id)"
+        continue
+      fi
+      echo "running ${script#"$ROOT_DIR"/}"
+    fi
 
-  status=0
-  "$script_path" || status=$?
+    case "$script" in
+      /*) script_path="$script" ;;
+      *) script_path="$ROOT_DIR/$script" ;;
+    esac
 
-  if [ "$status" -eq 0 ]; then
-    ui_ok
-    continue
-  fi
+    status=0
+    "$script_path" || status=$?
 
-  case "$OPTIONAL_STEPS" in
-    *" $name "*)
-      ui_warn "${script#"$ROOT_DIR"/} failed, rerun it on its own once the cause is fixed"
-      ;;
-    *)
-      # the run stops here with the status of the step, as it always has
-      ui_fail "${script#"$ROOT_DIR"/} exited with status $status"
-      finish
-      exit "$status"
-      ;;
-  esac
-done 3<<<"$STEPS"
+    if [ "$status" -eq 0 ]; then
+      ui_ok
+      continue
+    fi
 
-finish
+    case "$OPTIONAL_STEPS" in
+      *" $name "*)
+        ui_warn "${script#"$ROOT_DIR"/} failed, rerun it on its own once the cause is fixed"
+        ;;
+      *)
+        # the run stops here with the status of the step, as it always has
+        ui_fail "${script#"$ROOT_DIR"/} exited with status $status"
+        finish
+        exit "$status"
+        ;;
+    esac
+  done 3<<<"$STEPS"
+
+  finish
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

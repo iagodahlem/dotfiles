@@ -17,8 +17,6 @@ source "$ROOT_DIR/scripts/utils/paths.sh"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
 
-setup_tool_path
-
 is_apt_family() {
   case "$(os_id)" in
     ubuntu|debian|raspbian) return 0 ;;
@@ -90,25 +88,33 @@ declared_tools() {
   ' "$1"
 }
 
-ensure_mise
+main() {
+  setup_tool_path
 
-tools=()
-while IFS= read -r tool; do
-  case "$INSTALL_TOOLS" in
-    *" ${tool%%@*} "*) tools+=("$tool") ;;
-  esac
-done < <(declared_tools "$CONFIG_TOML")
+  ensure_mise
 
-if is_apt_family; then
-  write_apt_gaps
+  tools=()
   while IFS= read -r tool; do
-    tools+=("$tool")
-  done < <(apt_gaps_toml | declared_tools /dev/stdin)
-fi
+    case "$INSTALL_TOOLS" in
+      *" ${tool%%@*} "*) tools+=("$tool") ;;
+    esac
+  done < <(declared_tools "$CONFIG_TOML")
 
-if [ "${#tools[@]}" -gt 0 ]; then
-  run mise install "${tools[@]}"
-fi
+  if is_apt_family; then
+    write_apt_gaps
+    while IFS= read -r tool; do
+      tools+=("$tool")
+    done < <(apt_gaps_toml | declared_tools /dev/stdin)
+  fi
 
-# corepack shims make pnpm resolve even before mise's own pnpm is on PATH
-run mise exec node@lts -- corepack enable || report_warning "corepack enable failed, pnpm still comes from mise"
+  if [ "${#tools[@]}" -gt 0 ]; then
+    run mise install "${tools[@]}"
+  fi
+
+  # corepack shims make pnpm resolve even before mise's own pnpm is on PATH
+  run mise exec node@lts -- corepack enable || report_warning "corepack enable failed, pnpm still comes from mise"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

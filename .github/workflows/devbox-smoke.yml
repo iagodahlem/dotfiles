@@ -30,6 +30,9 @@ jobs:
       - name: Installer dry run
         run: ci/dry-run.sh
 
+      - name: Source guard
+        run: ci/source-guard.sh
+
   shell-startup:
     runs-on: ubuntu-latest
     steps:

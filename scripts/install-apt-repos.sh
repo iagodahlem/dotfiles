@@ -8,51 +8,8 @@
 # when its sources file already exists. Keys go into keyrings referenced by Signed-By, never apt-key.
 set -euo pipefail
 
-if [ "$(id -u)" -ne 0 ]; then
-  exec sudo -E bash "$0" "$@"
-fi
-
-export DEBIAN_FRONTEND=noninteractive
-
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/scripts/utils/ui.sh"
-
-# shellcheck disable=SC1091
-. /etc/os-release
-
-case "${ID:-}" in
-  ubuntu)
-    family=ubuntu
-    codename="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
-    azlux_suite=stable
-    ;;
-  debian|raspbian)
-    # Raspberry Pi OS reports debian (64-bit and current 32-bit) or raspbian (older 32-bit); both use the Debian repositories
-    family=debian
-    codename="${VERSION_CODENAME:-}"
-    azlux_suite="$codename"
-    ;;
-  *)
-    echo "install-apt-repos.sh: unsupported distribution '${ID:-unknown}'" >&2
-    exit 1
-    ;;
-esac
-
-if [ -z "$codename" ]; then
-  echo "install-apt-repos.sh: no release codename in /etc/os-release" >&2
-  exit 1
-fi
-
-SOURCES_DIR=/etc/apt/sources.list.d
-ETC_KEYRINGS=/etc/apt/keyrings
-SHARE_KEYRINGS=/usr/share/keyrings
-
-# curl and the CA bundle are needed to fetch the keys, and a bare container has neither
-if ! dpkg -s ca-certificates curl >/dev/null 2>&1; then
-  apt-get update
-  apt-get install -y --no-install-recommends ca-certificates curl
-fi
-install -m 0755 -d "$ETC_KEYRINGS" "$SHARE_KEYRINGS"
 
 # add_repo <name> <key url> <key path> <uri> <suite> <components> [architectures]
 add_repo() {
@@ -89,22 +46,73 @@ try_repo() {
   add_repo "$@" || report_warning "could not add the apt repository $1, its packages will be skipped"
 }
 
-# https://docs.docker.com/engine/install/debian/ (and .../ubuntu/)
-try_repo docker \
-  "https://download.docker.com/linux/$family/gpg" "$ETC_KEYRINGS/docker.asc" \
-  "https://download.docker.com/linux/$family" "$codename" stable "$(dpkg --print-architecture)"
+main() {
+  local family codename azlux_suite
 
-# https://pkgs.tailscale.com/stable/, the sources file is the deb822 form of <codename>.tailscale-keyring.list
-try_repo tailscale \
-  "https://pkgs.tailscale.com/stable/$family/$codename.noarmor.gpg" "$SHARE_KEYRINGS/tailscale-archive-keyring.gpg" \
-  "https://pkgs.tailscale.com/stable/$family" "$codename" main
+  if [ "$(id -u)" -ne 0 ]; then
+    exec sudo -E bash "$0" "$@"
+  fi
 
-# https://github.com/eza-community/eza/blob/main/INSTALL.md, apt reads the armored key as it is, no gpg needed
-try_repo gierens \
-  "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" "$ETC_KEYRINGS/gierens.asc" \
-  "http://deb.gierens.de" stable main
+  export DEBIAN_FRONTEND=noninteractive
 
-# https://packages.azlux.fr/ ("stable" is a documented alias, Ubuntu has no codename there)
-try_repo azlux \
-  "https://azlux.fr/repo.gpg" "$SHARE_KEYRINGS/azlux-archive-keyring.gpg" \
-  "http://packages.azlux.fr/debian/" "$azlux_suite" main
+  # shellcheck disable=SC1091
+  . /etc/os-release
+
+  case "${ID:-}" in
+    ubuntu)
+      family=ubuntu
+      codename="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+      azlux_suite=stable
+      ;;
+    debian|raspbian)
+      # Raspberry Pi OS reports debian (64-bit and current 32-bit) or raspbian (older 32-bit); both use the Debian repositories
+      family=debian
+      codename="${VERSION_CODENAME:-}"
+      azlux_suite="$codename"
+      ;;
+    *)
+      echo "install-apt-repos.sh: unsupported distribution '${ID:-unknown}'" >&2
+      exit 1
+      ;;
+  esac
+
+  if [ -z "$codename" ]; then
+    echo "install-apt-repos.sh: no release codename in /etc/os-release" >&2
+    exit 1
+  fi
+
+  SOURCES_DIR=/etc/apt/sources.list.d
+  ETC_KEYRINGS=/etc/apt/keyrings
+  SHARE_KEYRINGS=/usr/share/keyrings
+
+  # curl and the CA bundle are needed to fetch the keys, and a bare container has neither
+  if ! dpkg -s ca-certificates curl >/dev/null 2>&1; then
+    apt-get update
+    apt-get install -y --no-install-recommends ca-certificates curl
+  fi
+  install -m 0755 -d "$ETC_KEYRINGS" "$SHARE_KEYRINGS"
+
+  # https://docs.docker.com/engine/install/debian/ (and .../ubuntu/)
+  try_repo docker \
+    "https://download.docker.com/linux/$family/gpg" "$ETC_KEYRINGS/docker.asc" \
+    "https://download.docker.com/linux/$family" "$codename" stable "$(dpkg --print-architecture)"
+
+  # https://pkgs.tailscale.com/stable/, the sources file is the deb822 form of <codename>.tailscale-keyring.list
+  try_repo tailscale \
+    "https://pkgs.tailscale.com/stable/$family/$codename.noarmor.gpg" "$SHARE_KEYRINGS/tailscale-archive-keyring.gpg" \
+    "https://pkgs.tailscale.com/stable/$family" "$codename" main
+
+  # https://github.com/eza-community/eza/blob/main/INSTALL.md, apt reads the armored key as it is, no gpg needed
+  try_repo gierens \
+    "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" "$ETC_KEYRINGS/gierens.asc" \
+    "http://deb.gierens.de" stable main
+
+  # https://packages.azlux.fr/ ("stable" is a documented alias, Ubuntu has no codename there)
+  try_repo azlux \
+    "https://azlux.fr/repo.gpg" "$SHARE_KEYRINGS/azlux-archive-keyring.gpg" \
+    "http://packages.azlux.fr/debian/" "$azlux_suite" main
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

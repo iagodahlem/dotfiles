@@ -17,20 +17,6 @@ source "$ROOT_DIR/scripts/utils/dry-run.sh"
 # shellcheck source=/dev/null
 source "$ROOT_DIR/config/zsh/.zshenv"
 
-setup_tool_path
-
-UPDATE=0
-case "${1:-}" in
-  "") ;;
-  --update) UPDATE=1 ;;
-  *)
-    echo "Usage: install-ai-clis.sh [--update]" >&2
-    exit 2
-    ;;
-esac
-
-failed=()
-
 # succeeds when the CLI still has to be installed
 needed() {
   [ "$UPDATE" -eq 1 ] || ! command -v "$1" >/dev/null 2>&1
@@ -86,11 +72,31 @@ install_gemini() {
   fi
 }
 
-install_claude || failed+=(claude)
-install_codex || failed+=(codex)
-install_gemini || failed+=(gemini)
+main() {
+  setup_tool_path
 
-if [ "${#failed[@]}" -gt 0 ]; then
-  echo "Failed to install: ${failed[*]}. Fix the cause and rerun scripts/install-ai-clis.sh." >&2
-  exit 1
+  UPDATE=0
+  case "${1:-}" in
+    "") ;;
+    --update) UPDATE=1 ;;
+    *)
+      echo "Usage: install-ai-clis.sh [--update]" >&2
+      exit 2
+      ;;
+  esac
+
+  failed=()
+
+  install_claude || failed+=(claude)
+  install_codex || failed+=(codex)
+  install_gemini || failed+=(gemini)
+
+  if [ "${#failed[@]}" -gt 0 ]; then
+    echo "Failed to install: ${failed[*]}. Fix the cause and rerun scripts/install-ai-clis.sh." >&2
+    exit 1
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
 fi
