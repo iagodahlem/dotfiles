@@ -212,25 +212,32 @@ install_brew() {
   fi
 }
 
-OS_ID="$(os_id)"
+main() {
+  local os_id
+  os_id="$(os_id)"
 
-case "$OS_ID" in
-  macos)
-    install_brew
-    ;;
-  ubuntu|debian|raspbian)
-    install_apt
-    ;;
-  arch)
-    install_pacman
-    install_aur
-    ;;
-  *)
-    if [ "$(uname -s)" = "Darwin" ]; then
+  case "$os_id" in
+    macos)
       install_brew
-    else
-      echo "Unsupported OS for package install. Set up manually." >&2
-      exit 1
-    fi
-    ;;
-esac
+      ;;
+    ubuntu|debian|raspbian)
+      install_apt
+      ;;
+    arch)
+      install_pacman
+      install_aur
+      ;;
+    *)
+      if [ "$(uname -s)" = "Darwin" ]; then
+        install_brew
+      else
+        echo "Unsupported OS for package install. Set up manually." >&2
+        exit 1
+      fi
+      ;;
+  esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

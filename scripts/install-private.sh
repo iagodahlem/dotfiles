@@ -10,32 +10,39 @@ source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/host.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
 
-REPO="${DOTFILES_PRIVATE_REPO:-}"
-DEST="$(private_dir)"
+main() {
+  local repo dest
+  repo="${DOTFILES_PRIVATE_REPO:-}"
+  dest="$(private_dir)"
 
-# a checkout has .git, a directory or, for a worktree, a file
-if [ -e "$DEST/.git" ]; then
-  if is_dry_run; then
-    echo "$(display_path "$DEST"): already cloned, would run git pull --ff-only"
+  # a checkout has .git, a directory or, for a worktree, a file
+  if [ -e "$dest/.git" ]; then
+    if is_dry_run; then
+      echo "$(display_path "$dest"): already cloned, would run git pull --ff-only"
+      exit 0
+    fi
+    # an existing checkout still works when it cannot be updated (offline, a diverged branch), so it stays as it is
+    git -C "$dest" pull -q --ff-only || report_warning "could not update $(display_path "$dest"), leaving it as it is"
     exit 0
   fi
-  # an existing checkout still works when it cannot be updated (offline, a diverged branch), so it stays as it is
-  git -C "$DEST" pull -q --ff-only || report_warning "could not update $(display_path "$DEST"), leaving it as it is"
-  exit 0
-fi
 
-# a directory somebody filled by hand is used as it is, and git would refuse to clone into it
-if [ -d "$DEST" ] && [ -n "$(ls -A "$DEST")" ]; then
-  echo "$(display_path "$DEST"): not a git checkout, using it as it is"
-  exit 0
-fi
+  # a directory somebody filled by hand is used as it is, and git would refuse to clone into it
+  if [ -d "$dest" ] && [ -n "$(ls -A "$dest")" ]; then
+    echo "$(display_path "$dest"): not a git checkout, using it as it is"
+    exit 0
+  fi
 
-if [ -z "$REPO" ]; then
-  echo "private overlays are off: set DOTFILES_PRIVATE_REPO to the repo of your overlays, any git URL (ssh or https), to clone it to $(display_path "$DEST")"
-  exit 0
-fi
+  if [ -z "$repo" ]; then
+    echo "private overlays are off: set DOTFILES_PRIVATE_REPO to the repo of your overlays, any git URL (ssh or https), to clone it to $(display_path "$dest")"
+    exit 0
+  fi
 
-if ! is_dry_run; then
-  echo "cloning $REPO into $(display_path "$DEST")"
+  if ! is_dry_run; then
+    echo "cloning $repo into $(display_path "$dest")"
+  fi
+  run git clone --depth 1 "$repo" "$dest"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
 fi
-run git clone --depth 1 "$REPO" "$DEST"

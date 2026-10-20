@@ -10,14 +10,6 @@ MINIMAL="${DOTFILES_CONTAINER_MINIMAL:-0}"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
 
-if [ "$MINIMAL" = "1" ]; then
-  echo "DOTFILES_CONTAINER_MINIMAL=1: nothing to clone"
-  exit 0
-fi
-
-# shellcheck source=/dev/null
-source "$ROOT_DIR/config/zsh/.zshenv"
-
 # An existing clone is fast-forwarded. When that fails (offline, or a clone detached at a commit by an earlier layout) it stays as it is: it still works, just not updated.
 clone_or_pull() {
   local url="$1"
@@ -41,8 +33,22 @@ clone_or_pull() {
   git clone -q --depth 1 "$url" "$dest"
 }
 
-clone_or_pull https://github.com/ohmyzsh/ohmyzsh.git "$ZSH"
-clone_or_pull https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
-clone_or_pull https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-clone_or_pull https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-clone_or_pull https://github.com/tmux-plugins/tpm.git "$TMUX_PLUGIN_MANAGER_PATH/tpm"
+main() {
+  if [ "$MINIMAL" = "1" ]; then
+    echo "DOTFILES_CONTAINER_MINIMAL=1: nothing to clone"
+    exit 0
+  fi
+
+  # shellcheck source=/dev/null
+  source "$ROOT_DIR/config/zsh/.zshenv"
+
+  clone_or_pull https://github.com/ohmyzsh/ohmyzsh.git "$ZSH"
+  clone_or_pull https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+  clone_or_pull https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+  clone_or_pull https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+  clone_or_pull https://github.com/tmux-plugins/tpm.git "$TMUX_PLUGIN_MANAGER_PATH/tpm"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

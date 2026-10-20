@@ -441,20 +441,26 @@ link_git_host() {
   fi
 }
 
-migrate_legacy
-migrate_git_dir
-migrate_mise_dir
-migrate_claude_settings
-if is_dry_run && [ "$MIGRATIONS" -eq 0 ]; then
-  echo "migrate: nothing from the older layout to clear"
-fi
-apply_links
-link_git_host
-
-if [ ! -s "$GIT_LOCAL" ]; then
-  if ! is_dry_run; then
-    : > "$GIT_LOCAL"
+main() {
+  migrate_legacy
+  migrate_git_dir
+  migrate_mise_dir
+  migrate_claude_settings
+  if is_dry_run && [ "$MIGRATIONS" -eq 0 ]; then
+    echo "migrate: nothing from the older layout to clear"
   fi
-  echo "config/git/local has no identity yet: commits on this machine use the default identity from config/git/config."
-  echo "Copy config/git/local.example over it (or edit it directly) and fill in the email for this machine first."
+  apply_links
+  link_git_host
+
+  if [ ! -s "$GIT_LOCAL" ]; then
+    if ! is_dry_run; then
+      : > "$GIT_LOCAL"
+    fi
+    echo "config/git/local has no identity yet: commits on this machine use the default identity from config/git/config."
+    echo "Copy config/git/local.example over it (or edit it directly) and fill in the email for this machine first."
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
 fi
