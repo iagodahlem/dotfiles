@@ -105,7 +105,7 @@ Which files inside an overlay get read, by what, and when:
 | `Brewfile`, `packages/pacman.txt`, `packages/apt.txt` | `find_host_list` plus `install_brew`/`install_pacman`/`install_apt` in `scripts/install-packages.sh` (lines 27-43, 78-213), host overlays only | the `packages` install step, after the shared list |
 | `install.sh` | `host_script` in `scripts/install.sh` (lines 84-91) | the `host` install step, last |
 
-`overlays/host/example/` has one line of each kind, commented out, as the documented shape; the real host overlays live only in the private repo (`overlays/README.md` lines 74-89).
+`overlays/host/example/` has one line of each kind, commented out, as the documented shape; the real host overlays live only in the private repo (`overlays/README.md` lines 88-105).
 
 ## 4. What wins
 
@@ -130,6 +130,8 @@ Git's own order still applies underneath this: a system config, then the global 
 | 3 | `config/git/local` (`[include] path = ~/.config/git/local`) | no, gitignored | the per-machine identity, copied by hand from `config/git/local.example` |
 
 Both includes are at the end of `config/git/config` (lines 152-154 and 156-158), in that order, and a missing include path is silently skipped (the comment at line 152). Because `local` is included last, it overrides both the shared defaults and the host include for anything both set, which `config/git/local.example` lines 3-5 says directly: "git applies includes last, so anything set here wins over the defaults baked into the tracked config (name, email, signing key)."
+
+`local` can add a fourth link of its own: an `includeIf "gitdir:..."` block, placed after its `[user]` section so it wins there too, pointing at a `config/git/identity-<name>` file that overrides the identity for one folder only (`config/git/local.example` lines 35-47, `config/git/identity-work.example` the template for the file it points at). Nothing here names a real folder; the block is commented out until a machine's own `config/git/local` uncomments and edits it.
 
 ## 6. The installer
 

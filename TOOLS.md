@@ -31,6 +31,7 @@ Use this to compare against your system and spot what's missing.
 | tpm and tmux plugins | none, tpm cloned by `scripts/install-shell.sh` | `~/.local/share/tmux/plugins` | `TMUX_PLUGIN_MANAGER_PATH` |
 | git | `config/git/` | `~/.config/git` (directory link) | `XDG_CONFIG_HOME` |
 | git identity and host settings | none, untracked and gitignored (`local.example` is the template; `host` is a link to the `git/config` of the host overlay, made by `scripts/install-dotfiles.sh`) | `config/git/local`, `config/git/host` in the checkout, reached as `~/.config/git/local` and `~/.config/git/host` | none, included by path from `config` |
+| per-folder git identity | none, untracked and gitignored (`identity-work.example` is the template; `config/git/local.example` shows the `includeIf` block that maps a folder to one of these) | `config/git/identity-<name>` in the checkout, one per mapped folder, reached as `~/.config/git/identity-<name>` | none, included by path from `config/git/local` |
 | private overlays | none, a checkout of a private repo, cloned by `scripts/install-private.sh` | `~/.machines`, with the overlay of each machine in `<name>/dotfiles/` | `DOTFILES_PRIVATE` |
 | ghostty | `config/ghostty/` | `~/.config/ghostty` (directory link) | `XDG_CONFIG_HOME` |
 | karabiner-elements | `config/karabiner/` | `~/.config/karabiner` (directory link, macOS only) | none, `~/.config` is where it looks by default |
@@ -44,7 +45,7 @@ Use this to compare against your system and spot what's missing.
 | rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
 | npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
 | npm cache | none | `~/.cache/npm` | `NPM_CONFIG_CACHE` |
-| claude | none | `~/.config/claude` (settings, history, plugins and `.claude.json`) | `CLAUDE_CONFIG_DIR` |
+| claude | `config/claude/settings.json` | `~/.config/claude` (settings linked from the checkout, history, plugins and `.claude.json` are state kept out of it) | `CLAUDE_CONFIG_DIR` |
 | codex | none | `~/.local/share/codex` (`config.toml`, auth, sessions and the standalone install's `packages/`; the CLI exits when the directory is missing, so `.zshrc` creates it) | `CODEX_HOME` |
 | gemini | none | `~/.local/share/gemini/.gemini` (settings and history) | `GEMINI_CLI_HOME` |
 | docker CLI | none | `~/.config/docker` (`config.json` with its credential store setting, `contexts/` and `cli-plugins/`; OrbStack's docker uses it too; `--config` overrides the variable) | `DOCKER_CONFIG` |
@@ -293,6 +294,8 @@ The real overlays are private, so nothing here says what a machine carries. `ove
 | `packages/apt.txt` | installed on the Debian family after `packages/apt.txt`, skipping a package with no candidate on the release; skipped while it has no entries |
 | `install.sh` | run by the `host` step, the last one, with `DOTFILES_DRY_RUN=1` on a dry run; a failure only warns |
 
+A headless, always-on host's `install.sh` can call `pmset_never_sleep` from `scripts/utils/pmset.sh` to turn system sleep off (see "A machine that should never sleep" in `overlays/README.md`); it is not applied by `os/macos.sh`, which runs the same way for every macOS machine, laptop included.
+
 | Variable | Purpose |
 |---|---|
 | `DOTFILES_HOST` | the name of this machine, the short hostname in lower case unless already set |
@@ -526,7 +529,7 @@ The package-manager aliases (`install`, `update`, `upgrade`, `up`, `cleanup`) li
 | `up` | `update && upgrade` |
 | `cleanup` | `brew cleanup` |
 
-### Ubuntu and Debian overlays — `overlays/os/ubuntu/zsh/aliases.zsh`, `overlays/os/debian/zsh/aliases.zsh` (same content)
+### Debian overlay — `overlays/os/debian/zsh/aliases.zsh` (`overlays/os/ubuntu` is a symlink to `debian`, same aliases)
 
 | Alias | Command |
 |---|---|

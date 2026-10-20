@@ -92,6 +92,8 @@ Each machine gets its own `config/git/local` with the email for that machine, it
 
 The host overlay also carries host-specific shell tweaks and git settings (see `overlays/README.md`). It's optional and separate from the git identity step, which always uses `config/git/local` regardless of hostname: the overlay's `git/config` is linked as `config/git/host`, which git reads before `config/git/local`, so the identity still wins.
 
+One folder on this machine that needs a different identity from the rest (a work checkout beside personal projects, for example) does not need a whole other machine: uncomment the `includeIf` block in `config/git/local` and point it at a folder, then copy `config/git/identity-work.example` to `config/git/identity-work` (or another name) and fill in that folder's email. Map another folder the same way, with its own `includeIf` block and its own identity file.
+
 ## What the container tests don't cover
 
 The install flow is exercised end to end in the Ubuntu and Arch containers (`ci/devbox-smoke.sh`), which cover OS detection, package-list parsing, the link table, the Oh My Zsh, plugin and tpm install, and the shell boot logic shared across platforms. What that does not cover, because it is macOS-only:
