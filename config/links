@@ -15,4 +15,4 @@ git/                   ~/.config/git
 ghostty/               ~/.config/ghostty
 mise/                  ~/.config/mise
 karabiner/             ~/.config/karabiner  macos
-claude/settings.json   ~/.claude/settings.json
+claude/settings.json   ~/.config/claude/settings.json

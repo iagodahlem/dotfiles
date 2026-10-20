@@ -45,7 +45,7 @@ Use this to compare against your system and spot what's missing.
 | rustup | none | `~/.local/share/rustup` | `RUSTUP_HOME` |
 | npm user config | none, untracked | `~/.config/npm/npmrc` | `NPM_CONFIG_USERCONFIG` |
 | npm cache | none | `~/.cache/npm` | `NPM_CONFIG_CACHE` |
-| claude | none | `~/.config/claude` (settings, history, plugins and `.claude.json`) | `CLAUDE_CONFIG_DIR` |
+| claude | `config/claude/settings.json` | `~/.config/claude` (settings linked from the checkout, history, plugins and `.claude.json` are state kept out of it) | `CLAUDE_CONFIG_DIR` |
 | codex | none | `~/.local/share/codex` (`config.toml`, auth, sessions and the standalone install's `packages/`; the CLI exits when the directory is missing, so `.zshrc` creates it) | `CODEX_HOME` |
 | gemini | none | `~/.local/share/gemini/.gemini` (settings and history) | `GEMINI_CLI_HOME` |
 | docker CLI | none | `~/.config/docker` (`config.json` with its credential store setting, `contexts/` and `cli-plugins/`; OrbStack's docker uses it too; `--config` overrides the variable) | `DOCKER_CONFIG` |

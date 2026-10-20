@@ -282,6 +282,74 @@ migrate_mise_dir() {
   fi
 }
 
+# Keys old_file has that shared_file does not, comma-separated, empty when jq is missing or there are none.
+claude_settings_extra_keys() {
+  local old_file="$1" shared_file="$2" key list=""
+
+  command -v jq >/dev/null 2>&1 || return 0
+
+  while IFS= read -r key; do
+    if [ -z "$list" ]; then
+      list="$key"
+    else
+      list="$list, $key"
+    fi
+  done < <(jq -r -s '(.[0] | keys) - (.[1] | keys) | .[]' "$old_file" "$shared_file" 2>/dev/null)
+
+  echo "$list"
+}
+
+# ~/.claude/settings.json was this repo's link before CLAUDE_CONFIG_DIR moved Claude Code's config to ~/.config/claude, a path Claude
+# Code never reads. The old link is removed (a real file left there by something else is not ours to touch), and a real file already
+# sitting at the new target is never destroyed: when it matches the tracked file it is simply dropped so apply_links can relink it,
+# and when it differs it is backed up as settings.json.pre-dotfiles-<timestamp> with a note of the keys it had that the shared file
+# lacks, so a machine-specific setting like enabledPlugins can move to a project-level .claude/settings.json or a per-machine layer.
+migrate_claude_settings() {
+  local old_link="$HOME/.claude/settings.json"
+  local target="$HOME/.config/claude/settings.json"
+  local src="$CONFIG_DIR/claude/settings.json"
+  local ts backup extra
+
+  if [ -L "$old_link" ]; then
+    case "$(readlink "$old_link")" in
+      "$DOTS"/*)
+        if is_dry_run; then
+          would_migrate ".claude/settings.json" "old link to remove, settings.json now links from ~/.config/claude instead"
+        else
+          rm -f "$old_link"
+          echo "migrate: removed the old ~/.claude/settings.json link, settings.json now links from ~/.config/claude instead"
+        fi
+        ;;
+    esac
+  fi
+
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    if cmp -s "$target" "$src"; then
+      if is_dry_run; then
+        would_migrate ".config/claude/settings.json" "already matches the shared file, to remove and link"
+        WOULD_REMOVE="$WOULD_REMOVE$target"$'\n'
+      else
+        rm -f "$target"
+      fi
+    else
+      if is_dry_run; then
+        would_migrate ".config/claude/settings.json" "real file to back up to settings.json.pre-dotfiles-<timestamp> before linking"
+        WOULD_REMOVE="$WOULD_REMOVE$target"$'\n'
+      else
+        ts="$(date +%Y%m%d%H%M%S)"
+        backup="$target.pre-dotfiles-$ts"
+        mv "$target" "$backup"
+        echo "migrate: ${target/#"$HOME"/\~} differed from the shared settings, backed up to ${backup/#"$HOME"/\~}"
+        extra="$(claude_settings_extra_keys "$backup" "$src")"
+        if [ -n "$extra" ]; then
+          echo "note: ${backup/#"$HOME"/\~} had these keys that the shared settings do not: $extra"
+          echo "note: move machine-specific keys like these to a project-level .claude/settings.json, or a documented per-machine layer"
+        fi
+      fi
+    fi
+  fi
+}
+
 # One safe_link per non-blank line of config/links, skipping the entries for the other OS.
 apply_links() {
   local host_os="linux"
@@ -376,6 +444,7 @@ link_git_host() {
 migrate_legacy
 migrate_git_dir
 migrate_mise_dir
+migrate_claude_settings
 if is_dry_run && [ "$MIGRATIONS" -eq 0 ]; then
   echo "migrate: nothing from the older layout to clear"
 fi
