@@ -156,3 +156,5 @@
 # identity for this machine, untracked and gitignored, in config/git/local (see local.example, which also covers mapping one folder to its own identity)
 [include]
   path = ~/.config/git/local
+[fetch]
+	prune = true
