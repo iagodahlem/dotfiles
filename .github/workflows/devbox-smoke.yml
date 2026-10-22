@@ -39,6 +39,9 @@ jobs:
       - name: GUI env LaunchAgent
         run: ci/gui-env-launchagent-test.sh
 
+      - name: Mise shims on PATH
+        run: ci/mise-shims-test.sh
+
   shell-startup:
     runs-on: ubuntu-latest
     steps:

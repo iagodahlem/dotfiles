@@ -18,7 +18,9 @@ Which of the other files run depends on whether the shell is a login shell and w
 
 This repo keeps `.zprofile` deliberately empty, comments only (`config/zsh/.zprofile`), so for every row above the real work happens in `.zshenv` (always) and `.zshrc` (interactive only).
 
-A tool that does not know about `$ZDOTDIR` writes its init lines straight into `~/.zprofile`, `~/.zshrc` or `~/.zlogin` in `$HOME`. Once `ZDOTDIR` points at `~/.config/zsh`, zsh never reads those `$HOME` copies again, so the tool's lines go nowhere. `scripts/install-dotfiles.sh`'s `migrate_legacy` leaves a real file like that exactly where it is rather than backing it up, since nothing here reads it from `$HOME` any more either way (`scripts/install-dotfiles.sh` lines 91-144, `legacy_leave_reason` says why for each name). A gitignored, machine-local `config/zsh/local.zshenv` is where the lines such a tool needs go instead: `config/zsh/.zshenv` sources it last, for every zsh (`config/zsh/.zshenv` lines 84-89, `overlays/README.md` lines 66-70, section 3 below).
+A tool that does not know about `$ZDOTDIR` writes its init lines straight into `~/.zprofile`, `~/.zshrc` or `~/.zlogin` in `$HOME`. Once `ZDOTDIR` points at `~/.config/zsh`, zsh never reads those `$HOME` copies again, so the tool's lines go nowhere. `scripts/install-dotfiles.sh`'s `migrate_legacy` leaves a real file like that exactly where it is rather than backing it up, since nothing here reads it from `$HOME` any more either way (`scripts/install-dotfiles.sh` lines 91-144, `legacy_leave_reason` says why for each name). A gitignored, machine-local `config/zsh/local.zshenv` is where the lines such a tool needs go instead: `config/zsh/.zshenv` sources it last, for every zsh (`config/zsh/.zshenv` lines 99-104, `overlays/README.md` lines 66-70, section 3 below).
+
+A script or an ssh command is also the case `config/zsh/.zshenv`'s mise shims block exists for: mise's own `mise activate zsh` only runs from `config/mise/init.zsh`, a tool hook `bootstrap.zsh` sources for interactive shells alone (section 2), so a non-interactive, non-login shell never runs it and would see none of mise's tools on `PATH` otherwise. Putting `$MISE_DATA_DIR/shims` (or `$XDG_DATA_HOME/mise/shims` by default) on `PATH` instead fixes that: a shim is a thin wrapper that resolves the directory's selected tool version at call time, which is slower per call than `activate`'s direct resolution but needs no shell hook at all (mise docs, ["Shims vs `mise activate`"](https://mise.jdx.dev/dev-tools/shims.html)). `config/zsh/.zshenv` lines 30-43.
 
 ## 2. The full chain
 
@@ -49,17 +51,18 @@ The same chain, as a tree, with the blocks inside each file in the order the cod
   ZDOTDIR=$XDG_CONFIG_HOME/zsh                                        (lines 11-12)
   skip_global_compinit=1                                              (lines 14-16)
   Homebrew's bin on PATH, for shells that never reach .zshrc          (lines 18-28)
+  mise's shims dir on PATH, same reason, no mise activate here        (lines 30-43)
   DOTFILES, DOTFILES_BIN, DOTFILES_CONFIG, DOTFILES_ZSH,
-    DOTFILES_GIT, DOTFILES_OVERLAYS                                   (lines 30-36)
-  DOTFILES_PRIVATE                                                    (lines 38-40)
-  DOTFILES_HOST (short hostname, lower case, unless already set)      (lines 42-51)
-  ZSH, ZSH_CUSTOM                                                     (lines 53-55)
+    DOTFILES_GIT, DOTFILES_OVERLAYS                                   (lines 45-51)
+  DOTFILES_PRIVATE                                                    (lines 53-55)
+  DOTFILES_HOST (short hostname, lower case, unless already set)      (lines 57-66)
+  ZSH, ZSH_CUSTOM                                                     (lines 68-70)
   CARGO_HOME, RUSTUP_HOME, NPM_CONFIG_*, TMUX_PLUGIN_MANAGER_PATH,
-    ZSHZ_DATA, DOCKER_CONFIG                                          (lines 57-66)
-  CLAUDE_CONFIG_DIR, CODEX_HOME, GEMINI_CLI_HOME                      (lines 68-74)
-  SHELL_SESSIONS_DISABLE=1                                            (lines 76-77)
-  HISTFILE, ZSH_COMPDUMP (not exported)                               (lines 79-82)
-  local.zshenv, zsh only, gitignored, last line of this file          (lines 84-89)
+    ZSHZ_DATA, DOCKER_CONFIG                                          (lines 72-81)
+  CLAUDE_CONFIG_DIR, CODEX_HOME, GEMINI_CLI_HOME                      (lines 83-89)
+  SHELL_SESSIONS_DISABLE=1                                            (lines 91-92)
+  HISTFILE, ZSH_COMPDUMP (not exported)                               (lines 94-97)
+  local.zshenv, zsh only, gitignored, last line of this file          (lines 99-104)
 .zprofile                              (login shells only)
   kept empty, comments only                                           (whole file)
 .zshrc                                 (interactive shells only)
@@ -117,7 +120,7 @@ Reading further down the chain in section 2 means overriding what came before, f
 | An alias | shared `aliases.zsh` → OS overlay `aliases.zsh` → host overlay `aliases.zsh` → `local.zsh` | the shared `config/zsh/aliases.zsh` defines no `install`, `up` or `cleanup`; each OS overlay's `zsh/aliases.zsh` adds its own, loaded after the shared file by `bootstrap.zsh` line 20 (`overlays/os/macos/zsh/aliases.zsh` lines 2-8 vs. `overlays/os/debian/zsh/aliases.zsh` lines 2-9) |
 | A function | shared `functions.zsh` → OS overlay `functions.zsh` → host overlay `functions.zsh` → `local.zsh` | `e` and `mkd` are defined in the shared `config/zsh/functions.zsh` (lines 2-15); a host overlay's `zsh/functions.zsh`, loaded after the shared one by `bootstrap.zsh` line 24, could redefine either (`overlays/host/example/zsh/functions.zsh` line 1 shows the shape; real host overlays are private, so this repo has no live example) |
 | A git setting | `config/git/config` → `config/git/host` include → `config/git/local` include | the default identity (`user.name`, `user.email`, `user.signingkey`) is set at `config/git/config` lines 1-4; `config/git/local`, included last at `config/git/config` lines 156-158, overrides it, which `config/git/local.example` lines 3-5 states directly |
-| A tool's spot on `PATH` | `.zshenv`'s early Homebrew prepend → shared `exports.zsh`'s prepends → tool hooks, in hook order (`mise` first, then name order) | `config/zsh/.zshenv` lines 20-28 put Homebrew's `bin` on `PATH` for every zsh; `config/brew/init.zsh` runs the full `brew shellenv` again later for interactive shells and then `typeset -U path` (lines 2-7), which keeps the newest copy of a duplicated entry, so Homebrew's `bin` ends up ahead of the mise shims that `config/mise/init.zsh` (first among the hooks, `bootstrap.zsh` line 30) had just put on `PATH` |
+| A tool's spot on `PATH` | `.zshenv`'s early Homebrew prepend → `.zshenv`'s mise shims prepend → shared `exports.zsh`'s prepends → tool hooks, in hook order (`mise` first, then name order) | `config/zsh/.zshenv` lines 20-28 put Homebrew's `bin` on `PATH` for every zsh, then lines 30-43 put mise's shims dir on `PATH` ahead of that; for an interactive shell, `config/mise/init.zsh`'s `mise activate zsh` (first among the hooks, `bootstrap.zsh` line 30) prepends the current directory's actual installed tool dirs ahead of both, and `config/brew/init.zsh` runs the full `brew shellenv` again after that for interactive shells and then `typeset -U path` (lines 2-7), which keeps the newest copy of a duplicated entry, so Homebrew's `bin` ends up ahead of mise's `activate`-resolved tool dirs, which stay ahead of the shims dir in turn — the shims dir only ever wins in the non-interactive shells that have no `activate` prepend to lose to |
 
 ## 5. Git config chain
 
