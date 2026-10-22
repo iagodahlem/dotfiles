@@ -27,6 +27,21 @@ for brew_bin in /opt/homebrew/bin /home/linuxbrew/.linuxbrew/bin; do
 done
 unset brew_bin
 
+# mise shims: thin wrappers that resolve the active tool version at call time (mise docs, "Shims vs mise activate",
+# https://mise.jdx.dev/dev-tools/shims.html). They work for any shell, including the non-interactive, non-login
+# ones an ssh command gets, and the ones agent subprocesses, editor tasks and git hooks spawn, none of which read
+# .zshrc and so never run `mise activate` (config/mise/init.zsh). An interactive shell still runs that activate
+# hook, which prepends the exact installed tool directories ahead of this entry on every prompt, so the shims here
+# never shadow it: they only matter where activate's hook never runs.
+mise_shims="${MISE_DATA_DIR:-$XDG_DATA_HOME/mise}/shims"
+if [ -d "$mise_shims" ]; then
+  case ":$PATH:" in
+    *":$mise_shims:"*) ;;
+    *) export PATH="$mise_shims:$PATH" ;;
+  esac
+fi
+unset mise_shims
+
 # dotfiles
 export DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 export DOTFILES_BIN="$DOTFILES/bin"

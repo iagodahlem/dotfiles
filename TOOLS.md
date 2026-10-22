@@ -309,7 +309,7 @@ A headless, always-on host's `install.sh` can call `pmset_never_sleep` from `scr
 
 ### mise (`config/mise/`)
 
-Activated first on shell start. `mise` itself comes from `packages/Brewfile` on macOS, `packages/pacman.txt` on Arch, and `https://mise.run` on the Debian family. `scripts/install-mise.sh` installs the tools below, then runs `corepack enable`.
+Activated first on shell start. `mise` itself comes from `packages/Brewfile` on macOS, `packages/pacman.txt` on Arch, and `https://mise.run` on the Debian family. `scripts/install-mise.sh` installs the tools below, then runs `corepack enable`. `mise activate zsh`, the shell hook below, runs only for interactive shells; `config/zsh/.zshenv` also puts mise's shims dir on `PATH` for every zsh, so the non-interactive, non-login shells an ssh command, an agent subprocess or a git hook gets (which read only `.zshenv`) still resolve `node`, `pnpm` and the rest. See "Shims vs `mise activate`" in [mise's docs](https://mise.jdx.dev/dev-tools/shims.html).
 
 | Tool | Version | Where it is declared |
 |---|---|---|
