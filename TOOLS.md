@@ -316,11 +316,12 @@ Activated first on shell start. `mise` itself comes from `packages/Brewfile` on 
 | node | lts | `config/mise/config.toml` |
 | pnpm | latest | `config/mise/config.toml` |
 | bun | latest | `config/mise/config.toml` |
-| go | 1.23.4 | `config/mise/config.toml` (not installed by the installer) |
-| ruby | 3.1.3 | `config/mise/config.toml` (not installed by the installer) |
-| rust | 1.68.2 | `config/mise/config.toml` (not installed by the installer) |
+| go | 1.27.3 | `config/mise/config.toml` (not installed by the installer) |
+| rust | 1.99.1 | `config/mise/config.toml` (not installed by the installer) |
 | atuin | latest | Debian family only, `config/mise/conf.d/apt-gaps.toml` (gitignored, reached as `~/.config/mise/conf.d/apt-gaps.toml`) written by `scripts/install-mise.sh` |
 | github:dalance/procs | latest | Debian family only, same fragment (`procs`) |
+
+Ruby has no global pin; each project pins its own Ruby.
 
 ### cargo
 

@@ -3,7 +3,7 @@
 # mise itself comes from the package lists on macOS and Arch, and from https://mise.run on the Debian family.
 # There it also installs atuin and procs, which the Debian family has no current package for.
 # Run it after install-dotfiles.sh has linked config/mise as ~/.config/mise.
-# The go, ruby and rust pins in config.toml are left for an explicit `mise install`.
+# The go and rust pins in config.toml are left for an explicit `mise install`.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
