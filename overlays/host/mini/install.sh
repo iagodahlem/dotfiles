@@ -78,6 +78,9 @@ rancher_path_paths_d() {
   fi
 
   echo "$dst: ${current:-missing} -> $rd_bin"
+  if is_dry_run; then
+    echo "would write $dst: $rd_bin"
+  fi
   run sudo tee "$dst" <<< "$rd_bin" || report_warning "sudo tee $dst failed, run it by hand"
 }
 
