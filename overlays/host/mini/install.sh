@@ -10,36 +10,43 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 source "$ROOT_DIR/scripts/utils/dry-run.sh"
 source "$ROOT_DIR/scripts/utils/ui.sh"
 source "$ROOT_DIR/scripts/utils/zshenv.sh"
+source "$ROOT_DIR/scripts/utils/pmset.sh"
 
 if ! command -v pmset > /dev/null 2>&1; then
   echo "pmset not found, this is not macOS: nothing to do"
   exit 0
 fi
 
-# The AC Power block of `pmset -g custom`: the indented lines after the "AC Power:" header, up to the next header.
-ac_block() {
-  pmset -g custom | awk '/^[^[:space:]]/ { in_ac = ($0 ~ /^AC Power/); next } in_ac { print }'
-}
+# How long rdctl and docker info get to answer before they count as stuck, below.
+RDCTL_TIMEOUT_SECS=5
+DOCKER_INFO_TIMEOUT_SECS=5
 
-# The value of one key in the AC block given as $2, empty when the block has no such key.
-ac_value() {
-  awk -v key="$1" '$1 == key { print $2; exit }' <<< "$2"
-}
+# Runs a command with a time limit, so a backend that accepts a connection and never answers (rdctl, docker info
+# against a stuck VM) cannot hang the rest of the housekeeping. Bash 3.2 (the one macOS ships) has no "wait -n",
+# so this races a background watcher against the command itself instead of shelling out to GNU coreutils' timeout,
+# which this machine does not have.
+with_timeout() {
+  local secs="$1" pid watcher status
+  shift
 
-# Sets one AC key when it is not already at the wanted value.
-ensure() {
-  local key="$1" want="$2" have
+  "$@" &
+  pid=$!
 
-  have="$(ac_value "$key" "$AC")"
+  (
+    sleep "$secs"
+    kill -TERM "$pid" 2>/dev/null
+  ) &
+  watcher=$!
 
-  if [ "$have" = "$want" ]; then
-    echo "pmset -c $key already $want"
-  elif is_dry_run; then
-    run sudo pmset -c "$key" "$want"
+  if wait "$pid" 2>/dev/null; then
+    status=0
   else
-    echo "pmset -c $key: ${have:-unset} -> $want"
-    run sudo pmset -c "$key" "$want"
+    status=$?
   fi
+
+  kill "$watcher" 2>/dev/null
+  wait "$watcher" 2>/dev/null
+  return "$status"
 }
 
 # Rancher Desktop only runs on this machine, so the shared dotfiles stay Rancher-agnostic and this installer owns
@@ -70,12 +77,8 @@ rancher_path_paths_d() {
     return 0
   fi
 
-  if is_dry_run; then
-    run sudo tee "$dst" <<< "$rd_bin"
-  else
-    echo "$dst: ${current:-missing} -> $rd_bin"
-    run sudo tee "$dst" <<< "$rd_bin"
-  fi
+  echo "$dst: ${current:-missing} -> $rd_bin"
+  run sudo tee "$dst" <<< "$rd_bin" || report_warning "sudo tee $dst failed, run it by hand"
 }
 
 # Rancher Desktop also defaults to managing PATH itself ("rcfiles"): writing its own block into shell rc files
@@ -99,17 +102,22 @@ rancher_path_manual() {
     return 0
   fi
 
-  have="$(jq -r '.application.pathManagementStrategy // "unset"' "$settings_file")"
+  if ! have="$(jq -r '.application.pathManagementStrategy // "unset"' "$settings_file" 2>/dev/null)"; then
+    report_warning "rancher desktop: $settings_file is not valid JSON, path management left alone"
+    return 0
+  fi
 
   if [ "$have" = "manual" ]; then
     echo "rancher desktop: path management already manual"
-  elif ! "$rdctl" list-settings > /dev/null 2>&1; then
-    echo "rancher desktop: not running, path management still $have (rerun once it is open)"
+  elif ! with_timeout "$RDCTL_TIMEOUT_SECS" "$rdctl" list-settings > /dev/null 2>&1; then
+    echo "rancher desktop: not running or not responding, path management still $have (rerun once it is open)"
   elif is_dry_run; then
     run "$rdctl" set --application.path-management-strategy=manual
   else
     echo "rancher desktop: path management $have -> manual"
-    run "$rdctl" set --application.path-management-strategy=manual
+    if ! with_timeout "$RDCTL_TIMEOUT_SECS" run "$rdctl" set --application.path-management-strategy=manual; then
+      report_warning "rancher desktop: rdctl set did not finish in ${RDCTL_TIMEOUT_SECS}s, path management still $have"
+    fi
   fi
 }
 
@@ -130,9 +138,18 @@ remove_dead_rcfiles() {
       continue
     fi
 
-    body="$(grep -v '^[[:space:]]*$' "$path")"
+    if [ ! -r "$path" ]; then
+      report_warning "rc file ~/$name is not readable, left alone"
+      continue
+    fi
+
+    # grep -v exits 1, with no error, when every line is blank (or the file is empty); that is not a failure here.
+    body="$(grep -v '^[[:space:]]*$' "$path" || true)"
 
     case "$body" in
+      "")
+        echo "rc file ~/$name is empty, nothing to clean up"
+        ;;
       "$start"$'\n'*"$end")
         ts="$(date +%Y%m%d%H%M%S)"
         if is_dry_run; then
@@ -151,12 +168,13 @@ remove_dead_rcfiles() {
 
 # Rancher Desktop's docker talks over ~/.rd/docker.sock, but installing it never points the docker CLI's own context
 # at that socket. Create the rancher-desktop context when it is missing, and only switch to it when the current
-# context's own endpoint socket is not there to answer, so a working OrbStack or Docker Desktop context is left
-# alone. DOCKER_CONFIG is resolved through resolve_zshenv_vars (see scripts/utils/zshenv.sh), the same way a zsh
-# login shell would see it, so this reads and writes the context config/zsh/.zshenv moved, not plain ~/.docker.
+# context does not answer a bounded `docker --context <name> info` probe (so a working ssh:// or tcp:// context,
+# not just a unix socket one, counts as live too), leaving a working OrbStack or Docker Desktop context alone.
+# DOCKER_CONFIG is resolved through resolve_zshenv_vars (see scripts/utils/zshenv.sh), the same way a zsh login
+# shell would see it, so this reads and writes the context config/zsh/.zshenv moved, not plain ~/.docker.
 docker_context_rancher() {
   local sock="$HOME/.rd/docker.sock"
-  local current endpoint line docker_config
+  local current line docker_config
 
   if [ ! -S "$sock" ]; then
     echo "docker: no ~/.rd/docker.sock, rancher-desktop context left alone"
@@ -169,9 +187,13 @@ docker_context_rancher() {
   fi
 
   if command -v zsh > /dev/null 2>&1; then
-    line="$(resolve_zshenv_vars DOCKER_CONFIG)"
-    docker_config="${line#DOCKER_CONFIG=}"
-    if [ "$docker_config" != "$ZSHENV_UNSET_MARK" ]; then
+    docker_config=""
+    while IFS= read -r line; do
+      case "$line" in
+        DOCKER_CONFIG=*) docker_config="${line#DOCKER_CONFIG=}" ;;
+      esac
+    done < <(resolve_zshenv_vars DOCKER_CONFIG)
+    if [ -n "$docker_config" ] && [ "$docker_config" != "$ZSHENV_UNSET_MARK" ]; then
       export DOCKER_CONFIG="$docker_config"
     fi
   else
@@ -192,31 +214,27 @@ docker_context_rancher() {
     return 0
   fi
 
-  endpoint="$(docker context inspect "$current" --format '{{ .Endpoints.docker.Host }}' 2>/dev/null || true)"
-  endpoint="${endpoint#unix://}"
-
-  if [ -n "$endpoint" ] && [ -S "$endpoint" ]; then
-    echo "docker: current context $current's endpoint is live, leaving it current"
+  if docker context inspect "$current" > /dev/null 2>&1 \
+    && with_timeout "$DOCKER_INFO_TIMEOUT_SECS" docker --context "$current" info > /dev/null 2>&1; then
+    echo "docker: current context $current answers, leaving it current"
     return 0
   fi
 
-  echo "docker: current context $current has no live endpoint, switching to rancher-desktop"
+  echo "docker: current context $current does not answer, switching to rancher-desktop"
   run docker context use rancher-desktop
 }
 
-AC="$(ac_block)"
-
-ensure sleep 0         # never sleep the system, so mosh keeps a machine to talk to
-ensure displaysleep 15 # the display still turns off, the machine stays up
-ensure womp 1          # "Wake for network access": the sleep proxy can wake it for a TCP connection if it is ever put to sleep by hand
-ensure disksleep 0     # no disk spin-down
+pmset_ensure -c "AC Power" sleep 0         # never sleep the system, so mosh keeps a machine to talk to
+pmset_ensure -c "AC Power" displaysleep 15 # the display still turns off, the machine stays up
+pmset_ensure -c "AC Power" womp 1          # "Wake for network access": the sleep proxy can wake it for a TCP connection if it is ever put to sleep by hand
+pmset_ensure -c "AC Power" disksleep 0     # no disk spin-down
 
 if is_dry_run; then
   echo "AC power now, nothing changed:"
 else
   echo "AC power now:"
 fi
-ac_block
+pmset_custom_block "AC Power"
 
 rancher_path_paths_d
 rancher_path_manual

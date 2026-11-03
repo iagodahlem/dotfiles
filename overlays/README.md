@@ -85,6 +85,8 @@ A private overlay's `install.sh` lives outside this checkout, so it has no `$ROO
 
 This is deliberately not in `os/macos.sh`: that script runs for every macOS machine the same way, so a setting only one of them should have belongs in that one host's overlay instead.
 
+A machine that is always plugged in but still wants to see its own setting changes, or only wants them on AC power (`-c`) rather than every power source (`-a`), wants diff-first reporting instead of `pmset_never_sleep`'s always-run approach: `scripts/utils/pmset.sh` also has `pmset_custom_block <header>` (the indented lines of one `pmset -g custom` block, "AC Power" or "Battery Power") and `pmset_ensure <scope> <block> <key> <value>`, which reads the block, sets the key through `run` only when it differs, and reports a failed call the same way `pmset_never_sleep` does (see `overlays/host/mini/install.sh` for a working example).
+
 ## Example
 
 `overlays/host/example/` has one file of each kind, each with a single commented line, and `DOTFILES_HOST=example` loads it anywhere:

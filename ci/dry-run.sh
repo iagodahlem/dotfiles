@@ -41,6 +41,42 @@ mkdir -p "$scratch/.machines/broken/dotfiles"
 printf '%s\n' '#!/usr/bin/env bash' 'echo "hook trouble" >&2' 'exit 3' > "$scratch/.machines/broken/dotfiles/install.sh"
 chmod +x "$scratch/.machines/broken/dotfiles/install.sh"
 
+# fixtures for overlays/host/mini/install.sh, run with DOTFILES_HOST=mini below: this machine has none of pmset,
+# rdctl or docker, so the host step would otherwise bail out before reaching the hook's own logic at all
+mini_bin="$scratch/bin"
+mkdir -p "$mini_bin"
+cat > "$mini_bin/pmset" <<'STUB'
+#!/usr/bin/env bash
+if [ "$1" = "-g" ] && [ "$2" = "custom" ]; then
+  cat <<'BLOCK'
+Battery Power:
+ lidwake 1
+AC Power:
+ sleep 1
+ displaysleep 10
+ womp 0
+ disksleep 10
+BLOCK
+fi
+STUB
+chmod +x "$mini_bin/pmset"
+cat > "$mini_bin/docker" <<'STUB'
+#!/usr/bin/env bash
+exit 1
+STUB
+chmod +x "$mini_bin/docker"
+# ~/.rd/bin present, so rancher_path_paths_d and rancher_path_manual have something to report on
+mkdir -p "$scratch/.rd/bin"
+cat > "$scratch/.rd/bin/rdctl" <<'STUB'
+#!/usr/bin/env bash
+exit 0
+STUB
+chmod +x "$scratch/.rd/bin/rdctl"
+mkdir -p "$scratch/Library/Preferences/rancher-desktop"
+printf '%s\n' '{"application":{"pathManagementStrategy":"rcfiles"}}' > "$scratch/Library/Preferences/rancher-desktop/settings.json"
+# an empty rc file: COR1/ADV1 crashed the whole host step on exactly this, with no message
+: > "$scratch/.bashrc"
+
 # the XDG variables and DOTFILES would point the steps at the real home, so they are dropped
 # --yes goes with every call, so a run here never waits for an answer
 installer() {
@@ -130,6 +166,16 @@ grep -qxF "running overlays/host/example/install.sh" <<<"$host" || { echo "$host
 # and a host with no overlay at all is only reported
 host="$(DOTFILES_HOST=nowhere installer --only host --dry-run 2>&1)" || { echo "$host"; fail "the host step failed for a host with no overlay"; }
 grep -qxF '  skip  no install.sh in the host overlay of nowhere' <<<"$host" || { echo "$host"; fail "the host step did not report a host with no overlay"; }
+
+# the mini overlay's real install.sh, not a crafted fixture: a runner has none of pmset, rdctl or docker, so the
+# stubs above put all three on PATH (rdctl also at ~/.rd/bin, where the hook looks for it), and an empty ~/.bashrc
+# is exactly the input that used to kill the whole host step before it reached anything else (COR1/ADV1)
+host="$(PATH="$mini_bin:$PATH" DOTFILES_HOST=mini installer --only host --dry-run 2>&1)" || { echo "$host"; fail "install.sh --only host --dry-run failed for DOTFILES_HOST=mini"; }
+grep -qxF "running overlays/host/mini/install.sh" <<<"$host" || { echo "$host"; fail "the mini host step did not run overlays/host/mini/install.sh"; }
+grep -Eq '^  host +(ok|warn) ' <<<"$host" || { echo "$host"; fail "the mini host step did not finish ok or warn"; }
+grep -q 'pmset -c sleep: 1 -> 0' <<<"$host" || { echo "$host"; fail "the mini host step did not report the pmset sleep change"; }
+grep -qxF 'rc file ~/.bashrc is empty, nothing to clean up' <<<"$host" || { echo "$host"; fail "the mini host step did not handle an empty rc file"; }
+grep -qxF 'docker: no ~/.rd/docker.sock, rancher-desktop context left alone' <<<"$host" || { echo "$host"; fail "the mini host step did not leave the docker context alone without a socket"; }
 
 # the host package lists come after the shared ones, on the Arch and Debian paths alike (DOTFILES_OS_ID picks the path on any runner)
 pkgs="$(DOTFILES_OS_ID=arch DOTFILES_HOST=example installer --only packages --dry-run 2>&1)" || { echo "$pkgs"; fail "the packages step failed on the Arch path"; }
