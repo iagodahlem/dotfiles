@@ -103,3 +103,5 @@ zsh/functions.zsh
 ```
 
 To add a machine, create `<name>/dotfiles/` in the private repo with only the files it needs. Nothing has to be registered anywhere. To keep an overlay in this repo instead, create `overlays/host/<name>/` the same way, where it is used only when the private repo has no folder for the host.
+
+`overlays/host/mini/` is a real one, not just the documented shape: a work machine with no private overlays repo at all, so its `Brewfile`, `install.sh` and their own `README.md` live here instead.

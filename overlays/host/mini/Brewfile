@@ -1,0 +1,3 @@
+# Extra casks for the mini, loaded with DOTFILES_HOST=mini (or a hostname of mini).
+
+cask "rancher" # container runtime

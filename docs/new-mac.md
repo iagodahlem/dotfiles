@@ -36,6 +36,8 @@ Use the ssh form above when this machine's key can reach the repo. On a machine 
 
 It pulls the repo instead on a machine that already has it, and does nothing but say private overlays are off while `DOTFILES_PRIVATE_REPO` is empty. `DOTFILES_PRIVATE` moves the checkout elsewhere. A dry run does not clone, so do this before the dry run to have the overlay of this machine in the report.
 
+On the mini, skip this step: its overlay lives in this repo at [`overlays/host/mini/`](../overlays/host/mini/README.md) instead of a private one, so `DOTFILES_PRIVATE_REPO` stays unset, and `~/.machines` is never cloned at all. `host_overlay_dir` finds it once the hostname resolves to `mini` (`hostname -s`; set `DOTFILES_HOST=mini` if it does not), so a dry run already reports it with no step 2 needed.
+
 Read what the installer would do. A dry run prints every step and changes nothing:
 
 ```sh
